@@ -1,0 +1,51 @@
+{
+  "name": "wallet-shield",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@coral-xyz/anchor": "0.29.0",
+    "@metaplex-foundation/mpl-bubblegum": "^5.0.2",
+    "@meteora-ag/dlmm": "1.9.3",
+    "@orca-so/common-sdk": "0.6.4",
+    "@orca-so/whirlpools-sdk": "0.13.12",
+    "@raydium-io/raydium-sdk-v2": "2.0.0-rc.20",
+    "@solana/spl-account-compression": "^0.4.1",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/wallet-adapter-base": "^0.9.27",
+    "@solana/wallet-adapter-react": "^0.15.39",
+    "@solana/wallet-adapter-react-ui": "^0.9.39",
+    "@solana/wallet-adapter-wallets": "^0.19.37",
+    "@solana/web3.js": "^1.98.4",
+    "@tanstack/react-virtual": "^3.13.19",
+    "bs58": "^6.0.0",
+    "clsx": "^2.1.1",
+    "decimal.js": "10.4.3",
+    "firebase": "^12.10.0",
+    "lucide-react": "^0.577.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-hot-toast": "^2.6.0",
+    "react-router-dom": "^7.13.1",
+    "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1"
+  }
+}
