@@ -1,6 +1,7 @@
 import { CNFTImageThumbnail } from './CNFTImageThumbnail';
 import { SpamScoreBadge } from './SpamScoreBadge';
 import { formatSpamSignal, truncateName } from '../utils/formatting';
+import { CNFT_RENT_RECOVERY_SOL } from '../constants';
 import type { CNFTItem } from '../types';
 
 interface CNFTItemRowProps {
@@ -22,8 +23,8 @@ export function CNFTItemRow({
         <div
             style={style}
             className={`flex items-center gap-3 px-3 py-2 border-b border-shield-border/30 transition-colors ${isDisabled
-                    ? 'opacity-60'
-                    : 'hover:bg-shield-border/10 cursor-pointer'
+                ? 'opacity-60'
+                : 'hover:bg-shield-border/10 cursor-pointer'
                 }`}
             onClick={() => !isDisabled && onToggle(item.id)}
         >
@@ -58,30 +59,38 @@ export function CNFTItemRow({
                     />
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                    {item.spamSignals.slice(0, 3).map((signal) => (
-                        <span
-                            key={signal}
-                            className="text-[10px] text-shield-muted bg-shield-border/30 rounded px-1.5 py-0.5"
-                        >
-                            {formatSpamSignal(signal)}
-                        </span>
-                    ))}
-                    {item.spamSignals.length > 3 && (
+                    {item.spamSignals.length > 0 ? (
+                        <>
+                            {item.spamSignals.slice(0, 3).map((signal) => (
+                                <span
+                                    key={signal}
+                                    className="text-[10px] text-shield-muted bg-shield-border/30 rounded px-1.5 py-0.5"
+                                >
+                                    {formatSpamSignal(signal)}
+                                </span>
+                            ))}
+                            {item.spamSignals.length > 3 && (
+                                <span className="text-[10px] text-shield-muted">
+                                    +{item.spamSignals.length - 3} more
+                                </span>
+                            )}
+                        </>
+                    ) : (
                         <span className="text-[10px] text-shield-muted">
-                            +{item.spamSignals.length - 3} more
+                            {item.collectionName || item.collection?.slice(0, 8) || 'No collection'}
                         </span>
                     )}
                 </div>
             </div>
 
-            {/* Value */}
+            {/* Recoverable SOL */}
             <div className="flex-shrink-0 text-right">
-                <span className="text-xs text-shield-muted">
-                    {item.estimatedValueSOL > 0
-                        ? `~${item.estimatedValueSOL.toFixed(4)} SOL`
-                        : '$0.00'}
+                <span className="text-xs text-shield-success font-medium">
+                    +{CNFT_RENT_RECOVERY_SOL} SOL
                 </span>
+                <p className="text-[10px] text-shield-muted">recoverable</p>
             </div>
         </div>
     );
 }
+

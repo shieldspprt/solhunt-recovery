@@ -1,12 +1,12 @@
 import { useMemo } from 'react';
-import { Flame, Loader2, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { Flame, Loader2, AlertTriangle, Recycle } from 'lucide-react';
 import { useCNFTScanner } from '../hooks/useCNFTScanner';
 import { useCNFTBurner } from '../hooks/useCNFTBurner';
 import { useCNFTStore } from '../hooks/useCNFTStore';
 import { CNFTCategorySection } from './CNFTCategorySection';
 import { BurnConfirmModal } from './BurnConfirmModal';
 import { BurnProgressModal } from './BurnProgressModal';
-import { CNFT_ERROR_MESSAGES, MAX_BURNS_PER_TX } from '../constants';
+import { CNFT_ERROR_MESSAGES, MAX_BURNS_PER_TX, CNFT_RENT_RECOVERY_SOL } from '../constants';
 import type { CNFTCategory } from '../types';
 
 const CATEGORY_ORDER: CNFTCategory[] = [
@@ -52,13 +52,8 @@ export function CNFTCleanerCard() {
 
     const isEmpty =
         isScanComplete && scanResult && scanResult.totalCNFTs === 0;
-    const isClean =
-        isScanComplete &&
-        scanResult &&
-        scanResult.spamCount === 0 &&
-        scanResult.lowValueCount === 0;
     const hasResults =
-        isScanComplete && scanResult && scanResult.totalCNFTs > 0 && !isClean;
+        isScanComplete && scanResult && scanResult.totalCNFTs > 0;
 
     // Burn modal states
     const showConfirmModal = burnStatus === 'awaiting_confirmation';
@@ -68,6 +63,17 @@ export function CNFTCleanerCard() {
     const totalBatches = useMemo(
         () => Math.ceil(selectedItems.length / MAX_BURNS_PER_TX),
         [selectedItems.length]
+    );
+
+    // Estimated SOL recovery
+    const estimatedRecoverySOL = useMemo(
+        () => selectedItems.length * CNFT_RENT_RECOVERY_SOL,
+        [selectedItems.length]
+    );
+
+    const totalRecoverableSOL = useMemo(
+        () => (scanResult?.totalCNFTs ?? 0) * CNFT_RENT_RECOVERY_SOL,
+        [scanResult?.totalCNFTs]
     );
 
     // Selected counts per category for the confirm modal
@@ -97,25 +103,25 @@ export function CNFTCleanerCard() {
                 {isIdle && (
                     <div className="p-8 text-center">
                         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-shield-accent/20 bg-shield-accent/10">
-                            <Flame className="h-7 w-7 text-shield-accent" />
+                            <Recycle className="h-7 w-7 text-shield-accent" />
                         </div>
                         <h2 className="text-xl font-bold text-shield-text mb-2">
-                            🗑️ cNFT Spam Cleaner
+                            🔥 NFT Burner — Recover SOL
                         </h2>
                         <p className="text-sm text-shield-muted mb-6 max-w-md mx-auto">
-                            Scan for spam and worthless compressed NFTs
-                            cluttering your wallet.
+                            Load all compressed NFTs in your wallet. Select junk
+                            to burn and recover SOL from rent.
                         </p>
                         <button
                             onClick={runScan}
                             className="inline-flex items-center gap-2 rounded-xl bg-shield-accent px-6 py-3 font-medium text-white hover:bg-shield-accent/90 transition-colors shadow-lg shadow-shield-accent/20"
                         >
-                            <Flame className="h-4 w-4" />
-                            Scan for cNFT Spam
+                            <Recycle className="h-4 w-4" />
+                            Load My NFTs
                         </button>
                         <p className="text-xs text-shield-muted mt-4">
-                            Uses Helius DAS · Checks metadata, collections &amp;
-                            spam signals
+                            Uses Helius DAS · ~0.00089 SOL recoverable per
+                            burned cNFT
                         </p>
                     </div>
                 )}
@@ -127,7 +133,7 @@ export function CNFTCleanerCard() {
                             <Loader2 className="h-7 w-7 text-shield-accent animate-spin" />
                         </div>
                         <h2 className="text-xl font-bold text-shield-text mb-2">
-                            🗑️ Scanning your cNFTs...
+                            🔍 Loading your NFTs...
                         </h2>
                         <p className="text-sm text-shield-muted mb-4">
                             {scanProgressText || 'Fetching assets...'}
@@ -160,30 +166,18 @@ export function CNFTCleanerCard() {
                     </div>
                 )}
 
-                {/* ─── EMPTY / CLEAN STATE ───────────────────────── */}
-                {(isEmpty || isClean) && scanResult && (
+                {/* ─── EMPTY STATE ──────────────────────────────── */}
+                {isEmpty && scanResult && (
                     <div className="p-8 text-center">
-                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-shield-success/20 bg-shield-success/10">
-                            <CheckCircle2 className="h-7 w-7 text-shield-success" />
+                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-shield-border/20 bg-shield-border/10">
+                            <Recycle className="h-7 w-7 text-shield-muted" />
                         </div>
                         <h2 className="text-xl font-bold text-shield-text mb-2">
-                            🗑️ Wallet Looks Clean
+                            No NFTs Found
                         </h2>
                         <p className="text-sm text-shield-muted mb-2">
-                            {scanResult.totalCNFTs === 0
-                                ? 'No cNFTs found in your wallet.'
-                                : 'No spam cNFTs found.'}
+                            No compressed NFTs found in your wallet.
                         </p>
-                        {scanResult.verifiedCount > 0 && (
-                            <p className="text-sm text-shield-muted">
-                                ✅ {scanResult.verifiedCount} verified
-                                collection item
-                                {scanResult.verifiedCount !== 1
-                                    ? 's'
-                                    : ''}{' '}
-                                kept safe.
-                            </p>
-                        )}
                         <button
                             onClick={() => store.resetAll()}
                             className="mt-6 inline-flex items-center gap-2 rounded-xl border border-shield-border px-4 py-2 text-sm text-shield-muted hover:text-shield-text hover:bg-shield-border/30 transition-colors"
@@ -198,39 +192,52 @@ export function CNFTCleanerCard() {
                     <div>
                         {/* Header */}
                         <div className="px-4 py-4 border-b border-shield-border/50">
-                            <h2 className="text-lg font-bold text-shield-text">
-                                🗑️ cNFT Scan Complete
-                            </h2>
-                            <p className="text-xs text-shield-muted mt-1">
-                                Found {scanResult.totalCNFTs} cNFTs ·{' '}
-                                {scanResult.spamCount} spam ·{' '}
-                                {scanResult.lowValueCount} low value
-                                {!scanResult.fullyScanned && (
-                                    <span className="text-shield-warning ml-1">
-                                        (wallet too large — showing first
-                                        10,000)
-                                    </span>
-                                )}
-                            </p>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-lg font-bold text-shield-text">
+                                        🔥 Your NFTs
+                                    </h2>
+                                    <p className="text-xs text-shield-muted mt-1">
+                                        {scanResult.totalCNFTs} NFTs found ·
+                                        Select items to burn and recover up to{' '}
+                                        <span className="text-shield-success font-medium">
+                                            ~{totalRecoverableSOL.toFixed(4)} SOL
+                                        </span>
+                                        {!scanResult.fullyScanned && (
+                                            <span className="text-shield-warning ml-1">
+                                                (wallet too large — showing first
+                                                10,000)
+                                            </span>
+                                        )}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => store.resetAll()}
+                                    className="text-xs text-shield-muted hover:text-shield-text border border-shield-border rounded-lg px-3 py-1.5 transition-colors"
+                                >
+                                    Re-scan
+                                </button>
+                            </div>
                         </div>
 
                         {/* Category sections */}
                         <div className="p-4 space-y-3">
-                            {CATEGORY_ORDER.map((cat) => (
-                                <CNFTCategorySection
-                                    key={cat}
-                                    category={cat}
-                                    items={scanResult.categories[cat]}
-                                    selectedIds={selectedIds}
-                                    onToggle={toggleItem}
-                                    onSelectAll={selectCategory}
-                                    onDeselectAll={deselectCategory}
-                                    defaultExpanded={
-                                        cat === 'spam' ||
-                                        cat === 'low_value'
-                                    }
-                                />
-                            ))}
+                            {CATEGORY_ORDER.map((cat) => {
+                                const items = scanResult.categories[cat];
+                                if (items.length === 0) return null;
+                                return (
+                                    <CNFTCategorySection
+                                        key={cat}
+                                        category={cat}
+                                        items={items}
+                                        selectedIds={selectedIds}
+                                        onToggle={toggleItem}
+                                        onSelectAll={selectCategory}
+                                        onDeselectAll={deselectCategory}
+                                        defaultExpanded
+                                    />
+                                );
+                            })}
                         </div>
 
                         {/* Footer with burn summary */}
@@ -241,9 +248,14 @@ export function CNFTCleanerCard() {
                                         <p className="text-sm font-medium text-shield-text">
                                             Selected:{' '}
                                             {burnEstimate.selectedCount}{' '}
-                                            cNFTs for burning
+                                            NFTs for burning
                                         </p>
                                         <div className="text-xs text-shield-muted mt-1 space-y-0.5">
+                                            <p className="text-shield-success font-medium">
+                                                Estimated recovery:{' '}
+                                                ~{estimatedRecoverySOL.toFixed(5)}{' '}
+                                                SOL
+                                            </p>
                                             <p>
                                                 Session fee:{' '}
                                                 {burnEstimate.sessionFeeSOL}{' '}
@@ -252,13 +264,6 @@ export function CNFTCleanerCard() {
                                             <p>
                                                 Network fees: ~
                                                 {burnEstimate.networkFeeSOL.toFixed(
-                                                    6
-                                                )}{' '}
-                                                SOL
-                                            </p>
-                                            <p className="font-medium text-shield-text">
-                                                Total:{' '}
-                                                {burnEstimate.totalCostSOL.toFixed(
                                                     6
                                                 )}{' '}
                                                 SOL
@@ -280,9 +285,9 @@ export function CNFTCleanerCard() {
                                         ) : (
                                             <>
                                                 <Flame className="h-4 w-4" />
-                                                Burn{' '}
+                                                🔥 Burn{' '}
                                                 {burnEstimate.selectedCount}{' '}
-                                                Spam cNFTs →
+                                                NFTs & Recover SOL →
                                             </>
                                         )}
                                     </button>
@@ -300,7 +305,7 @@ export function CNFTCleanerCard() {
                         {!burnEstimate && (
                             <div className="px-4 py-3 border-t border-shield-border/50 bg-shield-bg/30">
                                 <p className="text-sm text-shield-muted text-center">
-                                    Select cNFTs above to burn them.
+                                    Select NFTs above to burn and recover SOL.
                                 </p>
                             </div>
                         )}

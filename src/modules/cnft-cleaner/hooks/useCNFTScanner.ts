@@ -3,7 +3,6 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useCNFTStore } from './useCNFTStore';
 import { fetchAllCNFTs } from '../lib/dasScanner';
 import { scoreCNFTs, buildScanResult } from '../lib/spamScorer';
-import { fetchCollectionFloorPrices } from '../lib/collectionVerifier';
 import { logCNFTScanStarted, logCNFTScanComplete } from '@/lib/analytics';
 
 export function useCNFTScanner() {
@@ -16,7 +15,7 @@ export function useCNFTScanner() {
 
         store.setScanStatus('scanning');
         store.setScanError(null);
-        store.setCurrentProgressText('Fetching cNFTs...');
+        store.setCurrentProgressText('Fetching NFTs...');
         logCNFTScanStarted();
 
         try {
@@ -26,7 +25,7 @@ export function useCNFTScanner() {
                 heliusRpcUrl,
                 (loaded) => {
                     store.setCurrentProgressText(
-                        `Loaded ${loaded} cNFTs so far...`
+                        `Loaded ${loaded} NFTs so far...`
                     );
                 }
             );
@@ -53,28 +52,12 @@ export function useCNFTScanner() {
                 return;
             }
 
-            // 2. Fetch floor prices
-            store.setCurrentProgressText('Checking collection data...');
-            const collectionMints = [
-                ...new Set(
-                    assets
-                        .map(
-                            (a) =>
-                                a.grouping?.find(
-                                    (g) => g.group_key === 'collection'
-                                )?.group_value
-                        )
-                        .filter(Boolean) as string[]
-                ),
-            ];
-            const floorPrices =
-                await fetchCollectionFloorPrices(collectionMints);
+            // 2. Score all cNFTs (floor prices disabled — no CORS issues)
+            store.setCurrentProgressText('Categorizing NFTs...');
+            const emptyFloorPrices = new Map<string, number>();
+            const scoredItems = scoreCNFTs(assets, emptyFloorPrices);
 
-            // 3. Score all cNFTs
-            store.setCurrentProgressText('Scoring spam signals...');
-            const scoredItems = scoreCNFTs(assets, floorPrices);
-
-            // 4. Build scan result
+            // 3. Build scan result
             const result = buildScanResult(scoredItems, fullyScanned);
             store.setScanResult(result);
 
@@ -89,7 +72,7 @@ export function useCNFTScanner() {
         } catch {
             store.setScanStatus('error');
             store.setScanError(
-                'Could not scan cNFTs. Please try again.'
+                'Could not scan NFTs. Please try again.'
             );
         }
     }, [publicKey, heliusRpcUrl, store]);
@@ -102,3 +85,4 @@ export function useCNFTScanner() {
         runScan,
     };
 }
+

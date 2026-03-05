@@ -100,28 +100,51 @@ export function useCNFTBurner() {
             let burnedCount = 0;
             let failedCount = 0;
 
-            for (let i = 0; i < transactions.length; i++) {
+            // Transaction[0] is the session fee — send it first
+            store.setCurrentProgressText('Sending session fee...');
+            try {
+                const feeSigned = await signTransaction(transactions[0]);
+                const feeSig = await connection.sendRawTransaction(
+                    feeSigned.serialize()
+                );
+                await connection.confirmTransaction(feeSig, 'confirmed');
+                signatures.push(feeSig);
+            } catch (feeErr: unknown) {
+                const errMsg =
+                    feeErr instanceof Error
+                        ? feeErr.message
+                        : 'Fee transaction failed';
+                store.setBurnStatus('error');
+                store.setBurnError(`Session fee failed: ${errMsg}`);
+                return;
+            }
+
+            // Transactions[1..N] are individual burns
+            const burnTxs = transactions.slice(1);
+            for (let i = 0; i < burnTxs.length; i++) {
                 store.setCurrentProgressText(
-                    `Burning batch ${i + 1} of ${transactions.length}...`
+                    `Burning NFT ${i + 1} of ${burnTxs.length}...`
+                );
+
+                // Map burn tx index back to the selected item
+                const batchStart = i * MAX_BURNS_PER_TX;
+                const batchEnd = Math.min(
+                    batchStart + MAX_BURNS_PER_TX,
+                    selectedItems.length
+                );
+                const batchItems = selectedItems.slice(
+                    batchStart,
+                    batchEnd
                 );
 
                 try {
-                    const signed = await signTransaction(transactions[i]);
+                    const signed = await signTransaction(burnTxs[i]);
                     const sig = await connection.sendRawTransaction(
                         signed.serialize()
                     );
                     await connection.confirmTransaction(sig, 'confirmed');
 
                     signatures.push(sig);
-                    const batchStart = i * MAX_BURNS_PER_TX;
-                    const batchEnd = Math.min(
-                        batchStart + MAX_BURNS_PER_TX,
-                        selectedItems.length
-                    );
-                    const batchItems = selectedItems.slice(
-                        batchStart,
-                        batchEnd
-                    );
                     for (const item of batchItems) {
                         store.addCompletedItem({
                             assetId: item.id,
@@ -137,15 +160,6 @@ export function useCNFTBurner() {
                         txErr instanceof Error
                             ? txErr.message
                             : 'Transaction failed';
-                    const batchStart = i * MAX_BURNS_PER_TX;
-                    const batchEnd = Math.min(
-                        batchStart + MAX_BURNS_PER_TX,
-                        selectedItems.length
-                    );
-                    const batchItems = selectedItems.slice(
-                        batchStart,
-                        batchEnd
-                    );
                     for (const item of batchItems) {
                         store.addCompletedItem({
                             assetId: item.id,
