@@ -15,7 +15,7 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://*.helius-rpc.com https://api.mainnet-beta.solana.com https://api.devnet.solana.com https://*.firebaseio.com https://*.googleapis.com https://api.dexscreener.com https://transaction-v1.raydium.io https://api-v3.raydium.io https://api.jup.ag https://lite-api.jup.ag https://price.jup.ag https://quote-api.jup.ag https://dlmm-api.meteora.ag https://api-mainnet.magiceden.dev https://sanctum-extra-api.ngrok.dev https://arweave.net https://nftstorage.link https://ipfs.io https://cloudflare-ipfs.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src * data:;"
+    Content-Security-Policy = "default-src 'self'; connect-src 'self' https://*.helius-rpc.com wss://*.helius-rpc.com https://api.mainnet-beta.solana.com https://api.devnet.solana.com https://*.firebaseio.com https://*.googleapis.com https://api.dexscreener.com https://transaction-v1.raydium.io https://api-v3.raydium.io https://api.jup.ag https://lite-api.jup.ag https://price.jup.ag https://quote-api.jup.ag https://dlmm-api.meteora.ag https://api-mainnet.magiceden.dev https://sanctum-extra-api.ngrok.dev https://mainnet.block-engine.jito.wtf https://arweave.net https://nftstorage.link https://ipfs.io https://cloudflare-ipfs.com; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src * data:;"
     X-Frame-Options = "DENY"
     X-Content-Type-Options = "nosniff"
     X-XSS-Protection = "1; mode=block"
