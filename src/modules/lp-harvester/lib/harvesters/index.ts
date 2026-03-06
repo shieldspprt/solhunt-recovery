@@ -6,6 +6,7 @@ import {
     VersionedTransaction,
 } from '@solana/web3.js';
 import { LP_ERROR_MESSAGES } from '../../constants';
+import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { fetchTokenPrices } from '../pricer';
 import { calculateServiceFeeSOL, collectServiceFee } from '../feeCalculator';
 import { isCompoundAllowed } from '../validator';
@@ -127,15 +128,32 @@ async function buildProtocolHarvestTransaction(
     walletPublicKey: PublicKey,
     connection: Connection
 ): Promise<Transaction | VersionedTransaction> {
+    let tx: Transaction | VersionedTransaction;
+
     if (position.protocol === 'orca') {
-        return buildOrcaHarvestTransaction([position], walletPublicKey, connection);
+        tx = await buildOrcaHarvestTransaction([position], walletPublicKey, connection);
+    } else if (position.protocol === 'meteora') {
+        tx = await buildMeteoraHarvestTransaction(position, walletPublicKey, connection);
+    } else {
+        tx = await buildRaydiumHarvestTransaction([position], walletPublicKey, connection);
     }
 
-    if (position.protocol === 'meteora') {
-        return buildMeteoraHarvestTransaction(position, walletPublicKey, connection);
+    // Add priority fee instructions to legacy transactions
+    if (tx instanceof Transaction) {
+        const priorityFee = await getOptimalPriorityFee(connection);
+        const priorityIxs = buildPriorityFeeIxs(priorityFee);
+        // Prepend priority fee instructions
+        const existingIxs = [...tx.instructions];
+        tx.instructions = [];
+        for (const ix of priorityIxs) {
+            tx.add(ix);
+        }
+        for (const ix of existingIxs) {
+            tx.add(ix);
+        }
     }
 
-    return buildRaydiumHarvestTransaction([position], walletPublicKey, connection);
+    return tx;
 }
 
 export async function harvestAllPositions(

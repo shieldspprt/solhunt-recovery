@@ -5,6 +5,7 @@ import {
     Transaction,
 } from '@solana/web3.js';
 import { TREASURY_WALLET } from '@/config/constants';
+import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import {
     HARVEST_COMPOUND_FEE_PERCENT,
     HARVEST_FEE_PERCENT,
@@ -63,9 +64,14 @@ export async function collectServiceFee(params: {
     if (feeLamports <= 0) return null;
 
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    const priorityFee = await getOptimalPriorityFee(connection);
     const tx = new Transaction();
     tx.feePayer = walletPublicKey;
     tx.recentBlockhash = blockhash;
+    // Add priority fee instructions
+    for (const ix of buildPriorityFeeIxs(priorityFee)) {
+        tx.add(ix);
+    }
     tx.add(
         SystemProgram.transfer({
             fromPubkey: walletPublicKey,

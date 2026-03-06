@@ -13,23 +13,15 @@ import {
     JUPITER_API_KEY,
     JUPITER_LITE_SWAP_API,
     JUPITER_SWAP_API,
-    RAYDIUM_PRIORITY_FEE_API,
     RAYDIUM_SWAP_TX_API,
     TREASURY_WALLET,
 } from '@/config/constants';
+import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 
-interface RaydiumPriorityFeeData {
-    default?: {
-        vh?: number;
-        h?: number;
-        m?: number;
-    };
-}
 
-interface RaydiumPriorityFeeResponse {
-    success?: boolean;
-    data?: RaydiumPriorityFeeData;
-}
+
+
+
 
 interface RaydiumSerializedTx {
     transaction?: string;
@@ -96,18 +88,8 @@ function ensureWalletIsFeePayer(
     }
 }
 
-async function fetchPriorityFee(): Promise<number> {
-    try {
-        const response = await fetch(RAYDIUM_PRIORITY_FEE_API);
-        if (!response.ok) {
-            return 0;
-        }
-        const payload = (await response.json()) as RaydiumPriorityFeeResponse;
-        return payload.data?.default?.h ?? payload.data?.default?.m ?? 0;
-    } catch {
-        return 0;
-    }
-}
+
+
 
 async function fetchSerializedRaydiumTransactions(
     token: DustToken,
@@ -180,7 +162,12 @@ async function sendFeeTransfer(
     }
 
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    const priorityFee = await getOptimalPriorityFee(connection);
     const feeTx = new Transaction();
+    // Add priority fee instructions
+    for (const ix of buildPriorityFeeIxs(priorityFee)) {
+        feeTx.add(ix);
+    }
     feeTx.add(
         SystemProgram.transfer({
             fromPubkey: walletPublicKey,
@@ -288,7 +275,7 @@ export async function executeDustSwaps(params: ExecuteDustSwapsParams): Promise<
     let receivedLamports = 0;
     let sessionErrorMessage: string | null = null;
 
-    const priorityFeeMicroLamports = await fetchPriorityFee();
+    const priorityFeeMicroLamports = await getOptimalPriorityFee(connection);
 
     for (const token of tokens) {
         const quote = quotes.get(token.mint);

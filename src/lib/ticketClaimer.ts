@@ -24,6 +24,7 @@ import {
     TICKET_CLAIM_FEE_PERCENT,
     TREASURY_WALLET,
 } from '@/config/constants';
+import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 
 type SendTransactionFn = (
     transaction: Transaction | VersionedTransaction,
@@ -299,9 +300,13 @@ async function buildTicketTransaction(
     if (ticket.protocol === 'marinade') {
         const instruction = await buildMarinadeClaimInstruction(ticket, walletPublicKey, connection);
         const { blockhash } = await connection.getLatestBlockhash('confirmed');
+        const priorityFee = await getOptimalPriorityFee(connection);
         const tx = new Transaction();
         tx.feePayer = walletPublicKey;
         tx.recentBlockhash = blockhash;
+        for (const ix of buildPriorityFeeIxs(priorityFee)) {
+            tx.add(ix);
+        }
         tx.add(instruction);
         return tx;
     }
@@ -321,9 +326,13 @@ async function buildTicketTransaction(
 
         const instruction = buildStakeWithdrawInstruction(ticket, walletPublicKey, lamports);
         const { blockhash } = await connection.getLatestBlockhash('confirmed');
+        const priorityFee = await getOptimalPriorityFee(connection);
         const tx = new Transaction();
         tx.feePayer = walletPublicKey;
         tx.recentBlockhash = blockhash;
+        for (const ix of buildPriorityFeeIxs(priorityFee)) {
+            tx.add(ix);
+        }
         tx.add(instruction);
         return tx;
     }
@@ -347,9 +356,13 @@ async function sendFeeTransaction(
     if (lamports <= 0) return null;
 
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    const priorityFee = await getOptimalPriorityFee(connection);
     const feeTx = new Transaction();
     feeTx.feePayer = walletPublicKey;
     feeTx.recentBlockhash = blockhash;
+    for (const ix of buildPriorityFeeIxs(priorityFee)) {
+        feeTx.add(ix);
+    }
     feeTx.add(
         SystemProgram.transfer({
             fromPubkey: walletPublicKey,

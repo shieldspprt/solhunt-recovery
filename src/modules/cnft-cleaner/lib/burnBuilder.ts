@@ -7,6 +7,7 @@ import {
 } from '@solana/web3.js';
 import type { Connection } from '@solana/web3.js';
 import bs58 from 'bs58';
+import { getOptimalPriorityFee, buildPriorityFeeIxs, HIGH_COMPUTE_UNITS } from '@/lib/priorityFee';
 import {
     BUBBLEGUM_PROGRAM_ID,
     SPL_NOOP_PROGRAM_ID,
@@ -280,6 +281,7 @@ export async function buildBurnTransactions(
 
     const transactions: Transaction[] = [];
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    const priorityFee = await getOptimalPriorityFee(connection);
 
     // Fetch canopy depth (for future use — currently using tx-size-based truncation)
     void getCanopyDepth;
@@ -288,6 +290,10 @@ export async function buildBurnTransactions(
     const feeTx = new Transaction();
     feeTx.feePayer = walletPublicKey;
     feeTx.recentBlockhash = blockhash;
+    // Add priority fee instructions
+    for (const ix of buildPriorityFeeIxs(priorityFee)) {
+        feeTx.add(ix);
+    }
     feeTx.add(
         SystemProgram.transfer({
             fromPubkey: walletPublicKey,
@@ -308,6 +314,10 @@ export async function buildBurnTransactions(
         const tx = new Transaction();
         tx.feePayer = walletPublicKey;
         tx.recentBlockhash = blockhash;
+        // Add priority fee instructions for fast burn inclusion
+        for (const ix of buildPriorityFeeIxs(priorityFee, HIGH_COMPUTE_UNITS)) {
+            tx.add(ix);
+        }
         tx.add(buildBurnIx(item, proof, walletPublicKey, maxNodes));
         transactions.push(tx);
     }

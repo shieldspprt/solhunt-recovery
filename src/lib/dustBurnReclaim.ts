@@ -9,6 +9,7 @@ import {
     NETWORK_FEE_PER_SIGNATURE_SOL,
     TOKEN_ACCOUNT_RENT_LAMPORTS,
 } from '@/config/constants';
+import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 
 export interface DustBurnBatch {
     transaction: Transaction;
@@ -70,12 +71,18 @@ export async function buildDustBurnReclaimTransactions(
     }
 
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    const priorityFee = await getOptimalPriorityFee(connection);
     const tokenBatches = chunk(tokens, DUST_MAX_BURN_CLOSE_PER_TX);
     const txBatches: DustBurnBatch[] = [];
 
     for (let batchIndex = 0; batchIndex < tokenBatches.length; batchIndex += 1) {
         const batch = tokenBatches[batchIndex];
         const tx = new Transaction();
+
+        // Prepend priority fee instructions for faster inclusion
+        for (const ix of buildPriorityFeeIxs(priorityFee)) {
+            tx.add(ix);
+        }
 
         const validTokens: DustToken[] = [];
         for (const token of batch) {

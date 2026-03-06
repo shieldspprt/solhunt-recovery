@@ -15,6 +15,7 @@ import {
     ERROR_CODES,
     ERROR_MESSAGES,
 } from '@/config/constants';
+import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 
 /**
  * Maps our TokenProgramId string to the actual PublicKey.
@@ -83,10 +84,16 @@ export async function buildRevokeTransaction(
 
     // Step 3–5: Build transactions
     const transactions: Transaction[] = [];
+    const priorityFee = await getOptimalPriorityFee(connection);
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
         const batch = batches[batchIndex];
         const transaction = new Transaction();
+
+        // Prepend priority fee instructions for faster inclusion
+        for (const ix of buildPriorityFeeIxs(priorityFee)) {
+            transaction.add(ix);
+        }
 
         // Step 5: Add service fee to the FIRST transaction only
         if (batchIndex === 0) {

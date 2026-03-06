@@ -10,6 +10,7 @@ import {
     ERROR_CODES,
     ERROR_MESSAGES,
 } from '@/config/constants';
+import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 
 /**
  * Creates an AppError with the proper shape.
@@ -129,10 +130,16 @@ export async function buildReclaimTransactions(
 
     // Step 4: Build transactions
     const transactions: Transaction[] = [];
+    const priorityFee = await getOptimalPriorityFee(connection);
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
         const batch = batches[batchIndex];
         const transaction = new Transaction();
+
+        // Prepend priority fee instructions for faster inclusion
+        for (const ix of buildPriorityFeeIxs(priorityFee)) {
+            transaction.add(ix);
+        }
 
         // The FIRST transaction pays the service fee
         if (batchIndex === 0 && serviceFeeLamports > 0) {

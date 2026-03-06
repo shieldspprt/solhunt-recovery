@@ -53,6 +53,16 @@ const ALLOWED_PROGRAM_IDS = new Set<string>([
 
     // Associated Token Account program (used when creating ATAs for harvests)
     'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL',
+
+    // Jito tip accounts (destinations for priority tips)
+    'Cw8CFyM9FkoMi7K7Crf6HNQqf4uEMzpKw6QNghXLvLkY',
+    'DttWaMuVvTiDuNYK4QnkXjMXB3C43nD7LCzpkk4Gv7tM',
+    'HFqU5x63VTqvQss8hp11i4bPg73ip5Q6T2EYP4LBkCPa',
+    '96gYZGLnJYVFmbjzopPSU6QiEV5fGqZNyN9nmNhvrZU5',
+    'ADaUMid9yfUC5Qs6A3xcoG9t1n6WLwpABywey7QyQoL3',
+    'ADuUkR4vqLUMWXxW9gh6D6L8pMSgbwvN65aSzD7KCK2U',
+    'DfXygSm4jCyNCybVYYK6DwvWqjKee8pbDmJGcLWNDXjh',
+    '3AVi9Tg9Uo68tJfuvoKvqKNWKkS5URFMYA6gT1w2ndqW',
 ]);
 
 /**
