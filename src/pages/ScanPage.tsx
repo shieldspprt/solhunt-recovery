@@ -1,26 +1,20 @@
 import { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { ScannerCard } from '@/components/scanner/ScannerCard';
 import { ScanResults } from '@/components/scanner/ScanResults';
+import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { useWalletScanner } from '@/hooks/useWalletScanner';
 
 export function ScanPage() {
     const { connected } = useWallet();
-    const navigate = useNavigate();
     const location = useLocation();
     const {
         scanResult,
         hasResults,
         clearScan
     } = useWalletScanner();
-
-    useEffect(() => {
-        if (!connected) {
-            navigate('/', { replace: true });
-        }
-    }, [connected, navigate]);
 
     useEffect(() => {
         if (!hasResults || !location.hash) return;
@@ -34,12 +28,21 @@ export function ScanPage() {
         return () => clearTimeout(timer);
     }, [hasResults, location.hash]);
 
-    if (!connected) return null;
-
     return (
         <PageWrapper>
             <div className="py-8 sm:py-10 px-4 sm:px-6 w-full animate-fade-in-up">
-                {!hasResults || !scanResult ? (
+                {!connected ? (
+                    <div className="mx-auto w-full max-w-4xl">
+                        <div className="glass-card rounded-2xl p-8 text-center">
+                            <p className="text-shield-muted mb-4">
+                                Connect your wallet to scan for revocations, reclaimable rent, and dust.
+                            </p>
+                            <div className="flex justify-center">
+                                <WalletConnectButton size="lg" label="Connect Wallet" />
+                            </div>
+                        </div>
+                    </div>
+                ) : !hasResults || !scanResult ? (
                     <ScannerCard />
                 ) : (
                     <div className="w-full">
