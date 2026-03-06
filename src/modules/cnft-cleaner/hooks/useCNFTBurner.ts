@@ -11,7 +11,7 @@ import { logCNFTBurnInitiated, logCNFTBurnComplete } from '@/lib/analytics';
 import type { CNFTItem, BurnEstimate } from '../types';
 
 export function useCNFTBurner() {
-    const { publicKey, signTransaction } = useWallet();
+    const { publicKey, sendTransaction } = useWallet();
     const { connection } = useConnection();
     const store = useCNFTStore();
     const heliusRpcUrl = import.meta.env.VITE_HELIUS_RPC_URL;
@@ -83,7 +83,7 @@ export function useCNFTBurner() {
      * Execute burn after user confirms.
      */
     const executeBurn = useCallback(async () => {
-        if (!publicKey || !signTransaction) return;
+        if (!publicKey || !sendTransaction) return;
 
         store.setBurnStatus('burning');
 
@@ -103,10 +103,7 @@ export function useCNFTBurner() {
             // Transaction[0] is the session fee — send it first
             store.setCurrentProgressText('Sending session fee...');
             try {
-                const feeSigned = await signTransaction(transactions[0]);
-                const feeSig = await connection.sendRawTransaction(
-                    feeSigned.serialize()
-                );
+                const feeSig = await sendTransaction(transactions[0], connection);
                 await connection.confirmTransaction(feeSig, 'confirmed');
                 signatures.push(feeSig);
             } catch (feeErr: unknown) {
@@ -138,10 +135,7 @@ export function useCNFTBurner() {
                 );
 
                 try {
-                    const signed = await signTransaction(burnTxs[i]);
-                    const sig = await connection.sendRawTransaction(
-                        signed.serialize()
-                    );
+                    const sig = await sendTransaction(burnTxs[i], connection);
                     await connection.confirmTransaction(sig, 'confirmed');
 
                     signatures.push(sig);
@@ -195,7 +189,7 @@ export function useCNFTBurner() {
         }
     }, [
         publicKey,
-        signTransaction,
+        sendTransaction,
         selectedItems,
         store,
         connection,
