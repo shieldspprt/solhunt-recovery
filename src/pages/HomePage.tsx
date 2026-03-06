@@ -32,31 +32,59 @@ export function HomePage() {
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 mb-10">
                     {ENGINE_METADATA.map((engine) => {
                         const Icon = ENGINE_ICONS[engine.id] || Shield;
-                        return (
-                            <Link
-                                key={engine.id}
-                                to={engine.route}
-                                className="group glass-card rounded-2xl p-5 transition-all duration-200 hover:glow-border hover:bg-shield-card/80"
-                            >
+                        const isComingSoon = engine.status === 'coming_soon';
+
+                        const cardContent = (
+                            <>
                                 <div className="flex items-center gap-3 mb-2">
                                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-shield-accent/10 border border-shield-accent/20 group-hover:bg-shield-accent/15 transition-colors">
                                         <Icon className="h-4.5 w-4.5 text-shield-accent" />
                                     </div>
-                                    <h2 className="text-base font-bold text-shield-text">
-                                        {engine.name}
-                                    </h2>
+                                    <div className="flex items-center justify-between flex-1">
+                                        <h2 className="text-base font-bold text-shield-text">
+                                            {engine.name}
+                                        </h2>
+                                        {isComingSoon && (
+                                            <span className="inline-flex items-center rounded-md bg-shield-border/30 px-2 py-1 text-[10px] font-medium text-shield-muted ring-1 ring-inset ring-shield-border/50">
+                                                Coming Soon
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
                                 <p className="text-sm text-shield-muted leading-relaxed mb-3">
                                     {engine.description}
                                 </p>
 
-                                <div className="flex items-center justify-between">
-                                    <span className="flex items-center gap-1 text-xs text-shield-muted">
-                                        <TrendingUp className="h-3 w-3 text-shield-accent" />
-                                        Avg. recovery <span className="font-semibold text-shield-accent">~{engine.avgRecoverySOL} SOL</span>
-                                    </span>
-                                    <ArrowRight className="h-3.5 w-3.5 text-shield-border group-hover:text-shield-accent group-hover:translate-x-0.5 transition-all" />
+                                {!isComingSoon && (
+                                    <div className="flex items-center justify-between mt-auto">
+                                        <span className="flex items-center gap-1 text-xs text-shield-muted">
+                                            <TrendingUp className="h-3 w-3 text-shield-accent" />
+                                            Avg. recovery <span className="font-semibold text-shield-accent">~{engine.avgRecoverySOL} SOL</span>
+                                        </span>
+                                        <ArrowRight className="h-3.5 w-3.5 text-shield-border group-hover:text-shield-accent group-hover:translate-x-0.5 transition-all" />
+                                    </div>
+                                )}
+                            </>
+                        );
+
+                        if (isComingSoon) {
+                            return (
+                                <div
+                                    key={engine.id}
+                                    className="group glass-card rounded-2xl p-5 border-shield-border/30 opacity-70 cursor-not-allowed flex flex-col"
+                                >
+                                    {cardContent}
                                 </div>
+                            );
+                        }
+
+                        return (
+                            <Link
+                                key={engine.id}
+                                to={engine.route}
+                                className="group glass-card rounded-2xl p-5 transition-all duration-200 hover:glow-border hover:bg-shield-card/80 flex flex-col"
+                            >
+                                {cardContent}
                             </Link>
                         );
                     })}

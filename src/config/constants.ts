@@ -249,7 +249,7 @@ export interface EngineInfo {
     description: string;
     avgRecoverySOL: number;
     route: string;
-    status: 'live' | 'preview';
+    status: 'live' | 'preview' | 'coming_soon';
 }
 
 export const ENGINE_METADATA: EngineInfo[] = [
@@ -299,7 +299,7 @@ export const ENGINE_METADATA: EngineInfo[] = [
         description: 'Burn spam compressed NFTs and reclaim the clutter from your wallet.',
         avgRecoverySOL: 0.05,
         route: '/nft-cleaner',
-        status: 'live',
+        status: 'coming_soon',
     },
 ];
 
