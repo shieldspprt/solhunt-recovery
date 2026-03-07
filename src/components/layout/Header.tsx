@@ -8,7 +8,6 @@ const NAV_LINKS = [
     { label: 'Recover', path: '/scan' },
     { label: 'Stakes', path: '/tickets' },
     { label: 'LP Fees', path: '/lp-fees' },
-    { label: 'NFTs', path: '/nft-cleaner' },
     { label: 'Audit', path: '/audit' },
 ];
 
@@ -39,8 +38,8 @@ export function Header() {
                                 key={link.path}
                                 to={link.path}
                                 className={`rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors ${isActive
-                                        ? 'text-shield-accent bg-shield-accent/10'
-                                        : 'text-shield-muted hover:text-shield-text hover:bg-shield-card'
+                                    ? 'text-shield-accent bg-shield-accent/10'
+                                    : 'text-shield-muted hover:text-shield-text hover:bg-shield-card'
                                     }`}
                             >
                                 {link.label}
