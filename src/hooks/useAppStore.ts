@@ -25,6 +25,11 @@ import type {
     TicketClaimStatus_Action,
     TicketClaimResult,
     TicketClaimProgressItem,
+    // Engine 7
+    MEVScanStatus,
+    MEVScanResult,
+    MEVClaimStatus,
+    MEVClaimResult,
 } from '@/types';
 
 interface AppStore {
@@ -69,6 +74,16 @@ interface AppStore {
     ticketClaimResult: TicketClaimResult | null;
     ticketClaimProgress: TicketClaimProgressItem[];
     ticketClaimError: AppError | null;
+
+    // Engine 7: MEV claims state
+    mevScanStatus: MEVScanStatus;
+    mevScanResult: MEVScanResult | null;
+    mevScanError: AppError | null;
+    mevClaimStatus: MEVClaimStatus;
+    mevClaimResult: MEVClaimResult | null;
+    mevClaimError: AppError | null;
+    selectedMEVIds: string[];
+    mevProgressText: string;
 
     // Actions
     setScanStatus: (status: ScanStatus) => void;
@@ -117,6 +132,20 @@ interface AppStore {
     clearTicketClaim: () => void;
     clearTickets: () => void;
 
+    // Engine 7 Actions
+    setMEVScanStatus: (status: MEVScanStatus) => void;
+    setMEVScanResult: (result: MEVScanResult | null) => void;
+    setMEVScanError: (error: AppError | null) => void;
+    setMEVClaimStatus: (status: MEVClaimStatus) => void;
+    setMEVClaimResult: (result: MEVClaimResult | null) => void;
+    setMEVClaimError: (error: AppError | null) => void;
+    setSelectedMEVIds: (ids: string[]) => void;
+    toggleMEVItem: (id: string) => void;
+    selectAllMEV: () => void;
+    deselectAllMEV: () => void;
+    setMEVProgressText: (text: string) => void;
+    resetMEVClaim: () => void;
+
     resetAll: () => void;
 }
 
@@ -159,6 +188,16 @@ const initialState = {
     ticketClaimResult: null,
     ticketClaimProgress: [],
     ticketClaimError: null,
+
+    // Engine 7
+    mevScanStatus: 'idle' as MEVScanStatus,
+    mevScanResult: null,
+    mevScanError: null,
+    mevClaimStatus: 'idle' as MEVClaimStatus,
+    mevClaimResult: null,
+    mevClaimError: null,
+    selectedMEVIds: [],
+    mevProgressText: '',
 };
 
 export const useAppStore = create<AppStore>((set) => ({
@@ -201,6 +240,15 @@ export const useAppStore = create<AppStore>((set) => ({
             ticketClaimResult: null,
             ticketClaimProgress: [],
             ticketClaimError: null,
+            // Engine 7 reset
+            mevScanStatus: 'idle',
+            mevScanResult: null,
+            mevScanError: null,
+            mevClaimStatus: 'idle',
+            mevClaimResult: null,
+            mevClaimError: null,
+            selectedMEVIds: [],
+            mevProgressText: '',
         }),
 
     setRevokeStatus: (status) => set({ revokeStatus: status }),
@@ -299,6 +347,43 @@ export const useAppStore = create<AppStore>((set) => ({
             ticketClaimResult: null,
             ticketClaimProgress: [],
             ticketClaimError: null,
+            // Engine 7 reset
+            mevScanStatus: 'idle',
+            mevScanResult: null,
+            mevScanError: null,
+            mevClaimStatus: 'idle',
+            mevClaimResult: null,
+            mevClaimError: null,
+            selectedMEVIds: [],
+            mevProgressText: '',
+        }),
+
+    // Engine 7 Actions
+    setMEVScanStatus: (status) => set({ mevScanStatus: status }),
+    setMEVScanResult: (result) => set({ mevScanResult: result }),
+    setMEVScanError: (error) => set({ mevScanError: error, mevScanStatus: 'error' }),
+    setMEVClaimStatus: (status) => set({ mevClaimStatus: status }),
+    setMEVClaimResult: (result) => set({ mevClaimResult: result }),
+    setMEVClaimError: (error) => set({ mevClaimError: error, mevClaimStatus: 'error' }),
+    setSelectedMEVIds: (ids) => set({ selectedMEVIds: ids }),
+    toggleMEVItem: (id) =>
+        set((state) => ({
+            selectedMEVIds: state.selectedMEVIds.includes(id)
+                ? state.selectedMEVIds.filter((idx) => idx !== id)
+                : [...state.selectedMEVIds, id],
+        })),
+    selectAllMEV: () =>
+        set((state) => ({
+            selectedMEVIds: state.mevScanResult?.items.map((i) => `${i.stakeAccount}-${i.epoch}`) || [],
+        })),
+    deselectAllMEV: () => set({ selectedMEVIds: [] }),
+    setMEVProgressText: (text) => set({ mevProgressText: text }),
+    resetMEVClaim: () =>
+        set({
+            mevClaimStatus: 'idle',
+            mevClaimResult: null,
+            mevClaimError: null,
+            mevProgressText: '',
         }),
 
     resetAll: () => set(initialState),

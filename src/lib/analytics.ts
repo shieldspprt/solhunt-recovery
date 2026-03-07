@@ -248,3 +248,37 @@ export function logCNFTBurnComplete(data: {
 }): void {
     logEvent('cnft_burn_complete', data);
 }
+
+// ─── Engine 7 Events ──────────────────────────────────────────────────
+export function logMEVScanStarted(): void {
+    logEvent('mev_scan_started', { timestamp: Date.now() });
+}
+
+export function logMEVScanComplete(data: {
+    totalItems: number;
+    totalSOL: number;
+    epochsFound: number;
+    oldestEpoch: number | null;
+}): void {
+    logEvent('mev_scan_complete', {
+        ...data,
+        oldestEpoch: data.oldestEpoch ?? -1,
+    });
+}
+
+export function logMEVClaimInitiated(data: {
+    selectedCount: number;
+    totalSOL: number;
+    serviceFeeSOL: number;
+}): void {
+    logEvent('mev_claim_initiated', data);
+}
+
+export function logMEVClaimComplete(data: {
+    success: boolean;
+    claimedCount: number;
+    failedCount: number;
+    totalClaimedSOL: number;
+}): void {
+    logEvent('mev_claim_complete', data);
+}

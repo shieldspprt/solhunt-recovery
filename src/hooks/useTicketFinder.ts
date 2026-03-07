@@ -3,6 +3,7 @@ import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { scanForStakingTickets } from '@/lib/ticketScanner';
 import { claimAllTickets } from '@/lib/ticketClaimer';
+import { useMEVClaims } from '@/hooks/useMEVClaims';
 import {
     logTicketClaimComplete,
     logTicketClaimInitiated,
@@ -54,6 +55,8 @@ export function useTicketFinder() {
         clearTicketClaim,
         clearTickets,
     } = useAppStore();
+
+    const { scanMEVClaims } = useMEVClaims();
 
     const claimEstimate = useMemo<TicketClaimEstimate>(() => {
         const claimableCount = ticketScanResult?.claimableTickets.length || 0;
@@ -124,6 +127,11 @@ export function useTicketFinder() {
                 protocolsWithErrors: result.protocolsWithErrors.length,
                 hadAnyTickets: result.tickets.length > 0,
             });
+
+            // NEW — Engine 7 scan (runs in parallel, doesn't block tickets)
+            scanMEVClaims().catch((err) => {
+                console.error('MEV scan failed silently', err);
+            });
         } catch (error) {
             const appError = error && typeof error === 'object' && 'code' in error
                 ? (error as AppError)
@@ -140,6 +148,7 @@ export function useTicketFinder() {
         setTicketScanStatus,
         setTicketScanResult,
         setTicketScanError,
+        scanMEVClaims,
     ]);
 
     const initiateClaimAll = useCallback(() => {

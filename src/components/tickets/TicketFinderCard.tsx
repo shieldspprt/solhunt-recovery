@@ -1,6 +1,9 @@
 import { Loader2, Ticket } from 'lucide-react';
 import { ClaimConfirmModal } from '@/components/tickets/ClaimConfirmModal';
 import { ClaimProgressModal } from '@/components/tickets/ClaimProgressModal';
+import { MEVClaimConfirmModal } from '@/components/tickets/MEVClaimConfirmModal';
+import { MEVClaimProgressModal } from '@/components/tickets/MEVClaimProgressModal';
+import { MEVClaimsSection } from '@/components/tickets/MEVClaimsSection';
 import { PendingTicketRow } from '@/components/tickets/PendingTicketRow';
 import { TicketRow } from '@/components/tickets/TicketRow';
 import { useTicketFinder } from '@/hooks/useTicketFinder';
@@ -192,6 +195,8 @@ export function TicketFinderCard() {
                         Note: {ticketScanResult.protocolsWithErrors.join(', ')} could not be scanned. Try again later.
                     </p>
                 )}
+
+                <MEVClaimsSection />
             </div>
         );
     };
@@ -205,6 +210,8 @@ export function TicketFinderCard() {
 
             <ClaimConfirmModal />
             <ClaimProgressModal />
+            <MEVClaimConfirmModal />
+            <MEVClaimProgressModal />
         </>
     );
 }

@@ -1,0 +1,110 @@
+import { AlertTriangle, Zap, X } from 'lucide-react';
+import { useMEVClaims } from '@/hooks/useMEVClaims';
+import { MEV_SERVICE_FEE_PERCENT } from '@/config/constants';
+import { estimateUSD, formatSOLValue, shortenAddress } from '@/lib/formatting';
+
+export function MEVClaimConfirmModal() {
+    const {
+        mevClaimStatus,
+        selectedItems,
+        claimEstimate,
+        cancelClaim,
+        executeClaim,
+    } = useMEVClaims();
+
+    if (mevClaimStatus !== 'awaiting_confirmation' || !claimEstimate) return null;
+
+    const preview = selectedItems.slice(0, 8);
+    const hidden = Math.max(selectedItems.length - preview.length, 0);
+
+    return (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+            <div
+                className="absolute inset-0 bg-shield-bg/80 backdrop-blur-sm"
+                onClick={cancelClaim}
+            />
+
+            <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                <button
+                    onClick={cancelClaim}
+                    className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
+                >
+                    <X className="h-5 w-5" />
+                </button>
+
+                <div className="p-6 sm:p-8">
+                    <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-accent/10 border border-shield-accent/20">
+                        <Zap className="h-8 w-8 text-shield-accent" fill="currentColor" />
+                    </div>
+
+                    <h2 className="text-xl font-bold text-center text-shield-text mb-4">
+                        Claim {claimEstimate.selectedCount} MEV Reward{claimEstimate.selectedCount === 1 ? '' : 's'}?
+                    </h2>
+
+                    <div className="rounded-xl border border-shield-border bg-shield-bg p-4 mb-4">
+                        <p className="text-xs uppercase tracking-wider text-shield-muted mb-2">Rewards to claim</p>
+                        <div className="space-y-1">
+                            {preview.map((item) => (
+                                <div key={`${item.stakeAccount}-${item.epoch}`} className="flex items-center justify-between text-sm">
+                                    <span className="text-shield-muted">Epoch {item.epoch} ({shortenAddress(item.stakeAccount, 4)})</span>
+                                    <span className="font-mono text-shield-text">{formatSOLValue(item.totalSOL)}</span>
+                                </div>
+                            ))}
+                            {hidden > 0 && (
+                                <p className="text-xs text-shield-muted pt-1">+{hidden} more rewards</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="rounded-xl border border-shield-border bg-shield-bg p-4 mb-4">
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-shield-muted">Total claimable:</span>
+                                <span className="font-mono text-shield-text">{formatSOLValue(claimEstimate.totalClaimSOL)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-shield-muted">Service fee ({MEV_SERVICE_FEE_PERCENT}%):</span>
+                                <span className="font-mono text-shield-accent">-{formatSOLValue(claimEstimate.serviceFeeSOL)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-shield-muted">Network fees (est):</span>
+                                <span className="font-mono text-shield-accent">~{formatSOLValue(claimEstimate.networkFeeSOL)}</span>
+                            </div>
+                            <div className="border-t border-shield-border/60 my-2" />
+                            <div className="flex justify-between font-semibold">
+                                <span className="text-shield-text">You receive:</span>
+                                <span className="font-mono text-shield-success text-lg">
+                                    ~{formatSOLValue(claimEstimate.netReceivedSOL)} ({estimateUSD(claimEstimate.netReceivedSOL)})
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {claimEstimate.totalClaimSOL > 10 && (
+                        <div className="rounded-xl border border-shield-danger/30 bg-shield-danger/10 p-3 mb-4">
+                            <p className="text-xs text-shield-danger font-medium flex items-start gap-2">
+                                <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                You are about to claim more than 10 SOL. Verify this is your wallet before proceeding.
+                            </p>
+                        </div>
+                    )}
+
+                    <div className="flex flex-col-reverse sm:flex-row gap-3">
+                        <button
+                            onClick={cancelClaim}
+                            className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={executeClaim}
+                            className="flex-1 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
+                        >
+                            Claim {formatSOLValue(claimEstimate.netReceivedSOL)}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

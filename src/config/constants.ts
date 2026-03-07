@@ -55,6 +55,14 @@ export const ERROR_CODES = {
     TICKET_CLAIM_FAILED: 'TICKET_CLAIM_FAILED',
     TICKET_ALREADY_CLAIMED: 'TICKET_ALREADY_CLAIMED',
     TICKET_NOT_READY: 'TICKET_NOT_READY',
+
+    // Engine 7
+    MEV_SCAN_FAILED: 'MEV_SCAN_FAILED',
+    MEV_CLAIM_FAILED: 'MEV_CLAIM_FAILED',
+    MEV_CLAIM_PARTIAL: 'MEV_CLAIM_PARTIAL',
+    MEV_ALREADY_CLAIMED: 'MEV_ALREADY_CLAIMED',
+    MEV_PROOF_INVALID: 'MEV_PROOF_INVALID',
+    MEV_API_UNAVAILABLE: 'MEV_API_UNAVAILABLE',
 } as const;
 
 export const ERROR_MESSAGES: Record<keyof typeof ERROR_CODES, string> = {
@@ -89,6 +97,14 @@ export const ERROR_MESSAGES: Record<keyof typeof ERROR_CODES, string> = {
     TICKET_CLAIM_FAILED: 'Ticket claim failed. Your SOL was not affected. Please try again.',
     TICKET_ALREADY_CLAIMED: 'This ticket has already been claimed.',
     TICKET_NOT_READY: 'This ticket cannot be claimed yet. The unstaking period has not completed.',
+
+    // Engine 7
+    MEV_SCAN_FAILED: 'Could not fetch MEV rewards. This is optional — your staking tickets are unaffected.',
+    MEV_CLAIM_FAILED: 'Claim transaction failed. Your unclaimed rewards are still waiting.',
+    MEV_CLAIM_PARTIAL: 'Some rewards were claimed. Check details below.',
+    MEV_ALREADY_CLAIMED: 'These rewards have already been claimed.',
+    MEV_PROOF_INVALID: 'Reward proof is invalid or expired. This epoch may have been recalculated.',
+    MEV_API_UNAVAILABLE: 'Jito rewards API is temporarily unavailable. Try again later.',
 };
 
 // ─── Known Safe Delegate Addresses ──────────────────────────────
@@ -242,6 +258,36 @@ export const PROTOCOL_INFO: Record<StakingProtocol, { displayName: string; logoU
     unknown: { displayName: 'Unknown Protocol', logoUri: null },
 };
 
+// ─── ENGINE 7: MEV CLAIM CONSTANTS ────────────────────────────────────────
+
+// Jito on-chain programs
+export const TIP_DISTRIBUTION_PROGRAM_ID = '4R3gSG8BpU4t19KYj8CfnbtRpnT8gtk4dvTHxVRwc2r7';
+export const TIP_PAYMENT_PROGRAM_ID = 'T1pyyaTNZsKv2WcRAB8oVnk93mLJw2XzjtVYqCsaHqt';
+
+// Jito API
+export const JITO_KOBE_API_BASE = 'https://kobe.mainnet.jito.network';
+export const JITO_STAKER_REWARDS_ENDPOINT = '/api/v1/staker_rewards';
+
+// Claim instruction discriminator
+// sha256("global:claim")[0..8] — first 8 bytes
+export const CLAIM_DISCRIMINATOR = Buffer.from([
+    62, 198, 214, 193, 213, 159, 108, 210
+]);
+
+// Fees
+export const MEV_SERVICE_FEE_PERCENT = 5;
+export const MEV_SERVICE_FEE_DENOMINATOR = 100;
+
+// Limits
+export const MEV_MAX_CLAIMS_PER_TX = 4;   // Claims per transaction
+export const MEV_API_PAGE_SIZE = 100;  // Items per API call
+
+// Minimum claimable threshold
+export const MEV_MIN_CLAIM_LAMPORTS = 5000; // 0.000005 SOL minimum
+
+// Claim instruction seeds
+export const CLAIM_STATUS_SEED = Buffer.from('claim_status');
+
 // ─── Engine Metadata (UI) ───────────────────────────────────────
 export interface EngineInfo {
     id: number;
@@ -294,12 +340,12 @@ export const ENGINE_METADATA: EngineInfo[] = [
         status: 'live',
     },
     {
-        id: 6,
-        name: 'Clean NFTs',
-        description: 'Burn spam compressed NFTs and reclaim the clutter from your wallet.',
-        avgRecoverySOL: 0.05,
-        route: '/nft-cleaner',
-        status: 'coming_soon',
+        id: 7,
+        name: 'MEV & Priority Fees',
+        description: 'Aggregate and claim your Jito MEV tips and routing priority fees instantly.',
+        avgRecoverySOL: 0.25,
+        route: '/tickets',
+        status: 'live',
     },
 ];
 

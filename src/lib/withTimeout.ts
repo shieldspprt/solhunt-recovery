@@ -50,7 +50,7 @@ export async function withTimeout<T>(
  * Audit Spec §5.4 — Transaction Confirmation Robustness.
  */
 export async function confirmTransactionRobust(
-    connection: { getSignatureStatus: (sig: string) => Promise<{ value: { err: unknown; confirmationStatus: string | null } | null }> },
+    connection: { getSignatureStatus: (sig: string) => Promise<{ value: { err: unknown; confirmationStatus?: string | null } | null }> },
     signature: string,
     commitment: 'confirmed' | 'finalized' = 'confirmed',
     maxTimeoutMs: number = 60_000

@@ -310,3 +310,90 @@ export interface TicketClaimProgressItem {
     claimedSOL: number;
     message: string;
 }
+
+// ─── ENGINE 7: MEV & PRIORITY FEE CLAIMS ─────────────────
+
+export interface MEVClaimItem {
+    // Identity
+    stakeAccount: string;           // Stake account pubkey
+    voteAccount: string;            // Validator vote account
+    validatorName: string | null;   // Human readable (from Jito API or null)
+    epoch: number;                  // Epoch this reward is from
+
+    // Amounts
+    mevLamports: number;            // Claimable MEV tip rewards
+    priorityFeeLamports: number;    // Claimable priority fee rewards
+    totalLamports: number;          // mevLamports + priorityFeeLamports
+    totalSOL: number;               // totalLamports / LAMPORTS_PER_SOL
+    estimatedValueUSD: number;      // totalSOL * solPrice
+
+    // Commission (shown for transparency)
+    mevCommissionBps: number;       // Validator's MEV commission
+    priorityFeeCommissionBps: number;
+
+    // Claim data (needed to build transaction)
+    tipDistributionAccount: string;
+    claimStatusAccount: string;
+    merkleProof: string[];          // Base58 encoded proof nodes
+    merkleRoot: string;
+
+    // State
+    isClaimed: boolean;             // Already claimed — should be filtered out
+    isSelected: boolean;            // User selection for batch claim
+}
+
+export interface MEVScanResult {
+    scannedAt: Date;
+    totalItems: number;
+    totalClaimableSOL: number;
+    totalClaimableUSD: number;
+    items: MEVClaimItem[];
+    epochsScanned: number[];        // Which epochs had claimable rewards
+    oldestEpoch: number | null;     // Oldest unclaimed epoch found
+    newestEpoch: number | null;     // Most recent unclaimed epoch found
+}
+
+export interface MEVClaimEstimate {
+    selectedCount: number;
+    totalClaimSOL: number;
+    totalClaimUSD: number;
+    serviceFeeSOL: number;          // 5% of totalClaimSOL
+    serviceFeeLamports: number;
+    networkFeeSOL: number;          // ~0.000005 * tx count
+    netReceivedSOL: number;         // totalClaimSOL - serviceFeeSOL
+}
+
+export interface MEVClaimResultItem {
+    stakeAccount: string;
+    epoch: number;
+    success: boolean;
+    signature: string | null;
+    claimedLamports: number;
+    errorMessage: string | null;
+}
+
+export interface MEVClaimResult {
+    success: boolean;
+    claimedCount: number;
+    failedCount: number;
+    totalClaimedLamports: number;
+    totalClaimedSOL: number;
+    serviceFeeSignature: string | null;
+    signatures: string[];
+    items: MEVClaimResultItem[];
+}
+
+export type MEVScanStatus =
+    | 'idle'
+    | 'scanning'
+    | 'scan_complete'
+    | 'no_rewards'
+    | 'error';
+
+export type MEVClaimStatus =
+    | 'idle'
+    | 'awaiting_confirmation'
+    | 'claiming'
+    | 'sending_fee'
+    | 'complete'
+    | 'error';
