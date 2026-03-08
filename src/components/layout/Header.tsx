@@ -6,7 +6,6 @@ import { shortenAddress } from '@/lib/formatting';
 
 const NAV_LINKS = [
     { label: 'How It Works', path: '/how-it-works' },
-    { label: 'Audit', path: '/audit' },
 ];
 
 const EXTERNAL_LINKS = [

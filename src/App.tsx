@@ -9,7 +9,6 @@ import { primaryConnection } from '@/config/solana';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { HomePage } from '@/pages/HomePage';
 import { ScanPage } from '@/pages/ScanPage';
-import { AuditPage } from '@/pages/AuditPage';
 import { TicketFinderPage } from '@/pages/TicketFinderPage';
 import { LpFeeHarvesterPage } from '@/pages/LpFeeHarvesterPage';
 import { NftSpamCleanerPage } from '@/pages/NftSpamCleanerPage';
@@ -82,7 +81,6 @@ function App() {
                                 <Route path="/buffers" element={<BufferRecoveryPage />} />
                                 <Route path="/how-it-works" element={<HowItWorksPage />} />
                                 <Route path="/how-it-works/engine/:id" element={<EngineHowItWorksPage />} />
-                                <Route path="/audit" element={<AuditPage />} />
                                 <Route path="/404" element={<NotFoundPage />} />
                                 <Route path="*" element={<Navigate to="/404" replace />} />
                             </Routes>

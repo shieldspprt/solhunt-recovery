@@ -149,10 +149,9 @@ export function HomePage() {
                             </p>
                         </div>
                         <div className="rounded-xl bg-shield-bg/80 border border-shield-border/50 p-3">
-                            <div className="font-semibold text-shield-text mb-1">🛡️ Audited code</div>
+                            <div className="font-semibold text-shield-text mb-1">🤝 Community built</div>
                             <p className="text-shield-muted leading-relaxed">
-                                Program whitelist, integer fee math, zero data stored.{' '}
-                                <Link to="/audit" className="text-shield-accent hover:underline">Read the audit →</Link>
+                                Built for the Solana community, by the community. No hidden agendas, just pure utility.
                             </p>
                         </div>
                     </div>
