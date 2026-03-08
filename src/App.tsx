@@ -13,6 +13,7 @@ import { AuditPage } from '@/pages/AuditPage';
 import { TicketFinderPage } from '@/pages/TicketFinderPage';
 import { LpFeeHarvesterPage } from '@/pages/LpFeeHarvesterPage';
 import { NftSpamCleanerPage } from '@/pages/NftSpamCleanerPage';
+import { BufferRecoveryPage } from '@/pages/BufferRecoveryPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { useAppStore } from '@/hooks/useAppStore';
 
@@ -76,6 +77,7 @@ function App() {
                                 <Route path="/tickets" element={<TicketFinderPage />} />
                                 <Route path="/lp-fees" element={<LpFeeHarvesterPage />} />
                                 <Route path="/nft-cleaner" element={<NftSpamCleanerPage />} />
+                                <Route path="/buffers" element={<BufferRecoveryPage />} />
                                 <Route path="/audit" element={<AuditPage />} />
                                 <Route path="/404" element={<NotFoundPage />} />
                                 <Route path="*" element={<Navigate to="/404" replace />} />

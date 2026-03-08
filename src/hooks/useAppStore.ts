@@ -31,6 +31,12 @@ import type {
     MEVClaimStatus,
     MEVClaimResult,
 } from '@/types';
+import type {
+    BufferScanStatus,
+    BufferScanResult,
+    BufferCloseStatus,
+    BufferCloseResult,
+} from '@/modules/buffer-recovery/types';
 
 interface AppStore {
     // Agentic SEO
@@ -87,6 +93,15 @@ interface AppStore {
     mevClaimError: AppError | null;
     selectedMEVIds: string[];
     mevProgressText: string;
+
+    // Engine 9: Buffer recovery state
+    bufferScanStatus: BufferScanStatus;
+    bufferScanResult: BufferScanResult | null;
+    bufferScanError: AppError | null;
+    selectedBufferAddresses: string[];
+    bufferCloseStatus: BufferCloseStatus;
+    bufferCloseResult: BufferCloseResult | null;
+    bufferCloseError: AppError | null;
 
     // Actions
     setAgentWallet: (wallet: string | null) => void;
@@ -151,6 +166,19 @@ interface AppStore {
     setMEVProgressText: (text: string) => void;
     resetMEVClaim: () => void;
 
+    // Engine 9 Actions
+    setBufferScanStatus: (status: BufferScanStatus) => void;
+    setBufferScanResult: (result: BufferScanResult | null) => void;
+    setBufferScanError: (error: AppError | null) => void;
+    setSelectedBufferAddresses: (addresses: string[]) => void;
+    toggleBufferSelection: (address: string) => void;
+    selectAllBuffers: () => void;
+    deselectAllBuffers: () => void;
+    setBufferCloseStatus: (status: BufferCloseStatus) => void;
+    setBufferCloseResult: (result: BufferCloseResult | null) => void;
+    setBufferCloseError: (error: AppError | null) => void;
+    clearBuffers: () => void;
+
     resetAll: () => void;
 }
 
@@ -206,6 +234,15 @@ const initialState = {
     mevClaimError: null,
     selectedMEVIds: [],
     mevProgressText: '',
+
+    // Engine 9
+    bufferScanStatus: 'idle' as BufferScanStatus,
+    bufferScanResult: null,
+    bufferScanError: null,
+    selectedBufferAddresses: [],
+    bufferCloseStatus: 'idle' as BufferCloseStatus,
+    bufferCloseResult: null,
+    bufferCloseError: null,
 };
 
 export const useAppStore = create<AppStore>((set) => ({
@@ -258,6 +295,14 @@ export const useAppStore = create<AppStore>((set) => ({
             mevClaimError: null,
             selectedMEVIds: [],
             mevProgressText: '',
+            // Engine 9 reset
+            bufferScanStatus: 'idle',
+            bufferScanResult: null,
+            bufferScanError: null,
+            selectedBufferAddresses: [],
+            bufferCloseStatus: 'idle',
+            bufferCloseResult: null,
+            bufferCloseError: null,
         }),
 
     setRevokeStatus: (status) => set({ revokeStatus: status }),
@@ -403,5 +448,43 @@ export const useAppStore = create<AppStore>((set) => ({
             mevProgressText: '',
         }),
 
-    resetAll: () => set(initialState),
+    // Engine 9 Actions
+    setBufferScanStatus: (status) => set({ bufferScanStatus: status }),
+    setBufferScanResult: (result) =>
+        set({ bufferScanResult: result, bufferScanStatus: 'scan_complete', bufferScanError: null }),
+    setBufferScanError: (error) =>
+        set({ bufferScanError: error, bufferScanStatus: 'error' }),
+    setSelectedBufferAddresses: (addresses) => set({ selectedBufferAddresses: addresses }),
+    toggleBufferSelection: (address) =>
+        set((state) => ({
+            selectedBufferAddresses: state.selectedBufferAddresses.includes(address)
+                ? state.selectedBufferAddresses.filter((a) => a !== address)
+                : [...state.selectedBufferAddresses, address],
+        })),
+    selectAllBuffers: () =>
+        set((state) => ({
+            selectedBufferAddresses: state.bufferScanResult?.closeableBuffers.map((b) => b.address) || [],
+        })),
+    deselectAllBuffers: () => set({ selectedBufferAddresses: [] }),
+    setBufferCloseStatus: (status) => set({ bufferCloseStatus: status }),
+    setBufferCloseResult: (result) =>
+        set({ bufferCloseResult: result, bufferCloseStatus: 'complete', bufferCloseError: null }),
+    setBufferCloseError: (error) =>
+        set({ bufferCloseError: error, bufferCloseStatus: 'error' }),
+    clearBuffers: () =>
+        set({
+            bufferScanStatus: 'idle',
+            bufferScanResult: null,
+            bufferScanError: null,
+            selectedBufferAddresses: [],
+            bufferCloseStatus: 'idle',
+            bufferCloseResult: null,
+            bufferCloseError: null,
+        }),
+
+    resetAll: () => set((state) => ({
+        ...initialState,
+        swapQuotes: new Map<string, DustSwapQuote>(),
+        agentWallet: state.agentWallet || null, // Preserve agent wallet through reset
+    })),
 }));

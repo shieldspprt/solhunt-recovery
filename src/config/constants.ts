@@ -347,6 +347,14 @@ export const ENGINE_METADATA: EngineInfo[] = [
         route: '/tickets',
         status: 'live',
     },
+    {
+        id: 9,
+        name: 'Recover Program Buffers',
+        description: 'Close abandoned BPF Loader buffer accounts. Devs and AI agent pipelines commonly leave 1–50 SOL locked in failed deployments.',
+        avgRecoverySOL: 3.0,
+        route: '/buffers',
+        status: 'preview',
+    },
 ];
 
 // ─── Platform Stats (trust signals) ─────────────────────────────

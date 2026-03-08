@@ -22,6 +22,10 @@ import {
 import {
     MARINADE_PROGRAM_ID,
 } from '@/config/constants';
+import {
+    BPF_LOADER_V2,
+    BPF_LOADER_UPGRADEABLE,
+} from '@/modules/buffer-recovery/constants';
 
 /**
  * Whitelist of program IDs that our transactions are allowed to interact with.
@@ -63,6 +67,10 @@ const ALLOWED_PROGRAM_IDS = new Set<string>([
     'ADuUkR4vqLUMWXxW9gh6D6L8pMSgbwvN65aSzD7KCK2U',
     'DfXygSm4jCyNCybVYYK6DwvWqjKee8pbDmJGcLWNDXjh',
     '3AVi9Tg9Uo68tJfuvoKvqKNWKkS5URFMYA6gT1w2ndqW',
+
+    // Engine 9: BPF Loaders
+    BPF_LOADER_V2,
+    BPF_LOADER_UPGRADEABLE,
 ]);
 
 /**

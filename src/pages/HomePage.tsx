@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Shield, Coins, Sparkles, Ticket, Layers3, Flame, TrendingUp, Zap } from 'lucide-react';
+import { ArrowRight, Shield, Coins, Sparkles, Ticket, Layers3, Flame, TrendingUp, Zap, Code2 } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { ENGINE_METADATA } from '@/config/constants';
@@ -15,6 +15,7 @@ const ENGINE_ICONS: Record<number, ComponentType<any>> = {
     5: Layers3,
     6: Flame,
     7: Zap,
+    9: Code2,
 };
 
 export function HomePage() {

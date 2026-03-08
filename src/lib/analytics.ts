@@ -277,3 +277,32 @@ export function logMEVClaimComplete(data: {
 }): void {
     logEvent('mev_claim_complete', data);
 }
+
+// ─── Engine 9 Events ──────────────────────────────────────────────────
+
+export function logBufferScanComplete(data: {
+    totalBuffers: number;
+    closeableCount: number;
+    totalLockedSOL: number;
+    hasRecentBuffers: boolean;
+}): void {
+    logEvent('buffer_scan_complete', data);
+}
+
+export function logBufferCloseInitiated(data: {
+    selectedCount: number;
+    totalSOL: number;
+    serviceFeeSOL: number;
+    hadRecentBufferWarning: boolean;
+}): void {
+    logEvent('buffer_close_initiated', data);
+}
+
+export function logBufferCloseComplete(data: {
+    success: boolean;
+    closedCount: number;
+    failedCount: number;
+    reclaimedSOL: number;
+}): void {
+    logEvent('buffer_close_complete', data);
+}
