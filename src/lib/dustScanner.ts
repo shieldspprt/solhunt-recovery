@@ -13,6 +13,13 @@ import {
     RAYDIUM_QUOTE_API,
     SOL_MINT,
 } from '@/config/constants';
+import { DEAD_PROTOCOLS } from '@/modules/decommission/registry/protocols';
+
+const PROTECTED_MINTS = new Set<string>(
+    DEAD_PROTOCOLS
+        .filter((p: any) => p.isRecoverable)
+        .flatMap((p: any) => p.positionTokenMints.map((t: any) => t.mint))
+);
 
 interface DexScreenerTokenInfo {
     address: string;
@@ -228,6 +235,10 @@ export async function scanForDust(scanResult: ScanResult): Promise<DustScanResul
         const isDustByValue = estimatedValueUSD > 0 && estimatedValueUSD <= DUST_MAX_VALUE_USD;
         const isDustUnknownPrice = estimatedValueUSD === 0 && holding.uiBalance < 1000;
         if (!isDustByValue && !isDustUnknownPrice) {
+            continue;
+        }
+
+        if (PROTECTED_MINTS.has(holding.mint)) {
             continue;
         }
 

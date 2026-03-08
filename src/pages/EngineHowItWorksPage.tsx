@@ -275,6 +275,54 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
         ]
     },
     '9': {
+        title: 'Dead Protocol Rescue',
+        subtitle: 'How we salvage liquidity from decommissioned and abandoned DeFi protocols.',
+        sections: [
+            {
+                heading: 'The Problem: Abandoned Protocols',
+                icon: <Server className="h-5 w-5 text-shield-accent" />,
+                content: (
+                    <div className="space-y-4">
+                        <p>
+                            DeFi protocols frequently sunset, migrate, or shut down completely (e.g., Friktion, Saber AMMs). When this happens, custom user interfaces are taken offline, making it extremely difficult for non-technical users to withdraw their supplied liquidity or bonded tokens.
+                        </p>
+                        <p>
+                            However, the underlying smart contracts and asset vaults remain permanent on the Solana blockchain.
+                        </p>
+                    </div>
+                ),
+            },
+            {
+                heading: 'On-Chain Discovery & Valuation',
+                icon: <Sparkles className="h-5 w-5 text-shield-success" />,
+                content: (
+                    <div className="space-y-4">
+                        <p>
+                            SolHunt maintains a dynamically updated, open-source registry of known defunct program IDs, vault public keys, and LP token mints.
+                        </p>
+                        <p>
+                            When you scan your wallet, we cross-reference your token accounts against this registry. We then use real-time price feeds to appraise the underlying vault assets backing your otherwise illiquid receipt tokens.
+                        </p>
+                    </div>
+                ),
+            },
+            {
+                heading: 'Execution: Direct Contract Withdrawals',
+                icon: <Code2 className="h-5 w-5 text-shield-warning" />,
+                content: (
+                    <div className="space-y-4">
+                        <p>
+                            Instead of relying on web interfaces that no longer exist, SolHunt generates the exact protocol-specific withdrawal instructions (derived directly from the program's original Anchor IDL).
+                        </p>
+                        <p>
+                            You sign the transaction natively through your wallet to interact directly with the decommissioned smart contract, safely unwinding your LP tokens and returning the underlying assets to your wallet.
+                        </p>
+                    </div>
+                ),
+            }
+        ]
+    },
+    '10': {
         title: 'Recover Program Buffers',
         subtitle: 'How we use the Upgradable BPF Loader to salvage failed deployment SOL.',
         sections: [

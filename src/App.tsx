@@ -16,6 +16,8 @@ import { BufferRecoveryPage } from '@/pages/BufferRecoveryPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { HowItWorksPage } from '@/pages/HowItWorksPage';
 import { EngineHowItWorksPage } from '@/pages/EngineHowItWorksPage';
+import { LearnPage } from '@/pages/LearnPage';
+import { DecommissionPage } from '@/modules/decommission/components/DecommissionPage';
 import { useAppStore } from '@/hooks/useAppStore';
 
 // Default styles that can be overridden by your app
@@ -81,6 +83,9 @@ function App() {
                                 <Route path="/buffers" element={<BufferRecoveryPage />} />
                                 <Route path="/how-it-works" element={<HowItWorksPage />} />
                                 <Route path="/how-it-works/engine/:id" element={<EngineHowItWorksPage />} />
+                                <Route path="/learn" element={<LearnPage />} />
+                                <Route path="/learn/:id" element={<LearnPage />} />
+                                <Route path="/decommission" element={<DecommissionPage />} />
                                 <Route path="/404" element={<NotFoundPage />} />
                                 <Route path="*" element={<Navigate to="/404" replace />} />
                             </Routes>
