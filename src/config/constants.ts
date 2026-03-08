@@ -295,6 +295,7 @@ export interface EngineInfo {
     description: string;
     avgRecoverySOL: number;
     route: string;
+    howItWorksRoute: string;
     status: 'live' | 'preview' | 'coming_soon';
 }
 
@@ -305,6 +306,7 @@ export const ENGINE_METADATA: EngineInfo[] = [
         description: 'Find & revoke risky token delegations before they drain your wallet.',
         avgRecoverySOL: 0.01,
         route: '/scan#engine-1',
+        howItWorksRoute: '/how-it-works/engine/1',
         status: 'live',
     },
     {
@@ -313,6 +315,7 @@ export const ENGINE_METADATA: EngineInfo[] = [
         description: 'Close empty token accounts and reclaim locked-up rent SOL.',
         avgRecoverySOL: 0.15,
         route: '/scan#engine-2',
+        howItWorksRoute: '/how-it-works/engine/2',
         status: 'live',
     },
     {
@@ -321,6 +324,7 @@ export const ENGINE_METADATA: EngineInfo[] = [
         description: 'Swap worthless dust tokens to SOL or burn & reclaim their accounts.',
         avgRecoverySOL: 0.08,
         route: '/scan#engine-3',
+        howItWorksRoute: '/how-it-works/engine/3',
         status: 'live',
     },
     {
@@ -329,6 +333,7 @@ export const ENGINE_METADATA: EngineInfo[] = [
         description: 'Discover & claim expired staking tickets from Marinade, Sanctum, Jito, and more.',
         avgRecoverySOL: 2.5,
         route: '/tickets',
+        howItWorksRoute: '/how-it-works/engine/4',
         status: 'live',
     },
     {
@@ -337,6 +342,7 @@ export const ENGINE_METADATA: EngineInfo[] = [
         description: 'Collect unclaimed LP fees from Orca, Raydium, and Meteora positions.',
         avgRecoverySOL: 1.2,
         route: '/lp-fees',
+        howItWorksRoute: '/how-it-works/engine/5',
         status: 'live',
     },
     {
@@ -345,6 +351,7 @@ export const ENGINE_METADATA: EngineInfo[] = [
         description: 'Aggregate and claim your Jito MEV tips and routing priority fees instantly.',
         avgRecoverySOL: 0.25,
         route: '/tickets',
+        howItWorksRoute: '/how-it-works/engine/7',
         status: 'live',
     },
     {
@@ -353,6 +360,7 @@ export const ENGINE_METADATA: EngineInfo[] = [
         description: 'Close abandoned BPF Loader buffer accounts. Devs and AI agent pipelines commonly leave 1–50 SOL locked in failed deployments.',
         avgRecoverySOL: 3.0,
         route: '/buffers',
+        howItWorksRoute: '/how-it-works/engine/9',
         status: 'preview',
     },
 ];

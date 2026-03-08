@@ -92,6 +92,15 @@ export function DustBurnConfirmModal() {
                         </p>
                     </div>
 
+                    <div className="rounded-xl border border-shield-warning/30 bg-shield-warning/5 p-4 mb-6 mt-4">
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-shield-warning mb-2 flex items-center gap-1">
+                            <Flame className="h-3 w-3" /> Transaction Preview
+                        </h3>
+                        <p className="text-xs text-shield-text leading-relaxed">
+                            You are about to sign <span className="font-mono text-shield-warning">1</span> transaction containing <span className="font-mono text-shield-warning">{burnableTokens.length}</span> <span className="font-mono bg-shield-border/30 px-1 rounded">burn</span> and <span className="font-mono bg-shield-border/30 px-1 rounded">closeAccount</span> instructions. No transfer authority is granted to any third-party app.
+                        </p>
+                    </div>
+
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
                             onClick={cancelBurnReclaim}

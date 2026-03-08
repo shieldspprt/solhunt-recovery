@@ -88,6 +88,15 @@ export function DustConfirmModal() {
                         movement. Selected tokens will be permanently swapped and this cannot be undone.
                     </p>
 
+                    <div className="rounded-xl border border-shield-accent/30 bg-shield-accent/5 p-4 mb-6 mt-4">
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-shield-accent mb-2 flex items-center gap-1">
+                            <ArrowRightLeft className="h-3 w-3" /> Transaction Preview
+                        </h3>
+                        <p className="text-xs text-shield-text leading-relaxed">
+                            You are about to sign <span className="font-mono text-shield-accent">1</span> transaction executing <span className="font-mono bg-shield-border/30 px-1 rounded">Jupiter Swap</span> instructions for {selectedTokens.length} tokens. Transfer authority is <strong>only</strong> granted to the exact swap routes for the specified amounts.
+                        </p>
+                    </div>
+
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
                             onClick={cancelDustSwap}

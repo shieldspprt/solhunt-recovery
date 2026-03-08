@@ -5,10 +5,12 @@ import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { shortenAddress } from '@/lib/formatting';
 
 const NAV_LINKS = [
-    { label: 'Recover', path: '/scan' },
-    { label: 'Stakes', path: '/tickets' },
-    { label: 'LP Fees', path: '/lp-fees' },
+    { label: 'How It Works', path: '/how-it-works' },
     { label: 'Audit', path: '/audit' },
+];
+
+const EXTERNAL_LINKS = [
+    { label: 'Docs', url: 'https://github.com/shieldspprt/solhunt-recovery#readme' },
 ];
 
 export function Header() {
@@ -46,6 +48,17 @@ export function Header() {
                             </Link>
                         );
                     })}
+                    {EXTERNAL_LINKS.map((link) => (
+                        <a
+                            key={link.label}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors text-shield-muted hover:text-shield-text hover:bg-shield-card"
+                        >
+                            {link.label} ↗
+                        </a>
+                    ))}
                 </nav>
 
                 {/* Right side */}

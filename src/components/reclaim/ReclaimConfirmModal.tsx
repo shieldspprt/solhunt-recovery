@@ -91,6 +91,15 @@ export function ReclaimConfirmModal() {
                         </div>
                     </div>
 
+                    <div className="rounded-xl border border-shield-success/30 bg-shield-success/5 p-4 mb-6">
+                        <h3 className="text-xs font-semibold uppercase tracking-wider text-shield-success mb-2 flex items-center gap-1">
+                            <Zap className="h-3 w-3" /> Transaction Preview
+                        </h3>
+                        <p className="text-xs text-shield-text">
+                            You are about to sign <span className="font-mono text-shield-success">1</span> transaction containing <span className="font-mono text-shield-success">{closeableAccounts.length}</span> <span className="font-mono bg-shield-border/30 px-1 rounded">closeAccount</span> instructions. No other authority is granted.
+                        </p>
+                    </div>
+
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
                             onClick={clearReclaim}
