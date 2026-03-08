@@ -1,10 +1,13 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Shield, Coins, Sparkles, Ticket, Layers3, Flame, TrendingUp, Zap } from 'lucide-react';
 import type { ComponentType } from 'react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { ENGINE_METADATA } from '@/config/constants';
+import { useAppStore } from '@/hooks/useAppStore';
 
-const ENGINE_ICONS: Record<number, ComponentType<{ className?: string }>> = {
+// Map engine IDs to icons
+const ENGINE_ICONS: Record<number, ComponentType<any>> = {
     1: Shield,
     2: Coins,
     3: Sparkles,
@@ -15,6 +18,14 @@ const ENGINE_ICONS: Record<number, ComponentType<{ className?: string }>> = {
 };
 
 export function HomePage() {
+    const navigate = useNavigate();
+    const agentWallet = useAppStore(s => s.agentWallet);
+
+    useEffect(() => {
+        if (agentWallet) {
+            navigate('/scan', { replace: true });
+        }
+    }, [agentWallet, navigate]);
     return (
         <PageWrapper>
             <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 sm:py-16 mt-4">
@@ -86,6 +97,7 @@ export function HomePage() {
                             <Link
                                 key={engine.id}
                                 to={engine.route}
+                                data-agent-target={`engine-card-${engine.id}`}
                                 className="group relative glass-card rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-shield-accent/10 hover:border-shield-accent/50 hover:bg-shield-card/90 flex flex-col cursor-pointer overflow-hidden border border-shield-border/40 focus:outline-none focus:ring-2 focus:ring-shield-accent/50"
                             >
                                 {cardContent}

@@ -43,6 +43,7 @@ export function TicketFinderCard() {
             </div>
 
             <button
+                data-agent-target="start-scan-tickets-btn"
                 onClick={runTicketScan}
                 className="mt-3 w-full rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
             >
@@ -202,7 +203,7 @@ export function TicketFinderCard() {
     };
 
     return (
-        <>
+        <div aria-live="polite" aria-busy={ticketScanStatus === 'scanning'}>
             {ticketScanStatus === 'idle' && renderIdle()}
             {ticketScanStatus === 'scanning' && renderScanning()}
             {ticketScanStatus === 'error' && renderError()}
@@ -212,6 +213,6 @@ export function TicketFinderCard() {
             <ClaimProgressModal />
             <MEVClaimConfirmModal />
             <MEVClaimProgressModal />
-        </>
+        </div>
     );
 }

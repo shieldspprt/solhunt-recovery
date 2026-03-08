@@ -27,6 +27,7 @@ export function WalletConnectButton({
     return (
         <button
             id="wallet-connect-button"
+            data-agent-target="connect-wallet-btn"
             onClick={() => setVisible(true)}
             className={`
                 inline-flex items-center gap-2 rounded-xl font-bold

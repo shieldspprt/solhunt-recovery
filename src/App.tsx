@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useMemo, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
@@ -14,9 +14,29 @@ import { TicketFinderPage } from '@/pages/TicketFinderPage';
 import { LpFeeHarvesterPage } from '@/pages/LpFeeHarvesterPage';
 import { NftSpamCleanerPage } from '@/pages/NftSpamCleanerPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { useAppStore } from '@/hooks/useAppStore';
 
 // Default styles that can be overridden by your app
 import '@solana/wallet-adapter-react-ui/styles.css';
+
+/**
+ * Headless Agent Parser
+ * Intercepts ?wallet=XYZ and saves it to global store, enabling AI models
+ * to perform read-only scans without connecting an extension via Phantom.
+ */
+function AgentUrlParser() {
+    const [searchParams] = useSearchParams();
+    const setAgentWallet = useAppStore((s) => s.setAgentWallet);
+
+    useEffect(() => {
+        const walletParam = searchParams.get('wallet');
+        if (walletParam) {
+            setAgentWallet(walletParam);
+        }
+    }, [searchParams, setAgentWallet]);
+
+    return null;
+}
 
 function App() {
     // We use the Helius connection URL configured in solana.ts
@@ -49,6 +69,7 @@ function App() {
                 <WalletProvider wallets={wallets} autoConnect>
                     <WalletModalProvider>
                         <BrowserRouter>
+                            <AgentUrlParser />
                             <Routes>
                                 <Route path="/" element={<HomePage />} />
                                 <Route path="/scan" element={<ScanPage />} />

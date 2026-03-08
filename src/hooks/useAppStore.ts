@@ -33,6 +33,9 @@ import type {
 } from '@/types';
 
 interface AppStore {
+    // Agentic SEO
+    agentWallet: string | null;
+
     // Scan state
     scanStatus: ScanStatus;
     scanResult: ScanResult | null;
@@ -86,6 +89,7 @@ interface AppStore {
     mevProgressText: string;
 
     // Actions
+    setAgentWallet: (wallet: string | null) => void;
     setScanStatus: (status: ScanStatus) => void;
     setScanResult: (result: ScanResult) => void;
     setScanError: (error: AppError) => void;
@@ -137,8 +141,9 @@ interface AppStore {
     setMEVScanResult: (result: MEVScanResult | null) => void;
     setMEVScanError: (error: AppError | null) => void;
     setMEVClaimStatus: (status: MEVClaimStatus) => void;
-    setMEVClaimResult: (result: MEVClaimResult | null) => void;
-    setMEVClaimError: (error: AppError | null) => void;
+    setMEVClaimResult: (result: MEVClaimResult) => void;
+    setMEVClaimError: (error: AppError) => void;
+    clearMEVClaim: () => void;
     setSelectedMEVIds: (ids: string[]) => void;
     toggleMEVItem: (id: string) => void;
     selectAllMEV: () => void;
@@ -150,6 +155,9 @@ interface AppStore {
 }
 
 const initialState = {
+    // Agentic SEO
+    agentWallet: null as string | null,
+
     scanStatus: 'idle' as ScanStatus,
     scanResult: null,
     scanError: null,
@@ -203,6 +211,7 @@ const initialState = {
 export const useAppStore = create<AppStore>((set) => ({
     ...initialState,
 
+    setAgentWallet: (wallet) => set({ agentWallet: wallet }),
     setScanStatus: (status) => set({ scanStatus: status }),
     setScanResult: (result) =>
         set({ scanResult: result, scanStatus: 'scan_complete', scanError: null }),
@@ -363,8 +372,16 @@ export const useAppStore = create<AppStore>((set) => ({
     setMEVScanResult: (result) => set({ mevScanResult: result }),
     setMEVScanError: (error) => set({ mevScanError: error, mevScanStatus: 'error' }),
     setMEVClaimStatus: (status) => set({ mevClaimStatus: status }),
-    setMEVClaimResult: (result) => set({ mevClaimResult: result }),
+    setMEVClaimResult: (result) => set({ mevClaimResult: result, mevClaimStatus: 'complete', mevClaimError: null }),
     setMEVClaimError: (error) => set({ mevClaimError: error, mevClaimStatus: 'error' }),
+    clearMEVClaim: () =>
+        set({
+            mevClaimStatus: 'idle',
+            mevClaimResult: null,
+            mevClaimError: null,
+            mevProgressText: '',
+            selectedMEVIds: [],
+        }),
     setSelectedMEVIds: (ids) => set({ selectedMEVIds: ids }),
     toggleMEVItem: (id) =>
         set((state) => ({
@@ -374,7 +391,7 @@ export const useAppStore = create<AppStore>((set) => ({
         })),
     selectAllMEV: () =>
         set((state) => ({
-            selectedMEVIds: state.mevScanResult?.items.map((i) => `${i.stakeAccount}-${i.epoch}`) || [],
+            selectedMEVIds: state.mevScanResult ? state.mevScanResult.items.map(i => `${i.stakeAccount}-${i.epoch}`) : [],
         })),
     deselectAllMEV: () => set({ selectedMEVIds: [] }),
     setMEVProgressText: (text) => set({ mevProgressText: text }),

@@ -6,9 +6,11 @@ import { ScannerCard } from '@/components/scanner/ScannerCard';
 import { ScanResults } from '@/components/scanner/ScanResults';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { useWalletScanner } from '@/hooks/useWalletScanner';
+import { useAppStore } from '@/hooks/useAppStore';
 
 export function ScanPage() {
     const { connected } = useWallet();
+    const agentWallet = useAppStore(s => s.agentWallet);
     const location = useLocation();
     const {
         scanResult,
@@ -31,7 +33,7 @@ export function ScanPage() {
     return (
         <PageWrapper>
             <div className="py-8 sm:py-10 px-4 sm:px-6 w-full animate-fade-in-up">
-                {!connected ? (
+                {!connected && !agentWallet ? (
                     <div className="mx-auto w-full max-w-4xl">
                         <div className="glass-card rounded-2xl p-8 text-center">
                             <p className="text-shield-muted mb-4">

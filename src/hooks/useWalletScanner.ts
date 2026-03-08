@@ -16,6 +16,7 @@ export function useWalletScanner() {
     const lastScanTimeRef = useRef<number>(0);
 
     const {
+        agentWallet,
         scanStatus,
         scanResult,
         scanError,
@@ -26,12 +27,14 @@ export function useWalletScanner() {
     } = useAppStore();
 
     const scan = useCallback(async () => {
+        const targetWallet = publicKey?.toBase58() || agentWallet;
+
         // Check wallet connection
-        if (!publicKey) {
+        if (!targetWallet) {
             setScanError({
                 code: ERROR_CODES.WALLET_NOT_CONNECTED,
                 message: ERROR_MESSAGES.WALLET_NOT_CONNECTED,
-                technicalDetail: 'publicKey is null',
+                technicalDetail: 'publicKey and agentWallet are both null',
             });
             return;
         }
@@ -56,7 +59,7 @@ export function useWalletScanner() {
             logScanStarted();
 
             const result = await scanWalletForDelegations(
-                publicKey.toBase58(),
+                targetWallet,
                 connection
             );
 
@@ -84,7 +87,7 @@ export function useWalletScanner() {
             setScanError(appError);
             logScanError(appError.code);
         }
-    }, [publicKey, connection, setScanStatus, setScanResult, setScanError]);
+    }, [publicKey, agentWallet, connection, setScanStatus, setScanResult, setScanError]);
 
     const isOnCooldown = useCallback(() => {
         return Date.now() - lastScanTimeRef.current < SCAN_COOLDOWN_MS;

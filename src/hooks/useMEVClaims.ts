@@ -75,9 +75,8 @@ export function useMEVClaims() {
 
         logMEVScanComplete({
             totalItems: result.totalItems,
-            totalSOL: result.totalClaimableSOL,
-            epochsFound: result.epochsScanned.length,
-            oldestEpoch: result.oldestEpoch,
+            claimableSOL: result.totalClaimableSOL,
+            hasErrors: false,
         });
     }, [publicKey, setMEVScanStatus, setMEVScanResult, setSelectedMEVIds]);
 
@@ -121,8 +120,7 @@ export function useMEVClaims() {
         if (claimEstimate) {
             logMEVClaimInitiated({
                 selectedCount: claimEstimate.selectedCount,
-                totalSOL: claimEstimate.totalClaimSOL,
-                serviceFeeSOL: claimEstimate.serviceFeeSOL,
+                estimatedSOL: claimEstimate.totalClaimSOL,
             });
         }
 
@@ -198,8 +196,7 @@ export function useMEVClaims() {
             setMEVClaimStatus('complete');
 
             logMEVClaimComplete({
-                success: claimed > 0 && failed === 0,
-                claimedCount: claimed,
+                successCount: claimed,
                 failedCount: failed,
                 totalClaimedSOL: claimedLamports / LAMPORTS_PER_SOL,
             });
@@ -213,8 +210,7 @@ export function useMEVClaims() {
                 technicalDetail: err.message ?? String(err),
             });
             logMEVClaimComplete({
-                success: false,
-                claimedCount: 0,
+                successCount: 0,
                 failedCount: selectedItems.length,
                 totalClaimedSOL: 0,
             });

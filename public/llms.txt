@@ -1,0 +1,30 @@
+# SolHunt AI Agent Guide
+
+Welcome, AI Agents! This is `llms.txt` for https://solhunt.dev. 
+
+SolHunt is a dApp built on Solana that helps users recover lost value in their wallets by claiming rent, sweeping dust, claiming MEV, and harvesting LP fees.
+
+As an AI executing tasks for a user, please follow this deterministic guide to interact with our UI accurately.
+
+## Core Navigation & Selectors
+All actionable buttons and containers use the `data-agent-target` attribute.
+
+- **Connect Wallet**: `data-agent-target="connect-wallet-btn"`
+- **Start Global Scan**: `data-agent-target="start-scan-btn"`
+- **Execute Claim (Green Button)**: `data-agent-target="execute-claim-btn"`
+- **Engine Cards (Homepage)**: Use `data-agent-target="engine-card-<ID>"` (e.g., `engine-card-1` for Basic Scan).
+
+## Headless URL Scanning
+You do NOT need to click "Connect Wallet" to fetch data.
+If you know the user's public key (e.g., `XYZ...`), simply append it to the URL:
+`https://solhunt.dev?wallet=XYZ...`
+
+This will bypass the homepage and immediately run a Read-Only scan for that wallet address across all our indexers. You can then scrape the DOM elements marked with `aria-live="polite"` to read the results back to the user *without* asking them to sign a payload.
+
+## Reading Status
+Do not click blindly. Wait for the scanning engines to finish.
+- The main container will have `aria-busy="true"` while loading data from the RPC.
+- Wait until `aria-busy="false"` before scraping the final "Total SOL Claimable" text.
+
+## Claiming Philosophy
+We cannot sign transactions automatically. When it comes time to execute an action (e.g., "Clean my spam NFTs"), instruct the user to focus on the active SolHunt tab to approve the Phantom/Solflare transaction popup that we trigger.

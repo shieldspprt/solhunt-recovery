@@ -6,9 +6,11 @@ import { shortenAddress, copyToClipboard } from '@/lib/formatting';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { Copy, Check } from 'lucide-react';
+import { useAppStore } from '@/hooks/useAppStore';
 
 export function ScannerCard() {
     const { publicKey } = useWallet();
+    const agentWallet = useAppStore(s => s.agentWallet);
     const { scan, isScanning, isOnCooldown } = useWalletScanner();
     const [copied, setCopied] = useState(false);
     const [scanStatusText, setScanStatusText] = useState('');
@@ -46,10 +48,15 @@ export function ScannerCard() {
         }
     };
 
-    if (!publicKey) return null;
+    const displayWallet = publicKey?.toBase58() || agentWallet;
+    if (!displayWallet) return null;
 
     return (
-        <div className="w-full max-w-2xl mx-auto">
+        <div
+            className="w-full max-w-2xl mx-auto"
+            aria-live="polite"
+            aria-busy={isScanning}
+        >
             <div className="rounded-2xl border border-shield-border bg-shield-card p-6 sm:p-8">
                 {/* Wallet address */}
                 <div className="flex items-center justify-between mb-6">
@@ -60,7 +67,7 @@ export function ScannerCard() {
                         <div>
                             <p className="text-xs text-shield-muted uppercase tracking-wider">Connected Wallet</p>
                             <p className="font-mono text-sm text-shield-text">
-                                {shortenAddress(publicKey.toBase58(), 6)}
+                                {shortenAddress(displayWallet, 6)}
                             </p>
                         </div>
                     </div>
@@ -93,6 +100,7 @@ export function ScannerCard() {
                         </div>
                         <button
                             id="start-scan-button"
+                            data-agent-target="start-scan-btn"
                             onClick={scan}
                             disabled={isOnCooldown()}
                             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-shield-accent hover:bg-shield-accent/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-8 py-4 text-lg shadow-lg shadow-shield-accent/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"

@@ -249,34 +249,29 @@ export function logCNFTBurnComplete(data: {
     logEvent('cnft_burn_complete', data);
 }
 
-// ─── Engine 7 Events ──────────────────────────────────────────────────
+// ─── Engine 7: MEV Claims Analytics ──────────────────────────────────────
+
 export function logMEVScanStarted(): void {
     logEvent('mev_scan_started', { timestamp: Date.now() });
 }
 
 export function logMEVScanComplete(data: {
     totalItems: number;
-    totalSOL: number;
-    epochsFound: number;
-    oldestEpoch: number | null;
+    claimableSOL: number;
+    hasErrors: boolean;
 }): void {
-    logEvent('mev_scan_complete', {
-        ...data,
-        oldestEpoch: data.oldestEpoch ?? -1,
-    });
+    logEvent('mev_scan_complete', data);
 }
 
 export function logMEVClaimInitiated(data: {
     selectedCount: number;
-    totalSOL: number;
-    serviceFeeSOL: number;
+    estimatedSOL: number;
 }): void {
     logEvent('mev_claim_initiated', data);
 }
 
 export function logMEVClaimComplete(data: {
-    success: boolean;
-    claimedCount: number;
+    successCount: number;
     failedCount: number;
     totalClaimedSOL: number;
 }): void {
