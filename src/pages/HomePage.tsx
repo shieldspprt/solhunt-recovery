@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Shield, Coins, Sparkles, Ticket, Layers3, Flame, TrendingUp, Zap, Code2, BookOpen, Ghost, MessageSquare } from 'lucide-react';
 import type { ComponentType, LucideProps } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
+import { WalletScanner } from '@/components/WalletScanner';
 import { ENGINE_METADATA } from '@/config/constants';
 import { useAppStore } from '@/hooks/useAppStore';
 
@@ -42,6 +43,8 @@ export const HomePage = memo(function HomePage() {
                         Reclaim locked rent. Built on Solana's native closeAccount instruction — no custody, no approvals.
                     </p>
                 </div>
+
+                <WalletScanner />
 
                 {/* Engine Cards — the product IS the trust */}
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-16">
