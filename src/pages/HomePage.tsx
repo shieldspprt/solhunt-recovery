@@ -1,7 +1,8 @@
 import { useEffect, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Shield, Coins, Sparkles, Ticket, Layers3, Flame, TrendingUp, Zap, Code2, BookOpen, Ghost, MessageSquare } from 'lucide-react';
-import type { ComponentType, LucideProps } from 'lucide-react';
+import type { ComponentType } from 'react';
+import type { LucideProps } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { WalletScanner } from '@/components/WalletScanner';
 import { ENGINE_METADATA } from '@/config/constants';
