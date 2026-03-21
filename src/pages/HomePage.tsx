@@ -1,13 +1,13 @@
-import { useEffect } from 'react';
+import { useEffect, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Shield, Coins, Sparkles, Ticket, Layers3, Flame, TrendingUp, Zap, Code2, BookOpen, Ghost, MessageSquare } from 'lucide-react';
-import type { ComponentType } from 'react';
+import type { ComponentType, LucideProps } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { ENGINE_METADATA } from '@/config/constants';
 import { useAppStore } from '@/hooks/useAppStore';
 
-// Map engine IDs to icons
-const ENGINE_ICONS: Record<number, ComponentType<any>> = {
+// Map engine IDs to icons with proper typing
+const ENGINE_ICONS: Record<number, ComponentType<LucideProps>> = {
     1: Shield,
     2: Coins,
     3: Sparkles,
@@ -19,7 +19,8 @@ const ENGINE_ICONS: Record<number, ComponentType<any>> = {
     10: Code2,
 };
 
-export function HomePage() {
+// Memoized to prevent re-renders when parent state changes
+export const HomePage = memo(function HomePage() {
     const navigate = useNavigate();
     const agentWallet = useAppStore(s => s.agentWallet);
 
@@ -193,4 +194,4 @@ export function HomePage() {
             </div>
         </PageWrapper>
     );
-}
+});
