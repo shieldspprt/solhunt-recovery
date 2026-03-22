@@ -230,7 +230,7 @@ export const handler: Handler = async (event) => {
         schema_version: "1.0",
         name: "SolHunt",
         display_name: "SolHunt Wallet Intelligence",
-        description: "Solana wallet health analysis and agent coordination. Check wallet efficiency and find recoverable SOL.",
+        description: "Solana wallet health analysis and agent coordination. Check wallet efficiency, find recoverable SOL, monitor agent fleets, and discover other agents. Features a trustless recovery flow natively via MCP: preview recovery yields, build unsigned atomic fee transactions, and sign/execute locally. SolHunt never requires custody of your keys.",
         version: "1.0.0",
         homepage: "https://solhunt.dev",
         icon: "https://solhunt.dev/icon.png",
