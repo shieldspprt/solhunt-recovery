@@ -5,7 +5,7 @@ import type { StakingProtocol } from '@/types';
 export const SERVICE_FEE_SOL = parseFloat(import.meta.env.VITE_SERVICE_FEE_SOL || '0.01');
 export const SERVICE_FEE_LAMPORTS = Math.round(SERVICE_FEE_SOL * 1e9);
 export const TREASURY_WALLET = new PublicKey(
-    import.meta.env.VITE_TREASURY_WALLET || 'vH7bXdiPDxVskg2igCh1W8HTKCcsuyTN5Zybw92hx8d'
+    import.meta.env.VITE_TREASURY_WALLET || 'DD4AdYKVcV6kgpmiCEeASRmJyRdKgmaRAbsjKucx8CvY'
 );
 
 // ─── Solana Constants ───────────────────────────────────────────
