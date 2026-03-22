@@ -28,7 +28,7 @@ const supabase = createClient(
 // Strategy: get recent transactions from high-activity programs
 // Deduplicate fee payers = unique active wallets
 
-export interface ActiveWallet {
+interface ActiveWallet {
   address: string;
   sourceProject: string;
 }
@@ -55,13 +55,15 @@ async function getRecentActiveWallets(limit: number): Promise<ActiveWallet[]> {
     const projectName = PROGRAM_NAMES[program];
 
     try {
-      // Get recent transactions for this program
       const response = await fetch(
-        `${HELIUS_BASE}/addresses/${program}/transactions?api-key=${HELIUS_API_KEY}&limit=200&type=UNKNOWN`,
+        `${HELIUS_BASE}/addresses/${program}/transactions?api-key=${HELIUS_API_KEY}&limit=100&type=UNKNOWN`,
         { signal: AbortSignal.timeout(10000) }
       );
 
-      if (!response.ok) continue;
+      if (!response.ok) {
+        console.error(`Error fetching from Helius: ${response.status} ${response.statusText}`);
+        continue;
+      }
       const txs = await response.json();
 
       if (!Array.isArray(txs)) continue;
