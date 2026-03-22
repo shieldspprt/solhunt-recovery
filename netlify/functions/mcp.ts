@@ -173,6 +173,9 @@ async function executeTool(
   args: Record<string, any>,
   apiKey?: string
 ): Promise<any> {
+  // Analytics logging - tracks which functions are being called
+  console.log(`MCP_CALL: ${name} | wallet=${args.wallet_address || args.destination_wallet || 'N/A'} | ${new Date().toISOString()}`);
+  
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(apiKey ? { 'X-API-Key': apiKey } : {})
