@@ -9,6 +9,8 @@
   <a href="https://twitter.com/solhuntapp">Twitter</a>
 </div>
 
+[![SolHunt-Solana-Wallet-Intelligence MCP server](https://glama.ai/mcp/servers/shieldspprt/solhunt-recovery/badges/card.svg)](https://glama.ai/mcp/servers/shieldspprt/solhunt-recovery)
+
 ## 🛡️ The "Anti-Drainer" Architecture & Trust Model
 
 In an ecosystem plagued by wallet drainers, **trust must be verified through code, not marketing.** SolHunt is aggressively transparent. We designed our architecture to provide absolute mathematical certainty that your principal assets cannot be stolen.
@@ -63,4 +65,3 @@ Open to PRs. Licensed under MIT. See the code, verify the logic, and help us bui
 
 ---
 [Contact Support](https://x.com/solhuntapp) | [Website](https://solhunt.dev) | [GitHub](https://github.com/shieldspprt/solhunt-recovery)
-
