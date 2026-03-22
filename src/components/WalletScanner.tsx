@@ -85,12 +85,12 @@ function StatCard({
   highlight?: boolean;
 }) {
   return (
-    <div className={`rounded-lg p-4 ${highlight ? 'bg-purple-900/40 border border-purple-500/30' : 'bg-gray-800/60'}`}>
-      <p className="text-xs text-gray-400 mb-1">{label}</p>
-      <p className={`text-xl font-bold ${highlight ? 'text-purple-300' : 'text-white'}`}>
+    <div className={`rounded-xl p-4 transition-colors ${highlight ? 'bg-shield-accent/5 border border-shield-accent/30 shadow-[inset_0_0_20px_rgba(20,241,149,0.05)]' : 'bg-shield-bg/50 border border-shield-border/50'}`}>
+      <p className="text-[10px] text-shield-muted mb-1 font-mono uppercase tracking-widest">{label}</p>
+      <p className={`text-2xl font-bold font-mono tracking-tight ${highlight ? 'text-shield-accent drop-shadow-[0_0_8px_rgba(20,241,149,0.4)]' : 'text-white'}`}>
         {value}
       </p>
-      {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-shield-muted/70 mt-1.5 font-light">{sub}</p>}
     </div>
   );
 }
@@ -149,19 +149,19 @@ function ScanResults({ result }: { result: ScanResult }) {
 
       {/* CTA or clean message */}
       {result.worth_cleaning ? (
-        <div className="rounded-lg bg-purple-950/60 border border-purple-500/40 p-4">
-          <p className="text-purple-200 font-medium text-sm mb-1">
-            You have {formatSol(result.recoverable_sol)} SOL recoverable
-          </p>
-          <p className="text-gray-400 text-xs mb-3">
-            Connect your wallet to recover it now using SolHunt.
-            Takes about 2 minutes. No third-party custody.
+        <div className="rounded-xl bg-shield-accent/10 border border-shield-accent/40 p-5 mt-6 relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-to-r from-shield-accent/0 via-shield-accent/5 to-shield-accent/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+          <h4 className="text-shield-accent font-mono text-xs tracking-widest mb-1.5 uppercase drop-shadow-[0_0_8px_rgba(20,241,149,0.5)]">
+            [ Action Required ]
+          </h4>
+          <p className="text-white text-lg font-bold mb-4">
+            {formatSol(result.recoverable_sol)} SOL Available For Recovery
           </p>
           <button
-            className="bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+            className="inline-flex items-center gap-2 bg-shield-accent text-shield-bg hover:bg-white text-sm font-bold font-mono uppercase tracking-wide px-6 py-3 rounded-lg transition-all shadow-[0_0_15px_rgba(20,241,149,0.3)] hover:shadow-[0_0_25px_rgba(255,255,255,0.5)]"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
-            Recover SOL →
+            Initiate Protocol →
           </button>
         </div>
       ) : (
@@ -247,47 +247,39 @@ export function WalletScanner() {
   }, [state]);
 
   return (
-    <section className="w-full max-w-2xl mx-auto px-4 py-8">
-
-      {/* Section heading */}
-      <div className="text-center mb-6">
-        <h2 className="text-xl font-bold text-white mb-2">
-          Check any wallet for hidden SOL
-        </h2>
-        <p className="text-gray-400 text-sm">
-          Paste any Solana address. We scan for locked rent in empty token accounts.
-          Free. No wallet connection needed.
-        </p>
-      </div>
+    <section className="w-full max-w-2xl mx-auto px-4 py-8 relative">
 
       {/* Input row */}
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={address}
-          onChange={handleAddressChange}
-          onKeyDown={handleKeyDown}
-          placeholder="Paste wallet address..."
-          className={[
-            'flex-1 bg-gray-800 border rounded-lg px-4 py-3 text-sm text-white',
-            'placeholder-gray-500 outline-none transition-colors font-mono',
-            error
-              ? 'border-red-500/60 focus:border-red-400'
-              : 'border-gray-600 focus:border-purple-500'
-          ].join(' ')}
-          disabled={state === 'loading'}
-          autoComplete="off"
-          spellCheck={false}
-        />
+      <div className="flex flex-col sm:flex-row gap-3 relative z-10">
+        <div className="relative flex-1 group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-shield-accent/50 to-[#9945ff]/50 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+          <input
+            type="text"
+            value={address}
+            onChange={handleAddressChange}
+            onKeyDown={handleKeyDown}
+            placeholder="[ Paste Wallet Address ]"
+            className={[
+              'relative w-full bg-shield-bg/90 backdrop-blur-xl border rounded-xl px-5 py-4 text-sm text-white',
+              'placeholder-shield-muted/50 outline-none transition-all font-mono shadow-inner',
+              error
+                ? 'border-red-500/60 focus:border-red-400 focus:ring-1 focus:ring-red-400'
+                : 'border-shield-border hover:border-shield-accent/50 focus:border-shield-accent focus:ring-1 focus:ring-shield-accent/50'
+            ].join(' ')}
+            disabled={state === 'loading'}
+            autoComplete="off"
+            spellCheck={false}
+          />
+        </div>
         <button
           onClick={handleScan}
           disabled={state === 'loading' || !address.trim()}
           className={[
-            'px-5 py-3 rounded-lg font-medium text-sm transition-all',
-            'disabled:opacity-50 disabled:cursor-not-allowed',
+            'relative px-8 py-4 rounded-xl font-bold text-sm transition-all overflow-hidden group/btn font-mono uppercase tracking-widest',
+            'disabled:opacity-50 disabled:cursor-not-allowed border',
             state === 'loading'
-              ? 'bg-purple-700 text-purple-300 cursor-wait'
-              : 'bg-purple-600 hover:bg-purple-500 active:bg-purple-700 text-white'
+              ? 'bg-shield-bg border-shield-border text-shield-muted cursor-wait'
+              : 'bg-shield-accent border-shield-accent text-shield-bg hover:shadow-[0_0_20px_rgba(20,241,149,0.4)] hover:scale-[1.02] active:scale-[0.98]'
           ].join(' ')}
         >
           {state === 'loading' ? (
@@ -296,9 +288,14 @@ export function WalletScanner() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
               </svg>
-              Scanning
+              SCANNING
             </span>
-          ) : 'Scan'}
+          ) : (
+            <span className="flex items-center gap-2">
+              <span className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 ease-out" />
+              <span className="relative z-10">Execute</span>
+            </span>
+          )}
         </button>
       </div>
 

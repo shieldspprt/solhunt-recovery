@@ -9,21 +9,22 @@ const config: Config = {
         extend: {
             colors: {
                 shield: {
-                    bg: '#050a12',
-                    card: '#0c1220',
-                    border: '#162032',
-                    accent: '#14f195',
+                    bg: '#09090b',         // Deeper, neutral dark
+                    card: '#121214',       // Slightly elevated dark
+                    border: '#27272a',     // Crisp subtle borders
+                    accent: '#14f195',     // Solana Green
                     success: '#14f195',
-                    warning: '#fbbf24',
-                    danger: '#f43f5e',
-                    text: '#e8edf5',
-                    muted: '#5a6578',
-                    glow: 'rgba(20, 241, 149, 0.15)',
-                    surface: 'rgba(12, 18, 32, 0.7)',
+                    warning: '#eab308',
+                    danger: '#ef4444',
+                    text: '#fafafa',       // Bright neutral white
+                    muted: '#a1a1aa',      // Neutral gray
+                    glow: 'rgba(20, 241, 149, 0.1)',
+                    surface: 'rgba(18, 18, 20, 0.6)',
                 }
             },
             fontFamily: {
-                sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
+                mono: ['JetBrains Mono', 'monospace'],
             },
             animation: {
                 'fade-in-up': 'fadeInUp 0.5s ease-out',

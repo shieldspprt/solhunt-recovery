@@ -8,6 +8,7 @@ import { WalletScanner } from '@/components/WalletScanner';
 import { StatsDisplay } from '@/components/StatsDisplay';
 import { ENGINE_METADATA } from '@/config/constants';
 import { useAppStore } from '@/hooks/useAppStore';
+import { useLocation } from 'react-router-dom';
 
 // Map engine IDs to icons with proper typing
 const ENGINE_ICONS: Record<number, ComponentType<LucideProps>> = {
@@ -25,7 +26,9 @@ const ENGINE_ICONS: Record<number, ComponentType<LucideProps>> = {
 // Memoized to prevent re-renders when parent state changes
 export const HomePage = memo(function HomePage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const agentWallet = useAppStore(s => s.agentWallet);
+    const isAdmin = new URLSearchParams(location.search).get('admin') === 'true';
 
     useEffect(() => {
         if (agentWallet) {
@@ -34,20 +37,34 @@ export const HomePage = memo(function HomePage() {
     }, [agentWallet, navigate]);
     return (
         <PageWrapper>
-            <div className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 sm:py-16 mt-4">
+            <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-12 mt-2">
 
-                {/* Lean Hero — just the pitch, no fluff */}
-                <div className="text-center mb-14">
-                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.15] mb-5">
-                        <span className="gradient-text">Close empty token accounts.</span>
+                {/* Technical Hero */}
+                <div className="mb-12">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-shield-accent/10 border border-shield-accent/20 mb-6">
+                        <div className="w-2 h-2 rounded-full bg-shield-accent animate-pulse" />
+                        <span className="text-xs font-mono text-shield-accent uppercase tracking-wider">System Operational</span>
+                    </div>
+                    <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-white mb-4">
+                        Max Extractable Value <br className="hidden sm:block" />
+                        <span className="gradient-text font-mono tracking-tighter">From Your Solana Wallet</span>
                     </h1>
-                    <p className="text-lg sm:text-xl text-shield-muted max-w-2xl mx-auto leading-relaxed">
-                        Reclaim locked rent. Built on Solana's native closeAccount instruction — no custody, no approvals.
+                    <p className="text-lg text-shield-muted max-w-2xl font-light">
+                        Autonomous retrieval of locked rent, zero-balance token accounts, and scattered dust. Non-custodial operations executed seamlessly.
                     </p>
                 </div>
 
-                <WalletScanner />
-                <StatsDisplay />
+                <div className="relative mb-16">
+                    <div className="absolute -inset-1 bg-gradient-to-r from-shield-accent/20 to-[#9945ff]/20 rounded-3xl blur-xl opacity-50 pointer-events-none" />
+                    <WalletScanner />
+                </div>
+                
+                {isAdmin && (
+                    <div className="mb-16 border border-[#9945ff]/30 rounded-2xl bg-[#9945ff]/10 p-4">
+                        <h3 className="text-xs font-mono text-[#9945ff] uppercase tracking-widest pl-4 mb-2">Admin Dashboard</h3>
+                        <StatsDisplay />
+                    </div>
+                )}
 
                 {/* Engine Cards — the product IS the trust */}
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-16">
