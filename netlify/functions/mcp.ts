@@ -122,6 +122,55 @@ The unsigned transaction needs to be signed and submitted quickly after building
   }
 ];
 
+// ── Server Metadata ───────────────────────────────────────────────────────────
+// Shared between discovery endpoint and server card
+
+const SERVER_METADATA = {
+  schema_version: "1.0",
+  name: "solhunt",
+  display_name: "SolHunt Wallet Intelligence",
+  description: "Solana wallet health analysis and SOL recovery. Check wallet efficiency, find recoverable SOL from zero-balance token accounts, and build trustless recovery transactions. SolHunt never requires custody of your keys.",
+  version: "1.0.0",
+  homepage: "https://solhunt.dev",
+  icon: "https://solhunt.dev/icon.png",
+  category: "blockchain",
+  tags: ["solana", "wallet", "defi", "recovery", "agent"],
+  pricing: {
+    type: "free",
+    detail: "Completely free to use. 15% fee only on successful SOL recovery."
+  },
+  // Config schema tells users what configuration this server needs
+  config_schema: {
+    type: "object",
+    properties: {
+      api_key: {
+        type: "string",
+        description: "Optional SolHunt API key for higher rate limits. Get yours at https://solhunt.dev/api-keys",
+        required: false
+      }
+    }
+  },
+  endpoints: {
+    mcp: {
+      url: "https://solhunt.dev/.netlify/functions/mcp",
+      protocol: "mcp",
+      protocol_version: "2024-11-05"
+    }
+  },
+  protocols: {
+    mcp: {
+      tools: TOOLS
+    }
+  },
+  // Standard MCP server info (legacy compatibility)
+  protocol_version: "2024-11-05",
+  capabilities: {
+    tools: {},
+    resources: {}
+  },
+  tools: TOOLS
+};
+
 // ── Tool Executor ─────────────────────────────────────────────────────────────
 
 const API_BASE = process.env.SOLHUNT_API_BASE || 'https://solhunt.dev';
@@ -216,9 +265,20 @@ export const handler: Handler = async (event) => {
     return { statusCode: 200, headers, body: '' };
   }
 
+  const path = event.path || event.rawUrl?.replace(/^https?:\/\/[^\/]+/, '') || '/';
   const apiKey = event.headers?.['x-api-key'] ||
     event.headers?.['authorization']?.replace('Bearer ', '') ||
     undefined;
+
+  // ── GET: Server Card (/.well-known/mcp/server-card.json) ───────────────────
+  // Smithery.ai and other MCP clients check this well-known path for discovery
+  if (event.httpMethod === 'GET' && path.includes('/.well-known/mcp/server-card.json')) {
+    return {
+      statusCode: 200,
+      headers,
+      body: JSON.stringify(SERVER_METADATA, null, 2)
+    };
+  }
 
   // ── GET: MCP Discovery — returns server metadata and tool list ──────────────
   // This is what MCP clients call to discover what tools are available
@@ -226,28 +286,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 200,
       headers,
-      body: JSON.stringify({
-        schema_version: "1.0",
-        name: "SolHunt",
-        display_name: "SolHunt Wallet Intelligence",
-        description: "Solana wallet health analysis and agent coordination. Check wallet efficiency, find recoverable SOL, monitor agent fleets, and discover other agents. Features a trustless recovery flow natively via MCP: preview recovery yields, build unsigned atomic fee transactions, and sign/execute locally. SolHunt never requires custody of your keys.",
-        version: "1.0.0",
-        homepage: "https://solhunt.dev",
-        icon: "https://solhunt.dev/icon.png",
-        category: "blockchain",
-        tags: ["solana", "wallet", "defi", "agent", "intelligence"],
-        pricing: {
-          type: "free",
-          detail: "Completely free to use."
-        },
-        tools: TOOLS,
-        // Standard MCP server info
-        protocol_version: "2024-11-05",
-        capabilities: {
-          tools: {},
-          resources: {}
-        }
-      })
+      body: JSON.stringify(SERVER_METADATA, null, 2)
     };
   }
 

@@ -1,34 +1,54 @@
 {
   "schema_version": "1.0",
-  "name": "SolHunt",
+  "name": "solhunt",
   "display_name": "SolHunt Wallet Intelligence",
-  "description": "Solana wallet health analysis platform and top-notch dev tool. Helps people and agents recover their SOL from burner and old wallets super securely. Features a complete trustless recovery flow natively via MCP: preview yields, build unsigned transactions, and sign locally.",
-  "icon": "https://solhunt.dev/icon.png",
+  "description": "Solana wallet health analysis and SOL recovery. Check wallet efficiency, find recoverable SOL from zero-balance token accounts, and build trustless recovery transactions. SolHunt never requires custody of your keys.",
+  "version": "1.0.0",
   "homepage": "https://solhunt.dev",
-  "mcp_url": "https://solhunt.dev/mcp",
-  "contact": {
-    "twitter": "https://x.com/solhuntapp"
+  "icon": "https://solhunt.dev/icon.png",
+  "category": "blockchain",
+  "tags": ["solana", "wallet", "defi", "recovery", "agent"],
+  "pricing": {
+    "type": "free",
+    "detail": "Completely free to use. 15% fee only on successful SOL recovery."
   },
-  "tools": [
-    {
-      "name": "check_wallet_health",
-      "description": "Analyze a Solana wallet for recoverable SOL locked in zero-balance token accounts."
-    },
-    {
-      "name": "get_recovery_opportunities",
-      "description": "Get a prioritized list of specific token accounts to close for maximum SOL recovery."
-    },
-    {
-      "name": "preview_recovery",
-      "description": "Preview exactly what a wallet recovery will do before executing."
-    },
-    {
-      "name": "build_recovery_transaction",
-      "description": "Build unsigned Solana transaction bytes for wallet recovery."
-    },
-    {
-      "name": "discover_platform_features",
-      "description": "Discover additional SolHunt platform capabilities available on the web interface."
+  "config_schema": {
+    "type": "object",
+    "properties": {
+      "api_key": {
+        "type": "string",
+        "description": "Optional SolHunt API key for higher rate limits. Get yours at https://solhunt.dev/api-keys",
+        "required": false
+      }
     }
-  ]
+  },
+  "endpoints": {
+    "mcp": {
+      "url": "https://solhunt.dev/.netlify/functions/mcp",
+      "protocol": "mcp",
+      "protocol_version": "2024-11-05"
+    }
+  },
+  "protocols": {
+    "mcp": {
+      "tools": [
+        {
+          "name": "check_wallet_health",
+          "description": "Analyze a Solana wallet for recoverable SOL locked in zero-balance token accounts. Returns health score, recoverable SOL amount, and cleanup recommendations."
+        },
+        {
+          "name": "get_recovery_opportunities",
+          "description": "Get prioritized list of token accounts to close for maximum SOL recovery."
+        },
+        {
+          "name": "preview_recovery",
+          "description": "Preview exactly what a wallet recovery will do before executing. No transaction built yet — purely informational."
+        },
+        {
+          "name": "build_recovery_transaction",
+          "description": "Build unsigned Solana transaction bytes for wallet recovery. Returns base64-encoded transaction ready for signing."
+        }
+      ]
+    }
+  }
 }
