@@ -287,6 +287,34 @@ export const handler: Handler = async (event) => {
           result: { tools: TOOLS }
         })
       };
+    } else if (body.method === 'initialize') {
+      // Standard MCP initialization
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: body.id,
+          result: {
+            protocolVersion: body.params?.protocolVersion || "2024-11-05",
+            capabilities: {
+              tools: {},
+              resources: {}
+            },
+            serverInfo: {
+              name: "SolHunt",
+              version: "1.0.0"
+            }
+          }
+        })
+      };
+    } else if (body.method === 'notifications/initialized') {
+      // Just acknowledge
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ jsonrpc: "2.0", result: null })
+      };
     } else {
       return {
         statusCode: 400,

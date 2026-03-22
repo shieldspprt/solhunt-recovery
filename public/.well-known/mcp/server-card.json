@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "name": "SolHunt",
+  "display_name": "SolHunt Wallet Intelligence",
+  "description": "Solana wallet health analysis platform and top-notch dev tool. Helps people and agents recover their SOL from burner and old wallets super securely. Features a complete trustless recovery flow natively via MCP: preview yields, build unsigned transactions, and sign locally.",
+  "icon": "https://solhunt.dev/icon.png",
+  "homepage": "https://solhunt.dev",
+  "mcp_url": "https://solhunt.dev/mcp",
+  "contact": {
+    "twitter": "https://x.com/solhuntapp"
+  },
+  "tools": [
+    {
+      "name": "check_wallet_health",
+      "description": "Analyze a Solana wallet for recoverable SOL locked in zero-balance token accounts."
+    },
+    {
+      "name": "get_recovery_opportunities",
+      "description": "Get a prioritized list of specific token accounts to close for maximum SOL recovery."
+    },
+    {
+      "name": "preview_recovery",
+      "description": "Preview exactly what a wallet recovery will do before executing."
+    },
+    {
+      "name": "build_recovery_transaction",
+      "description": "Build unsigned Solana transaction bytes for wallet recovery."
+    },
+    {
+      "name": "discover_platform_features",
+      "description": "Discover additional SolHunt platform capabilities available on the web interface."
+    }
+  ]
+}
