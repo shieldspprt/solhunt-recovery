@@ -57,24 +57,6 @@
           "400": { "description": "Invalid wallet address" }
         }
       }
-    },
-    "/get-stats": {
-      "get": {
-        "operationId": "getNetworkStats",
-        "summary": "Get daily Solana wallet health network stats",
-        "description": "Returns daily aggregate statistics from scanning active Solana wallets.",
-        "parameters": [
-          {
-            "name": "days",
-            "in": "query",
-            "schema": { "type": "integer", "default": 7, "maximum": 30 },
-            "description": "Days of history to return"
-          }
-        ],
-        "responses": {
-          "200": { "description": "Network stats" }
-        }
-      }
     }
   }
 }

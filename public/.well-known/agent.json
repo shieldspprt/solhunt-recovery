@@ -19,8 +19,7 @@
   "capabilities": [
     "wallet-health-scoring",
     "recovery-opportunity-detection",
-    "network-intelligence",
-    "daily-ecosystem-stats"
+    "discover-platform-features"
   ],
 
   "works_with": [

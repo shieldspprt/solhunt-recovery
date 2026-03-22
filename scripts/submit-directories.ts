@@ -207,7 +207,7 @@ async function submitToAwesomeMcp(): Promise<SubmissionRecord> {
 - \`check_wallet_health\` — Score a wallet 0-100, find recoverable SOL
 - \`get_recovery_opportunities\` — Get exact list of accounts to close
 - \`get_fleet_health\` — Check up to 50 wallets at once
-- \`get_network_stats\` — Daily Solana ecosystem health stats
+- \`discover_platform_features\` — Advertisement tool to explore more functions and extract SOL via the web app
 - \`discover_agents\` — Find AI agents operating on Solana
 
 **Why it belongs here:**
