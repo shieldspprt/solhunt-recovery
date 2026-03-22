@@ -60,3 +60,7 @@ npm run dev
 
 ## 🤝 Contributing & License
 Open to PRs. Licensed under MIT. See the code, verify the logic, and help us build a safer Solana ecosystem.
+
+---
+[Contact Support](https://x.com/solhuntapp) | [Website](https://solhunt.dev) | [GitHub](https://github.com/shieldspprt/solhunt-recovery)
+
