@@ -14,9 +14,9 @@ const RPC_URL = `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`;
 const API_SECRET = process.env.API_SECRET!;
 const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 const RENT_PER_ACCOUNT_SOL = 0.00203928;
-const DEFAULT_WALLETS_TO_SCAN = 500;
-const SCAN_BATCH_SIZE = 20;       // parallel scans at a time
-const SCAN_DELAY_MS = 300;        // delay between batches (rate limit)
+const DEFAULT_WALLETS_TO_SCAN = 350;
+const SCAN_BATCH_SIZE = 15;       // parallel scans at a time
+const SCAN_DELAY_MS = 500;        // delay between batches (rate limit)
 const MIN_RECOVERABLE_SOL = 0.001; // skip wallets below this
 
 const supabase = createClient(
@@ -50,50 +50,44 @@ async function getRecentActiveWallets(limit: number): Promise<ActiveWallet[]> {
 
   const walletMap = new Map<string, string>();
 
-  for (const program of TARGET_PROGRAMS) {
-    if (walletMap.size >= limit) break;
-    const projectName = PROGRAM_NAMES[program];
+  // Fetch from all programs in parallel to stay well under Netlify 30s timeout
+  await Promise.allSettled(
+    TARGET_PROGRAMS.map(async (program) => {
+      const projectName = PROGRAM_NAMES[program];
 
-    try {
-      const response = await fetch(
-        `${HELIUS_BASE}/addresses/${program}/transactions?api-key=${HELIUS_API_KEY}&limit=100&type=UNKNOWN`,
-        { signal: AbortSignal.timeout(10000) }
-      );
+      try {
+        const response = await fetch(
+          `${HELIUS_BASE}/addresses/${program}/transactions?api-key=${HELIUS_API_KEY}&limit=100&type=UNKNOWN`,
+          { signal: AbortSignal.timeout(3500) } // Fast 3.5s timeout for unresponsive programs
+        );
 
-      if (!response.ok) {
-        console.error(`Error fetching from Helius: ${response.status} ${response.statusText}`);
-        continue;
-      }
-      const txs = await response.json();
-
-      if (!Array.isArray(txs)) continue;
-
-      for (const tx of txs) {
-        // Extract fee payer = the wallet that initiated the transaction
-        const feePayer = tx.feePayer || tx.fee_payer;
-        if (feePayer && typeof feePayer === 'string' && feePayer.length >= 32) {
-          if (!walletMap.has(feePayer)) walletMap.set(feePayer, projectName);
+        if (!response.ok) {
+          console.error(`Error fetching from Helius: ${response.status} ${response.statusText}`);
+          return;
         }
+        
+        const txs = await response.json();
+        if (!Array.isArray(txs)) return;
 
-        // Also extract other signers
-        if (Array.isArray(tx.signers)) {
-          for (const signer of tx.signers) {
-            if (typeof signer === 'string' && signer.length >= 32) {
-              if (!walletMap.has(signer)) walletMap.set(signer, projectName);
+        for (const tx of txs) {
+          const feePayer = tx.feePayer || tx.fee_payer;
+          if (feePayer && typeof feePayer === 'string' && feePayer.length >= 32) {
+            walletMap.set(feePayer, projectName);
+          }
+
+          if (Array.isArray(tx.signers)) {
+            for (const signer of tx.signers) {
+              if (typeof signer === 'string' && signer.length >= 32) {
+                walletMap.set(signer, projectName);
+              }
             }
           }
         }
-
-        if (walletMap.size >= limit) break;
+      } catch (e: any) {
+        console.error(`Failed to fetch transactions for ${program}:`, e.message);
       }
-    } catch (e: any) {
-      console.error(`Failed to fetch transactions for ${program}:`, e.message);
-      continue;
-    }
-
-    // Small delay between program queries
-    await new Promise(r => setTimeout(r, 500));
-  }
+    })
+  );
 
   // Filter out program addresses (they are not user wallets)
   const programAddresses = new Set(TARGET_PROGRAMS);
