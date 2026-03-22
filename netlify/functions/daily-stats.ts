@@ -216,8 +216,20 @@ function computeStats(
 
 // ── Step 5: Generate X post draft ────────────────────────────────────────────
 
-function generateXDraft(stats: ReturnType<typeof computeStats>, date: string): string {
-  const solPrice = 150; // hardcoded — good enough for illustration
+async function generateXDraft(stats: ReturnType<typeof computeStats>, date: string): Promise<string> {
+  let solPrice = 150; // fallback
+  try {
+    const res = await fetch('https://price.jup.ag/v6/price?ids=SOL', { signal: AbortSignal.timeout(2000) });
+    if (res.ok) {
+      const data = await res.json();
+      if (data?.data?.SOL?.price) {
+        solPrice = data.data.SOL.price;
+      }
+    }
+  } catch (e: any) {
+    console.warn('Failed to fetch SOL price from Jupiter:', e.message);
+  }
+
   const totalUsd = (stats.total_recoverable_sol * solPrice).toFixed(0);
   const avgUsd = (stats.avg_recoverable_sol * solPrice).toFixed(2);
   const projectHighlight = stats.top_project ? `\n\nProjects creating the most dust today? ${stats.top_project} users lead the pack.` : '';
@@ -314,7 +326,7 @@ export const handler: Handler = async (event) => {
     const stats = computeStats(wallets.length, results);
 
     // Step 5: Generate X draft
-    const xDraft = generateXDraft(stats, today);
+    const xDraft = await generateXDraft(stats, today);
 
     // Step 6: Save to Supabase
     const { error: dbError } = await supabase
