@@ -20,6 +20,18 @@
   from = "/mcp/*"
   to = "/.netlify/functions/mcp"
   status = 200
+
+# Serve MCP server card as static JSON (must be before SPA redirect)
+[[redirects]]
+  from = "/.well-known/mcp/*"
+  to = "/.well-known/mcp/:splat"
+  status = 200
+
+# Serve agent.json as static JSON
+[[redirects]]
+  from = "/.well-known/agent.json"
+  to = "/.well-known/agent.json"
+  status = 200
   
 # SPA routing: redirect all routes to index.html
 [[redirects]]
@@ -50,6 +62,14 @@
   for = "/*.html"
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
+
+# MCP server card headers
+[[headers]]
+  for = "/.well-known/mcp/*"
+  [headers.values]
+    Content-Type = "application/json"
+    Access-Control-Allow-Origin = "*"
+    Cache-Control = "public, max-age=3600"
 
 [[headers]]
   for = "/.well-known/agent.json"
