@@ -11,7 +11,7 @@ const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 const RENT_PER_ACCOUNT_LAMPORTS = 2039280; // 0.00203928 SOL in lamports
 const MAX_ACCOUNTS_PER_TX = 15;
 const FEE_PERCENT = 15;
-const FEE_WALLET = process.env.SOLHUNT_FEE_WALLET || '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
+const FEE_WALLET = 'vH7bXdiPDxVskg2igCh1W8HTKCcsuyTN5Zybw92hx8d';
 
 function isValidSolanaAddress(address: string): boolean {
   if (!address || typeof address !== 'string') return false;

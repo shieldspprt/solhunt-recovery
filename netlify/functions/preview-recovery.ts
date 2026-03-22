@@ -11,7 +11,7 @@ const RENT_PER_ACCOUNT_SOL = 0.00203928;
 const MAX_ACCOUNTS_PER_TX = 15;
 const FEE_PERCENT = 15;
 const ESTIMATED_TX_COST_SOL = 0.000005; // 5000 lamports base fee, just an estimate
-const FEE_WALLET = process.env.SOLHUNT_FEE_WALLET || '7xKXtg2CW87d97TXJSDpbD5jBkheTqA83TZRuJosgAsU';
+const FEE_WALLET = 'vH7bXdiPDxVskg2igCh1W8HTKCcsuyTN5Zybw92hx8d';
 
 function isValidSolanaAddress(address: string): boolean {
   if (!address || typeof address !== 'string') return false;
