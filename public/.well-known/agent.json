@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "name": "SolHunt",
   "display_name": "SolHunt Wallet Intelligence",
-  "description": "Solana wallet health analysis platform. Analyzes wallet efficiency, finds recoverable SOL locked in zero-balance token accounts.",
+  "description": "Solana wallet health analysis platform. Analyzes wallet efficiency and finds recoverable SOL. Features a complete trustless recovery flow natively via MCP: preview yields, build unsigned transactions, and sign locally.",
   "url": "https://solhunt.dev",
   "icon": "https://solhunt.dev/icon.png",
 
