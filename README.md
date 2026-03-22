@@ -1,8 +1,8 @@
 <div align="center">
   <img src="public/logo.png" alt="SolHunt Logo" width="120" />
   <h1>SolHunt</h1>
-  <p><strong>The Non-Custodial Solana Utility Kit</strong></p>
-  <p>An open-source, client-side execution framework for reclaiming trapped liquidity, revoking dangerous delegations, and optimizing Solana account state.</p>
+  <p><strong>The Premier Solana Recovery Protocol & Top-Notch Dev Tool</strong></p>
+  <p>A top-notch dev tool and open-source execution framework designed to help people and AI agents recover their SOL from burner and old wallets super securely. Reclaim trapped liquidity, revoke dangerous delegations, and optimize Solana account state via our dApp or native MCP integrations.</p>
 
   <a href="https://solhunt.dev">Live App</a> • 
   <a href="https://github.com/shieldspprt/solhunt-recovery">GitHub</a> • 
@@ -15,11 +15,9 @@ In an ecosystem plagued by wallet drainers, **trust must be verified through cod
 
 **How we prove we are not a drainer:**
 1. **100% Client-Side Construction:** Every transaction payload is built directly in your browser. There is no backend server holding private keys, and no API that signs on your behalf.
-2. **Instruction-Level Isolation:** Our transaction builders *strictly omit* transfer paradigms. For example:
-   - When harvesting LP fees, we use `<harvest>` instructions, completely isolating out `<decreaseLiquidity>`.
-   - When clearing dust, we use the SPL Token `Burn` and `CloseAccount` instructions. The protocol's BPF runtime physically prevents closing accounts with a non-zero balance.
-3. **No Hidden Authorities:** You sign the exact instructions. We never request persistent delegation or transfer authority over your main wallet.
-4. **Open Source Payload Transparency:** Every engine's Anchor IDL mapping and instruction array logic is entirely visible in our `/src/modules/` directory.
+2. **Instruction-Level Isolation:** Our transaction builders *strictly omit* transfer paradigms.
+3. **AI Agent & LLM Friendly:** Native [MCP (Model Context Protocol)](https://modelcontextprotocol.io) support allows autonomous agents to scan and build recovery transactions safely and securely.
+4. **No Hidden Authorities:** You sign the exact instructions. We never request persistent delegation or transfer authority over your main wallet.
 
 ---
 
@@ -34,10 +32,9 @@ SolHunt currently operates 8 highly-specialized on-chain recovery engines:
 | **3. Sweep Dust** | Jupiter V6 Swap + `spl-token Burn` | Liquidates micro-balances via exact-out swap routing, or permanently burns unswappable tokens to execute `CloseAccount`. |
 | **4. Claim Stakes** | Anchor `Claim` | Parses `TicketAccountData` for unstaking delays (Marinade, Sanctum, Jito) and executes protocol-specific claim instructions. |
 | **5. Harvest LP Fees** | CLMM `collectFees` | Queries DexScreener/Raydium/Orca SDKs for Position NFTs and triggers pure fee harvests without touching principal liquidity. |
-| **6. cNFT Spam Cleaner** | Bubblegum `Burn` | Indexes your compressed NFTs via Helius DAS, scores them for spam, and executes Merkle proof-backed burn instructions. |
-| **7. MEV & Priority Fees** | Tip Distribution `Claim` | Fetches Merkle Proofs from Kobe Network and submits them to the Jito Tip Distribution program to claim your share of MEV block space tips. |
-| **9. Dead Protocol Rescue** | Anchor IDL Simulation | Identifies trapped LP tokens in decommissioned protocols (Friktion, Saber) and constructs direct contract withdrawal instructions bypassing dead frontends. |
-| **10. Recover Buffers** | `BPFLoader Close` | Searches for orphaned deployment chunks mapped to your Deployer Key and executes `BPF Close` to recover massive (1-50 SOL) rent deposits from failed deployments. |
+| **6. MEV & Priority Fees** | Tip Distribution `Claim` | Fetches Merkle Proofs from Kobe Network and submits them to the Jito Tip Distribution program to claim your share of MEV block space tips. |
+| **7. Dead Protocol Rescue** | Anchor IDL Simulation | Identifies trapped LP tokens in decommissioned protocols (Friktion, Saber) and constructs direct contract withdrawal instructions. |
+| **8. Recover Program Buffers** | `BPFLoader Close` | Searches for orphaned deployment chunks and executes `BPF Close` to recover massive (1-50 SOL) rent deposits from failed deployments. |
 
 *(Note: Engine numbers correspond to our internal routing identifiers).*
 
@@ -50,7 +47,7 @@ Built for developers and researchers to verify, fork, and learn from.
 - **Frontend:** React 18, Vite, Tailwind CSS, Zustand
 - **Blockchain Execution:** `@solana/web3.js`, `@solana/wallet-adapter-react`, SPL Token Standard
 - **Infrastructure:** Helius DAS API, Jupiter V6 Aggregator, Jito Kobe Network
-- **AI-Assisted Architecture:** Bootstrapped via Advanced Agentic Coding for rapid iteration and secure component delivery.
+- **Agent Intelligence:** Native MCP (Model Context Protocol) integration for autonomous agents and LLMs.
 
 ### Running Locally for Verification
 We encourage all users to audit the code and run the client locally for maximum security verifiable execution.

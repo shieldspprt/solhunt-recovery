@@ -1,6 +1,6 @@
 import { useEffect, memo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowRight, Shield, Coins, Sparkles, Ticket, Layers3, Flame, TrendingUp, Zap, Code2, BookOpen, Ghost, MessageSquare } from 'lucide-react';
+import { ArrowRight, Shield, Coins, Sparkles, Ticket, Layers3, TrendingUp, Zap, Code2, BookOpen, Ghost, MessageSquare } from 'lucide-react';
 import type { ComponentType } from 'react';
 import type { LucideProps } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
@@ -17,7 +17,6 @@ const ENGINE_ICONS: Record<number, ComponentType<LucideProps>> = {
     3: Sparkles,
     4: Ticket,
     5: Layers3,
-    6: Flame,
     7: Zap,
     9: Ghost,
     10: Code2,

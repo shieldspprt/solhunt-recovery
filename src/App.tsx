@@ -11,7 +11,6 @@ import { HomePage } from '@/pages/HomePage';
 import { ScanPage } from '@/pages/ScanPage';
 import { TicketFinderPage } from '@/pages/TicketFinderPage';
 import { LpFeeHarvesterPage } from '@/pages/LpFeeHarvesterPage';
-import { NftSpamCleanerPage } from '@/pages/NftSpamCleanerPage';
 import { BufferRecoveryPage } from '@/pages/BufferRecoveryPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { HowItWorksPage } from '@/pages/HowItWorksPage';
@@ -79,7 +78,6 @@ function App() {
                                 <Route path="/scan" element={<ScanPage />} />
                                 <Route path="/tickets" element={<TicketFinderPage />} />
                                 <Route path="/lp-fees" element={<LpFeeHarvesterPage />} />
-                                <Route path="/nft-cleaner" element={<NftSpamCleanerPage />} />
                                 <Route path="/buffers" element={<BufferRecoveryPage />} />
                                 <Route path="/how-it-works" element={<HowItWorksPage />} />
                                 <Route path="/how-it-works/engine/:id" element={<EngineHowItWorksPage />} />
