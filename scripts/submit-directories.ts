@@ -22,7 +22,7 @@ interface SubmissionRecord {
   notes?: string;
 }
 
-const TRACKING_FILE = path.join(process.cwd(), 'MCP_SUBMISSIONS.md');
+const TRACKING_FILE = path.join(process.cwd(), 'docs', 'MCP_SUBMISSIONS.md');
 
 function readTracking(): SubmissionRecord[] {
   if (!fs.existsSync(TRACKING_FILE)) return [];
@@ -59,7 +59,7 @@ ${JSON.stringify(records, null, 2)}
 *Last updated: ${new Date().toISOString()}*
 `;
   fs.writeFileSync(TRACKING_FILE, content);
-  console.log('Updated MCP_SUBMISSIONS.md');
+  console.log('Updated docs/MCP_SUBMISSIONS.md');
 }
 
 // ── 1. GitHub PR to awesome-mcp-servers ──────────────────────────────────────
@@ -351,8 +351,8 @@ This is harder to get into but highest credibility.
 Time required: ~10 minutes for all submissions.
 `;
 
-  fs.writeFileSync('MANUAL_SUBMISSIONS.md', guide);
-  console.log('\n📄 Manual submission guide written to MANUAL_SUBMISSIONS.md');
+  fs.writeFileSync(path.join(process.cwd(), 'docs', 'MANUAL_SUBMISSIONS.md'), guide);
+  console.log('\n📄 Manual submission guide written to docs/MANUAL_SUBMISSIONS.md');
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
@@ -408,7 +408,7 @@ async function main() {
   });
 
   console.log('\n📋 Manual submissions needed:');
-  console.log('   See MANUAL_SUBMISSIONS.md for copy-paste info');
+  console.log('   See docs/MANUAL_SUBMISSIONS.md for copy-paste info');
   console.log('   Takes ~10 minutes\n');
 }
 
