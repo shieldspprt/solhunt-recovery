@@ -240,10 +240,12 @@ export const handler: Handler = async (event) => {
   const headers = { 'Content-Type': 'application/json' };
 
   // Security: only allow internal calls or Netlify scheduler
-  const secret = event.headers?.['x-internal-secret'] ||
-    event.queryStringParameters?.secret;
+  const secret = event.headers?.['x-internal-secret'] || event.queryStringParameters?.secret;
+  
+  // Netlify's "Run now" and cron scheduler use POST requests, which we'll allow
+  const isNetlifyTrigger = event.httpMethod === 'POST';
 
-  if (secret !== API_SECRET) {
+  if (!isNetlifyTrigger && secret !== API_SECRET) {
     return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
@@ -266,10 +268,13 @@ export const handler: Handler = async (event) => {
 
   try {
     console.log('Starting daily stats run for', today);
-    const limit = event.queryStringParameters?.fast ? 10 : DEFAULT_WALLETS_TO_SCAN;
+    const isFast = !!event.queryStringParameters?.fast;
 
     // Step 1: Get wallets
-    const wallets = await getRecentActiveWallets(limit);
+    // If fast mode, skip the Helius search entirely and just test one wallet
+    const wallets = isFast 
+      ? ['vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg'] 
+      : await getRecentActiveWallets(DEFAULT_WALLETS_TO_SCAN);
     if (wallets.length === 0) {
       throw new Error('No wallets found — Helius may be rate limited');
     }
