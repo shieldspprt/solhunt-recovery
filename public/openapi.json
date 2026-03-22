@@ -3,12 +3,12 @@
   "info": {
     "title": "SolHunt Wallet Intelligence API",
     "version": "1.0.0",
-    "description": "Real-time Solana wallet health analysis designed for AI agents and automated systems. Returns structured data optimized for programmatic consumption.",
+    "description": "Real-time Solana wallet health analysis and top-notch dev tool designed for AI agents and automated systems. Helps people and agents recover their SOL from burner and old wallets super securely. Returns structured data optimized for programmatic consumption.",
     "x-agent-optimized": true,
     "x-mcp-server": "https://solhunt.dev/mcp",
     "contact": {
       "url": "https://solhunt.dev",
-      "x-twitter": "https://x.com/solhunt_dev"
+      "x-twitter": "https://x.com/solhuntapp"
     }
   },
   "servers": [
@@ -21,40 +21,52 @@
     "/scan-wallet": {
       "get": {
         "operationId": "checkWalletHealth",
-        "summary": "Check wallet health and find recoverable SOL",
-        "description": "Analyzes a Solana wallet for zero-balance token accounts with locked rent. Returns health score 0-100, exact recoverable SOL, and cleanup recommendation. Free to use.",
+        "summary": "Check wallet health and find recoverable SOL securely",
+        "description": "Analyzes a Solana wallet for zero-balance token accounts with locked rent. Helps people and agents recover their SOL from burner and old wallets super securely. Returns health score 0-100, exact recoverable SOL, and cleanup recommendation. Free to use.",
         "parameters": [
           {
             "name": "address",
             "in": "query",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Solana wallet public key (base58, 32-44 chars)"
           }
         ],
         "responses": {
-          "200": { "description": "Wallet health data" },
-          "400": { "description": "Invalid wallet address" }
+          "200": {
+            "description": "Wallet health data"
+          },
+          "400": {
+            "description": "Invalid wallet address"
+          }
         }
       }
     },
     "/wallet-opportunities": {
       "get": {
         "operationId": "getWalletOpportunities",
-        "summary": "Get specific accounts to close for SOL recovery",
-        "description": "Returns a list of specific zero-balance token accounts grouped into optimal batches for transaction building.",
+        "summary": "Get specific accounts to close for secure SOL recovery",
+        "description": "Returns a list of specific zero-balance token accounts grouped into optimal batches for transaction building, acting as a top-notch dev tool for safe asset recovery.",
         "parameters": [
           {
             "name": "wallet",
             "in": "query",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "description": "Solana wallet public key"
           }
         ],
         "responses": {
-          "200": { "description": "List of closeable accounts" },
-          "400": { "description": "Invalid wallet address" }
+          "200": {
+            "description": "List of closeable accounts"
+          },
+          "400": {
+            "description": "Invalid wallet address"
+          }
         }
       }
     }

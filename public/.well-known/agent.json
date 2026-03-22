@@ -2,31 +2,31 @@
   "schema_version": "1.0",
   "name": "SolHunt",
   "display_name": "SolHunt Wallet Intelligence",
-  "description": "Solana wallet health analysis platform. Analyzes wallet efficiency and finds recoverable SOL. Features a complete trustless recovery flow natively via MCP: preview yields, build unsigned transactions, and sign locally.",
+  "description": "Solana wallet health analysis platform and top-notch dev tool. Helps people and agents to recover their SOLs from burner and old wallets super securely. Features a complete trustless recovery flow natively via MCP: preview yields, build unsigned transactions, and sign locally.",
   "url": "https://solhunt.dev",
   "icon": "https://solhunt.dev/icon.png",
-
   "operator": {
     "name": "SolHunt",
     "url": "https://solhunt.dev",
-    "contact": "https://x.com/solhunt_dev"
+    "contact": "https://x.com/solhuntapp"
   },
-
   "active": true,
   "category": "blockchain-infrastructure",
   "chain": "solana",
-
   "capabilities": [
     "wallet-health-scoring",
     "recovery-opportunity-detection",
     "discover-platform-features"
   ],
-
   "works_with": [
-    "jupiter", "pump.fun", "raydium", "orca",
-    "polymarket", "marinade", "jito"
+    "jupiter",
+    "pump.fun",
+    "raydium",
+    "orca",
+    "polymarket",
+    "marinade",
+    "jito"
   ],
-
   "interfaces": {
     "mcp": "https://solhunt.dev/mcp",
     "api": "https://solhunt.dev/api",
@@ -34,7 +34,6 @@
     "npm": "@solhunt/agent-sdk",
     "docs": "https://solhunt.dev/docs"
   },
-
   "pricing": {
     "free_tier": "Completely free, no API key required",
     "mcp": "Free to use via MCP"
