@@ -28,25 +28,36 @@ const supabase = createClient(
 // Strategy: get recent transactions from high-activity programs
 // Deduplicate fee payers = unique active wallets
 
-async function getRecentActiveWallets(limit: number): Promise<string[]> {
+export interface ActiveWallet {
+  address: string;
+  sourceProject: string;
+}
+
+async function getRecentActiveWallets(limit: number): Promise<ActiveWallet[]> {
   // Programs that see high wallet activity on Solana
   // We query recent transactions and extract unique fee payers (= wallet addresses)
-  const TARGET_PROGRAMS = [
-    '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P', // pump.fun
-    'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4', // Jupiter v6
-    'whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3sFjJ2L', // Orca Whirlpool
-    '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin', // Serum/OpenBook
-  ];
+  const PROGRAM_NAMES: Record<string, string> = {
+    '6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P': 'pump.fun',
+    'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4': 'Jupiter v6',
+    'whirLbMiicVdio4qvUfM5KAg6Ct8VwpYzGff3sFjJ2L': 'Orca Whirlpool',
+    '9xQeWvG816bUx9EPjHmaT23yvVM2ZWbrrpZb9PusVFin': 'OpenBook',
+    'MarBmsSgKXdrN1egZf5sqe1TMai9K1rChYNDJgjq7aD': 'Marinade',
+    'JitosoLrHgLqLmkH3fHfPPVMkHYZABQkMnRBKgguMwZ': 'Jito',
+    'RVKd61ztZW9GUwhRbbLoYVRE5Xf1B2tVscKqwZqXgEr': 'Raydium v4',
+    'DjVE6JNiYqPL2QXyCUUh8rNjHrbz9hXHNYt99MQ59qw1': 'Orca v1',
+  };
+  const TARGET_PROGRAMS = Object.keys(PROGRAM_NAMES);
 
-  const walletSet = new Set<string>();
+  const walletMap = new Map<string, string>();
 
   for (const program of TARGET_PROGRAMS) {
-    if (walletSet.size >= limit) break;
+    if (walletMap.size >= limit) break;
+    const projectName = PROGRAM_NAMES[program];
 
     try {
       // Get recent transactions for this program
       const response = await fetch(
-        `${HELIUS_BASE}/addresses/${program}/transactions?api-key=${HELIUS_API_KEY}&limit=100&type=UNKNOWN`,
+        `${HELIUS_BASE}/addresses/${program}/transactions?api-key=${HELIUS_API_KEY}&limit=200&type=UNKNOWN`,
         { signal: AbortSignal.timeout(10000) }
       );
 
@@ -59,19 +70,19 @@ async function getRecentActiveWallets(limit: number): Promise<string[]> {
         // Extract fee payer = the wallet that initiated the transaction
         const feePayer = tx.feePayer || tx.fee_payer;
         if (feePayer && typeof feePayer === 'string' && feePayer.length >= 32) {
-          walletSet.add(feePayer);
+          if (!walletMap.has(feePayer)) walletMap.set(feePayer, projectName);
         }
 
         // Also extract other signers
         if (Array.isArray(tx.signers)) {
           for (const signer of tx.signers) {
             if (typeof signer === 'string' && signer.length >= 32) {
-              walletSet.add(signer);
+              if (!walletMap.has(signer)) walletMap.set(signer, projectName);
             }
           }
         }
 
-        if (walletSet.size >= limit) break;
+        if (walletMap.size >= limit) break;
       }
     } catch (e: any) {
       console.error(`Failed to fetch transactions for ${program}:`, e.message);
@@ -84,9 +95,10 @@ async function getRecentActiveWallets(limit: number): Promise<string[]> {
 
   // Filter out program addresses (they are not user wallets)
   const programAddresses = new Set(TARGET_PROGRAMS);
-  const wallets = Array.from(walletSet)
-    .filter(w => !programAddresses.has(w))
-    .slice(0, limit);
+  const wallets: ActiveWallet[] = Array.from(walletMap.entries())
+    .filter(([w]) => !programAddresses.has(w))
+    .slice(0, limit)
+    .map(([address, sourceProject]) => ({ address, sourceProject }));
 
   console.log(`Found ${wallets.length} unique active wallets`);
   return wallets;
@@ -125,18 +137,22 @@ async function scanWallet(address: string, connection: Connection): Promise<{
 
 // ── Step 3: Scan all wallets in parallel batches ─────────────────────────────
 
-async function scanAllWallets(wallets: string[]): Promise<{
+async function scanAllWallets(wallets: ActiveWallet[]): Promise<{
   address: string;
+  sourceProject: string;
   closeable: number;
   recoverable_sol: number;
 }[]> {
   const connection = new Connection(RPC_URL, 'confirmed');
-  const results: { address: string; closeable: number; recoverable_sol: number }[] = [];
+  const results: { address: string; sourceProject: string; closeable: number; recoverable_sol: number }[] = [];
 
   for (let i = 0; i < wallets.length; i += SCAN_BATCH_SIZE) {
     const batch = wallets.slice(i, i + SCAN_BATCH_SIZE);
     const batchResults = await Promise.all(
-      batch.map(w => scanWallet(w, connection))
+      batch.map(async (w) => {
+        const res = await scanWallet(w.address, connection);
+        return { ...res, sourceProject: w.sourceProject };
+      })
     );
 
     results.push(
@@ -159,7 +175,7 @@ async function scanAllWallets(wallets: string[]): Promise<{
 
 function computeStats(
   walletCount: number,
-  results: { address: string; closeable: number; recoverable_sol: number }[]
+  results: { address: string; sourceProject: string; closeable: number; recoverable_sol: number }[]
 ): {
   wallets_scanned: number;
   wallets_with_dust: number;
@@ -168,6 +184,7 @@ function computeStats(
   max_recoverable_sol: number;
   worst_wallet: string;
   percent_with_dust: number;
+  top_project: string;
 } {
   const withDust = results.filter(r => r.recoverable_sol > 0);
 
@@ -176,6 +193,19 @@ function computeStats(
 
   const worst = withDust.sort((a, b) => b.recoverable_sol - a.recoverable_sol)[0];
 
+  const projectStats = new Map<string, number>();
+  for (const r of withDust) {
+    projectStats.set(r.sourceProject, (projectStats.get(r.sourceProject) || 0) + r.recoverable_sol);
+  }
+  let topProject = '';
+  let maxProjectSol = -1;
+  for (const [project, sol] of projectStats.entries()) {
+    if (sol > maxProjectSol) {
+      maxProjectSol = sol;
+      topProject = project;
+    }
+  }
+
   return {
     wallets_scanned: walletCount,
     wallets_with_dust: withDust.length,
@@ -183,7 +213,8 @@ function computeStats(
     avg_recoverable_sol: parseFloat(avgSol.toFixed(4)),
     max_recoverable_sol: worst ? parseFloat(worst.recoverable_sol.toFixed(4)) : 0,
     worst_wallet: worst?.address || '',
-    percent_with_dust: parseFloat(((withDust.length / walletCount) * 100).toFixed(1))
+    percent_with_dust: parseFloat(((withDust.length / walletCount) * 100).toFixed(1)),
+    top_project: topProject
   };
 }
 
@@ -193,6 +224,7 @@ function generateXDraft(stats: ReturnType<typeof computeStats>, date: string): s
   const solPrice = 150; // hardcoded — good enough for illustration
   const totalUsd = (stats.total_recoverable_sol * solPrice).toFixed(0);
   const avgUsd = (stats.avg_recoverable_sol * solPrice).toFixed(2);
+  const projectHighlight = stats.top_project ? `\n\nProjects creating the most dust today? ${stats.top_project} users lead the pack.` : '';
 
   // Pick one of three post templates based on the numbers
   // This creates variety so daily posts don't look copy-pasted
@@ -203,7 +235,7 @@ function generateXDraft(stats: ReturnType<typeof computeStats>, date: string): s
     // Template A: Focus on total locked value
     return `We scanned ${stats.wallets_scanned} active Solana wallets today.
 
-${stats.total_recoverable_sol.toFixed(2)} SOL (~$${totalUsd}) is sitting locked in dead token accounts.
+${stats.total_recoverable_sol.toFixed(2)} SOL (~$${totalUsd}) is sitting locked in dead token accounts.${projectHighlight}
 
 ${stats.percent_with_dust}% of wallets have recoverable SOL they don't know about.
 
@@ -219,7 +251,7 @@ ${stats.wallets_scanned} wallets scanned.
 ${stats.wallets_with_dust} have hidden recoverable SOL.
 
 Worst wallet today: ${stats.max_recoverable_sol.toFixed(3)} SOL locked in empty token accounts.
-Average across dirty wallets: ${stats.avg_recoverable_sol.toFixed(4)} SOL (~$${avgUsd}).
+Average across dirty wallets: ${stats.avg_recoverable_sol.toFixed(4)} SOL (~$${avgUsd}).${stats.top_project ? `\nTop dust-generating project: ${stats.top_project}` : ''}
 
 Paste your address at solhunt.dev to check yours.`;
   }
@@ -227,7 +259,7 @@ Paste your address at solhunt.dev to check yours.`;
   // Template C: Question format (highest engagement)
   return `${stats.percent_with_dust}% of active Solana wallets we scanned today have recoverable SOL locked in dead token accounts.
 
-Total across ${stats.wallets_scanned} wallets: ${stats.total_recoverable_sol.toFixed(2)} SOL.
+Total across ${stats.wallets_scanned} wallets: ${stats.total_recoverable_sol.toFixed(2)} SOL.${stats.top_project ? `\nUsers interacting with ${stats.top_project} had the most recoverable SOL today.` : ''}
 
 Most operators don't know. Is your wallet one of them?
 
@@ -272,8 +304,8 @@ export const handler: Handler = async (event) => {
 
     // Step 1: Get wallets
     // If fast mode, skip the Helius search entirely and just test one wallet
-    const wallets = isFast 
-      ? ['vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg'] 
+    const wallets: ActiveWallet[] = isFast 
+      ? [{ address: 'vines1vzrYbzLMRdu58ou5XTby4qAqVRLmqo36NKPTg', sourceProject: 'FastModeFallback' }] 
       : await getRecentActiveWallets(DEFAULT_WALLETS_TO_SCAN);
     if (wallets.length === 0) {
       throw new Error('No wallets found — Helius may be rate limited');
