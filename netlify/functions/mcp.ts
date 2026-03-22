@@ -48,25 +48,6 @@ recoverable SOL to get the exact list of what to close.`,
     }
   },
   {
-    name: "get_fleet_health",
-    description: `Check wallet health for multiple Solana wallets simultaneously (up to 50).
-Returns a summary showing which wallets are critical, warning, or healthy,
-plus total recoverable SOL across the fleet. Use this for operators running
-multiple agent wallets or when checking a portfolio of wallets at once.`,
-    inputSchema: {
-      type: "object",
-      required: ["wallet_addresses"],
-      properties: {
-        wallet_addresses: {
-          type: "array",
-          items: { type: "string" },
-          maxItems: 50,
-          description: "Array of Solana wallet public keys to check (max 50)"
-        }
-      }
-    }
-  },
-  {
     name: "get_network_stats",
     description: `Get today's Solana network-wide wallet health statistics.
 Shows how many wallets were scanned, what percentage have recoverable SOL,
@@ -80,31 +61,6 @@ or generating data-driven insights about wallet efficiency trends.`,
           type: "number",
           description: "Number of days of history to return (default 7, max 30)",
           default: 7
-        }
-      }
-    }
-  },
-  {
-    name: "discover_agents",
-    description: `Search the SolHunt agent registry to find AI agents operating on Solana.
-Filter by which protocol they work on (jupiter, pump.fun, raydium, orca, polymarket)
-or by capability. Returns agents that have registered their presence and accept
-introductions or collaboration proposals. Use this to find complementary agents
-for data sharing or coordination.`,
-    inputSchema: {
-      type: "object",
-      properties: {
-        works_on: {
-          type: "string",
-          description: "Protocol filter: jupiter, pump.fun, raydium, orca, polymarket, marinade, jito"
-        },
-        capability: {
-          type: "string",
-          description: "Capability keyword to search for"
-        },
-        accepts_introductions: {
-          type: "boolean",
-          description: "Only return agents open to introductions (default: true)"
         }
       }
     }
@@ -144,34 +100,10 @@ async function executeTool(
         return res.json();
       }
 
-      case 'get_fleet_health': {
-        const res = await fetch(`${API_BASE}/api/fleet-health`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify({ wallets: args.wallet_addresses }),
-          signal: AbortSignal.timeout(30000)
-        });
-        return res.json();
-      }
-
       case 'get_network_stats': {
         const days = args.days || 7;
         const res = await fetch(
           `${API_BASE}/api/get-stats?days=${days}`,
-          { headers, signal: AbortSignal.timeout(10000) }
-        );
-        return res.json();
-      }
-
-      case 'discover_agents': {
-        const params = new URLSearchParams();
-        if (args.works_on) params.set('works_on', args.works_on);
-        if (args.capability) params.set('capability', args.capability);
-        if (args.accepts_introductions !== undefined) {
-          params.set('accepts_introductions', String(args.accepts_introductions ?? true));
-        }
-        const res = await fetch(
-          `${API_BASE}/api/registry-discover?${params.toString()}`,
           { headers, signal: AbortSignal.timeout(10000) }
         );
         return res.json();
@@ -216,16 +148,15 @@ export const handler: Handler = async (event) => {
         schema_version: "1.0",
         name: "SolHunt",
         display_name: "SolHunt Wallet Intelligence",
-        description: "Solana wallet health analysis and agent coordination. Check wallet efficiency, find recoverable SOL, monitor agent fleets, and discover other agents in the Solana ecosystem.",
+        description: "Solana wallet health analysis and agent coordination. Check wallet efficiency and find recoverable SOL.",
         version: "1.0.0",
         homepage: "https://solhunt.dev",
         icon: "https://solhunt.dev/icon.png",
         category: "blockchain",
         tags: ["solana", "wallet", "defi", "agent", "intelligence"],
         pricing: {
-          type: "freemium",
-          free_calls_per_day: 10,
-          paid: "0.0001 SOL per call above free tier"
+          type: "free",
+          detail: "Completely free to use."
         },
         tools: TOOLS,
         // Standard MCP server info
@@ -252,18 +183,15 @@ export const handler: Handler = async (event) => {
     }
 
     // Support both direct tool calls and JSON-RPC format
-    // Direct: { tool: "check_wallet_health", arguments: { wallet_address: "..." } }
-    // JSON-RPC: { method: "tools/call", params: { name: "check_wallet_health", arguments: {...} } }
-
     let toolName: string;
     let toolArgs: Record<string, any>;
 
     if (body.method === 'tools/call' && body.params) {
-      // JSON-RPC format (used by Claude, official MCP clients)
+      // JSON-RPC format
       toolName = body.params.name;
       toolArgs = body.params.arguments || {};
     } else if (body.tool) {
-      // Direct format (used by simpler integrations)
+      // Direct format
       toolName = body.tool;
       toolArgs = body.arguments || body.args || {};
     } else if (body.method === 'tools/list') {

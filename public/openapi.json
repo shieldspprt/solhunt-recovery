@@ -3,7 +3,7 @@
   "info": {
     "title": "SolHunt Wallet Intelligence API",
     "version": "1.0.0",
-    "description": "Real-time Solana wallet health analysis and agent coordination. Designed for AI agents and automated systems. Returns structured data optimized for programmatic consumption.",
+    "description": "Real-time Solana wallet health analysis designed for AI agents and automated systems. Returns structured data optimized for programmatic consumption.",
     "x-agent-optimized": true,
     "x-mcp-server": "https://solhunt.dev/mcp",
     "contact": {
@@ -22,7 +22,7 @@
       "get": {
         "operationId": "checkWalletHealth",
         "summary": "Check wallet health and find recoverable SOL",
-        "description": "Analyzes a Solana wallet for zero-balance token accounts with locked rent. Returns health score 0-100, exact recoverable SOL, and cleanup recommendation. Free tier: no API key needed (10 calls/day).",
+        "description": "Analyzes a Solana wallet for zero-balance token accounts with locked rent. Returns health score 0-100, exact recoverable SOL, and cleanup recommendation. Free to use.",
         "parameters": [
           {
             "name": "address",
@@ -33,31 +33,27 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Wallet health data",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "health_score": { "type": "integer", "minimum": 0, "maximum": 100 },
-                        "grade": { "type": "string", "enum": ["A","B","C","D","F"] },
-                        "health_label": { "type": "string" },
-                        "closeable_accounts": { "type": "integer" },
-                        "recoverable_sol": { "type": "number" },
-                        "net_recoverable_sol": { "type": "number" },
-                        "worth_cleaning": { "type": "boolean" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
+          "200": { "description": "Wallet health data" },
+          "400": { "description": "Invalid wallet address" }
+        }
+      }
+    },
+    "/wallet-opportunities": {
+      "get": {
+        "operationId": "getWalletOpportunities",
+        "summary": "Get specific accounts to close for SOL recovery",
+        "description": "Returns a list of specific zero-balance token accounts grouped into optimal batches for transaction building.",
+        "parameters": [
+          {
+            "name": "wallet",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "Solana wallet public key"
+          }
+        ],
+        "responses": {
+          "200": { "description": "List of closeable accounts" },
           "400": { "description": "Invalid wallet address" }
         }
       }
@@ -66,7 +62,7 @@
       "get": {
         "operationId": "getNetworkStats",
         "summary": "Get daily Solana wallet health network stats",
-        "description": "Returns daily aggregate statistics from scanning active Solana wallets. Shows total recoverable SOL across the network, percentage of wallets with dust, trends over time.",
+        "description": "Returns daily aggregate statistics from scanning active Solana wallets.",
         "parameters": [
           {
             "name": "days",
@@ -76,55 +72,7 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Network stats",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "success": { "type": "boolean" },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "today": { "type": "object" },
-                        "history": { "type": "array" },
-                        "totals": { "type": "object" }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/registry-discover": {
-      "get": {
-        "operationId": "discoverAgents",
-        "summary": "Discover AI agents operating on Solana",
-        "description": "Search the SolHunt agent registry for agents by protocol or capability.",
-        "parameters": [
-          {
-            "name": "works_on",
-            "in": "query",
-            "schema": { "type": "string" },
-            "description": "Protocol: jupiter, pump.fun, raydium, orca, polymarket"
-          },
-          {
-            "name": "capability",
-            "in": "query",
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "accepts_introductions",
-            "in": "query",
-            "schema": { "type": "boolean" }
-          }
-        ],
-        "responses": {
-          "200": { "description": "List of matching agents" }
+          "200": { "description": "Network stats" }
         }
       }
     }

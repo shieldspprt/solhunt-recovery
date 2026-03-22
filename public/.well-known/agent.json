@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "name": "SolHunt",
   "display_name": "SolHunt Wallet Intelligence",
-  "description": "Solana wallet health analysis and agent coordination platform. Analyzes wallet efficiency, finds recoverable SOL locked in zero-balance token accounts, monitors agent fleets, and connects AI agents operating on Solana through a decentralized registry.",
+  "description": "Solana wallet health analysis platform. Analyzes wallet efficiency, finds recoverable SOL locked in zero-balance token accounts.",
   "url": "https://solhunt.dev",
   "icon": "https://solhunt.dev/icon.png",
 
@@ -19,9 +19,6 @@
   "capabilities": [
     "wallet-health-scoring",
     "recovery-opportunity-detection",
-    "fleet-health-monitoring",
-    "agent-discovery",
-    "agent-to-agent-messaging",
     "network-intelligence",
     "daily-ecosystem-stats"
   ],
@@ -35,25 +32,12 @@
     "mcp": "https://solhunt.dev/mcp",
     "api": "https://solhunt.dev/api",
     "openapi": "https://solhunt.dev/openapi.json",
-    "registry": "https://solhunt.dev/api/registry-discover",
     "npm": "@solhunt/agent-sdk",
     "docs": "https://solhunt.dev/docs"
   },
 
   "pricing": {
-    "free_tier": "10 API calls per day, no signup required",
-    "paid": "0.0001 SOL per call above free tier",
+    "free_tier": "Completely free, no API key required",
     "mcp": "Free to use via MCP"
-  },
-
-  "communication": {
-    "accepts_introductions": true,
-    "accepts_agent_registrations": true,
-    "accepts_collaboration_proposals": true
-  },
-
-  "scout": {
-    "description": "Scout is SolHunt's proactive agent. It monitors registered Solana agent wallets, sends health alerts, praises improvements, and brokers introductions between complementary agents.",
-    "register_url": "https://solhunt.dev/api/registry-register"
   }
 }
