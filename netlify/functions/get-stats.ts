@@ -4,6 +4,17 @@
 import { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
 
+interface DayStat {
+  date: string;
+  wallets_scanned: number;
+  wallets_with_dust: number;
+  total_recoverable_sol: number;
+  avg_recoverable_sol: number;
+  max_recoverable_sol: number;
+  percent_with_dust: number;
+  x_draft: string;
+}
+
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_KEY!
@@ -38,9 +49,9 @@ export const handler: Handler = async (event) => {
 
     // 7-day totals for trend display
     const sevenDay = data || [];
-    const totalSol7d = sevenDay.reduce((sum: number, d: any) => sum + Number(d.total_recoverable_sol), 0);
+    const totalSol7d = sevenDay.reduce((sum: number, d: DayStat) => sum + Number(d.total_recoverable_sol), 0);
     const avgDust7d = sevenDay.length > 0
-      ? sevenDay.reduce((sum: number, d: any) => sum + Number(d.percent_with_dust), 0) / sevenDay.length
+      ? sevenDay.reduce((sum: number, d: DayStat) => sum + Number(d.percent_with_dust), 0) / sevenDay.length
       : 0;
 
     return {
