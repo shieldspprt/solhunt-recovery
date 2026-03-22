@@ -14,9 +14,9 @@ const RPC_URL = `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`;
 const API_SECRET = process.env.API_SECRET!;
 const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 const RENT_PER_ACCOUNT_SOL = 0.00203928;
-const DEFAULT_WALLETS_TO_SCAN = 350;
-const SCAN_BATCH_SIZE = 15;       // parallel scans at a time
-const SCAN_DELAY_MS = 500;        // delay between batches (rate limit)
+const DEFAULT_WALLETS_TO_SCAN = 300; // Solid credible baseline that perfectly fits inside a 30s Lambda
+const SCAN_BATCH_SIZE = 12;       // parallel scans at a time
+const SCAN_DELAY_MS = 800;        // 800ms delay perfectly rides the Helius free tier RPS limit
 const MIN_RECOVERABLE_SOL = 0.001; // skip wallets below this
 
 const supabase = createClient(
@@ -57,8 +57,8 @@ async function getRecentActiveWallets(limit: number): Promise<ActiveWallet[]> {
 
       try {
         const response = await fetch(
-          `${HELIUS_BASE}/addresses/${program}/transactions?api-key=${HELIUS_API_KEY}&limit=100&type=UNKNOWN`,
-          { signal: AbortSignal.timeout(3500) } // Fast 3.5s timeout for unresponsive programs
+          `${HELIUS_BASE}/addresses/${program}/transactions?api-key=${HELIUS_API_KEY}&limit=60&type=UNKNOWN`,
+          { signal: AbortSignal.timeout(6000) } // 6s timeout gives heavy programs time without breaking Netlify
         );
 
         if (!response.ok) {
