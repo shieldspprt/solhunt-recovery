@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { CheckCircle2, AlertTriangle, Search, RefreshCw } from 'lucide-react';
 import { DelegationRow } from '@/components/scanner/DelegationRow';
 import { RevokeButton } from '@/components/revoke/RevokeButton';
@@ -17,7 +18,7 @@ interface ScanResultsProps {
     onScanAgain: () => void;
 }
 
-export function ScanResults({ result, onScanAgain }: ScanResultsProps) {
+export const ScanResults = memo(function ScanResults({ result, onScanAgain }: ScanResultsProps) {
     const { delegations, totalTokenAccounts, scanDurationMs } = result;
     const highRiskCount = delegations.filter((d) => d.riskLevel === 'HIGH').length;
     const mediumRiskCount = delegations.filter((d) => d.riskLevel === 'MEDIUM').length;
@@ -154,4 +155,4 @@ export function ScanResults({ result, onScanAgain }: ScanResultsProps) {
             )}
         </div>
     );
-}
+});

@@ -4,10 +4,15 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { isValidSolanaAddress } from '@/lib/validation';
+import { shortenAddress } from '@/lib/formatting';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface ScanResult {
+/**
+ * API response type for wallet scan endpoint.
+ * Uses snake_case to match the API response structure.
+ */
+interface WalletScanResponse {
   address: string;
   health_score: number;
   grade: string;
@@ -51,10 +56,6 @@ function formatSol(sol: number): string {
   return sol.toFixed(3);
 }
 
-function shortenAddress(address: string): string {
-  return `${address.slice(0, 4)}...${address.slice(-4)}`;
-}
-
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 function ScoreBar({ score }: { score: number }) {
@@ -92,7 +93,7 @@ function StatCard({
 
 // ── Results display ───────────────────────────────────────────────────────────
 
-function ScanResults({ result }: { result: ScanResult }) {
+function ScanResults({ result }: { result: WalletScanResponse }) {
   return (
     <div className="mt-6 space-y-4 animate-in fade-in duration-300">
 
@@ -183,7 +184,7 @@ function ScanResults({ result }: { result: ScanResult }) {
 export function WalletScanner() {
   const [address, setAddress] = useState('');
   const [state, setState] = useState<ScanState>('idle');
-  const [result, setResult] = useState<ScanResult | null>(null);
+  const [result, setResult] = useState<WalletScanResponse | null>(null);
   const [error, setError] = useState<string>('');
   const [liveStats, setLiveStats] = useState<{scanned: number, sol: number} | null>(null);
 
