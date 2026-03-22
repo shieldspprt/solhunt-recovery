@@ -123,7 +123,7 @@ The unsigned transaction needs to be signed and submitted quickly after building
 ];
 
 // ── Server Metadata ───────────────────────────────────────────────────────────
-// Shared between discovery endpoint and server card
+// Smithery.ai MCP server card format - https://smithery.ai/docs/build/publish
 
 const SERVER_METADATA = {
   schema_version: "1.0",
@@ -161,14 +161,7 @@ const SERVER_METADATA = {
     mcp: {
       tools: TOOLS
     }
-  },
-  // Standard MCP server info (legacy compatibility)
-  protocol_version: "2024-11-05",
-  capabilities: {
-    tools: {},
-    resources: {}
-  },
-  tools: TOOLS
+  }
 };
 
 // ── Tool Executor ─────────────────────────────────────────────────────────────
@@ -265,14 +258,16 @@ export const handler: Handler = async (event) => {
     return { statusCode: 200, headers, body: '' };
   }
 
-  const path = event.path || event.rawUrl?.replace(/^https?:\/\/[^\/]+/, '') || '/';
+  // Get the path from various possible sources
+  const rawPath = event.path || event.rawUrl?.replace(/^https?:\/\/[^\/]+/, '') || '/';
+  const path = rawPath.split('?')[0]; // Remove query string
   const apiKey = event.headers?.['x-api-key'] ||
     event.headers?.['authorization']?.replace('Bearer ', '') ||
     undefined;
 
   // ── GET: Server Card (/.well-known/mcp/server-card.json) ───────────────────
   // Smithery.ai and other MCP clients check this well-known path for discovery
-  if (event.httpMethod === 'GET' && path.includes('/.well-known/mcp/server-card.json')) {
+  if (event.httpMethod === 'GET' && (path === '/.well-known/mcp/server-card.json' || path.includes('server-card'))) {
     return {
       statusCode: 200,
       headers,
@@ -327,7 +322,7 @@ export const handler: Handler = async (event) => {
         })
       };
     } else if (body.method === 'initialize') {
-      // Standard MCP initialization
+      // Standard MCP initialization - must return proper format
       return {
         statusCode: 200,
         headers,
