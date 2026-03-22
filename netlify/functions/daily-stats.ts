@@ -14,7 +14,7 @@ const RPC_URL = `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`;
 const API_SECRET = process.env.API_SECRET!;
 const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 const RENT_PER_ACCOUNT_SOL = 0.00203928;
-const WALLETS_TO_SCAN = 500;
+const DEFAULT_WALLETS_TO_SCAN = 500;
 const SCAN_BATCH_SIZE = 20;       // parallel scans at a time
 const SCAN_DELAY_MS = 300;        // delay between batches (rate limit)
 const MIN_RECOVERABLE_SOL = 0.001; // skip wallets below this
@@ -28,7 +28,7 @@ const supabase = createClient(
 // Strategy: get recent transactions from high-activity programs
 // Deduplicate fee payers = unique active wallets
 
-async function getRecentActiveWallets(): Promise<string[]> {
+async function getRecentActiveWallets(limit: number): Promise<string[]> {
   // Programs that see high wallet activity on Solana
   // We query recent transactions and extract unique fee payers (= wallet addresses)
   const TARGET_PROGRAMS = [
@@ -41,7 +41,7 @@ async function getRecentActiveWallets(): Promise<string[]> {
   const walletSet = new Set<string>();
 
   for (const program of TARGET_PROGRAMS) {
-    if (walletSet.size >= WALLETS_TO_SCAN) break;
+    if (walletSet.size >= limit) break;
 
     try {
       // Get recent transactions for this program
@@ -71,7 +71,7 @@ async function getRecentActiveWallets(): Promise<string[]> {
           }
         }
 
-        if (walletSet.size >= WALLETS_TO_SCAN) break;
+        if (walletSet.size >= limit) break;
       }
     } catch (e: any) {
       console.error(`Failed to fetch transactions for ${program}:`, e.message);
@@ -86,7 +86,7 @@ async function getRecentActiveWallets(): Promise<string[]> {
   const programAddresses = new Set(TARGET_PROGRAMS);
   const wallets = Array.from(walletSet)
     .filter(w => !programAddresses.has(w))
-    .slice(0, WALLETS_TO_SCAN);
+    .slice(0, limit);
 
   console.log(`Found ${wallets.length} unique active wallets`);
   return wallets;
@@ -266,9 +266,10 @@ export const handler: Handler = async (event) => {
 
   try {
     console.log('Starting daily stats run for', today);
+    const limit = event.queryStringParameters?.fast ? 10 : DEFAULT_WALLETS_TO_SCAN;
 
     // Step 1: Get wallets
-    const wallets = await getRecentActiveWallets();
+    const wallets = await getRecentActiveWallets(limit);
     if (wallets.length === 0) {
       throw new Error('No wallets found — Helius may be rate limited');
     }
