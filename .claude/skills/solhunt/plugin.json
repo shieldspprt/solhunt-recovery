@@ -1,0 +1,18 @@
+{
+  "name": "solhunt",
+  "version": "1.0.0",
+  "description": "Solana wallet health analysis and SOL recovery. Check wallet efficiency, find recoverable SOL from zero-balance token accounts, and build trustless recovery transactions.",
+  "author": "shieldspprt",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shieldspprt/solhunt-recovery.git"
+  },
+  "skills": ["SKILL.md"],
+  "mcp": {
+    "url": "https://solhunt.dev/.netlify/functions/mcp",
+    "type": "remote"
+  },
+  "homepage": "https://solhunt.dev",
+  "license": "MIT",
+  "tags": ["solana", "crypto", "wallet", "defi", "recovery"]
+}

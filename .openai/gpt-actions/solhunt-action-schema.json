@@ -1,0 +1,158 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SolHunt Wallet Intelligence",
+    "description": "Solana wallet health analysis and SOL recovery. Check wallet efficiency, find recoverable SOL from zero-balance token accounts, and build trustless recovery transactions. SolHunt never requires custody of your keys.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://solhunt.dev",
+      "description": "SolHunt production server"
+    }
+  ],
+  "paths": {
+    "/api/scan-wallet": {
+      "get": {
+        "operationId": "checkWalletHealth",
+        "summary": "Analyze wallet health and find recoverable SOL",
+        "description": "Analyzes a Solana wallet for recoverable SOL locked in zero-balance token accounts. Returns health score (0-100), exact recoverable SOL amount, number of closeable accounts, and cleanup recommendations. Health grades: A (80-100), B (60-79), C (40-59), D (20-39), F (0-19).",
+        "parameters": [
+          {
+            "name": "address",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Solana wallet public key (base58 encoded, 32-44 characters)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Wallet health analysis",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "wallet": {
+                      "type": "string"
+                    },
+                    "healthScore": {
+                      "type": "number"
+                    },
+                    "recoverableSol": {
+                      "type": "number"
+                    },
+                    "closeableAccounts": {
+                      "type": "number"
+                    },
+                    "recommendations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/wallet-opportunities": {
+      "get": {
+        "operationId": "getRecoveryOpportunities",
+        "summary": "Get specific token accounts to close for SOL recovery",
+        "description": "Returns a prioritized list of specific token accounts to close for maximum SOL recovery. Accounts are sorted by batch group for efficient transaction building.",
+        "parameters": [
+          {
+            "name": "wallet",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Solana wallet public key"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of recovery opportunities"
+          }
+        }
+      }
+    },
+    "/api/preview-recovery": {
+      "get": {
+        "operationId": "previewRecovery",
+        "summary": "Preview exactly what a recovery will do before executing",
+        "description": "Preview exactly what a wallet recovery will do before executing. Returns accounts that will be closed, exact SOL you will receive, exact fee SolHunt takes (15%), net amount to your wallet, and estimated transaction cost.",
+        "parameters": [
+          {
+            "name": "wallet",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "max_accounts",
+            "in": "query",
+            "schema": {
+              "type": "number",
+              "default": 100
+            },
+            "description": "Maximum accounts to include in preview"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recovery preview"
+          }
+        }
+      }
+    },
+    "/api/build-recovery": {
+      "post": {
+        "operationId": "buildRecoveryTransaction",
+        "summary": "Build unsigned Solana transaction for wallet recovery",
+        "description": "Build unsigned Solana transaction bytes for wallet recovery. Returns base64-encoded unsigned transaction(s) ready for signing. The user signs with their own wallet — SolHunt never has custody. Each transaction includes closeAccount instructions AND a 15% fee transfer to SolHunt built atomically.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "wallet_address": {
+                    "type": "string",
+                    "description": "Wallet to recover SOL from"
+                  },
+                  "destination_wallet": {
+                    "type": "string",
+                    "description": "Where to send recovered SOL (can be same wallet)"
+                  },
+                  "batch_number": {
+                    "type": "number",
+                    "description": "Which batch to build (default: 1)",
+                    "default": 1
+                  }
+                },
+                "required": ["wallet_address", "destination_wallet"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Unsigned transaction bytes"
+          }
+        }
+      }
+    }
+  }
+}
