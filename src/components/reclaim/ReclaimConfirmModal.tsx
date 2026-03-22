@@ -2,6 +2,7 @@ import { useAppStore } from '@/hooks/useAppStore';
 import { useReclaimRent } from '@/hooks/useReclaimRent';
 import { formatSOLValue, estimateUSD } from '@/lib/formatting';
 import { Coins, X, Zap } from 'lucide-react';
+import { MAX_CLOSE_PER_TX } from '@/config/constants';
 
 export function ReclaimConfirmModal() {
     const { reclaimStatus, clearReclaim } = useAppStore();
@@ -9,6 +10,8 @@ export function ReclaimConfirmModal() {
 
     // Only show when state is awaiting_confirmation
     if (reclaimStatus !== 'awaiting_confirmation' || !reclaimEstimate) return null;
+
+    const transactionCount = Math.max(1, Math.ceil(closeableAccounts.length / MAX_CLOSE_PER_TX));
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -96,7 +99,7 @@ export function ReclaimConfirmModal() {
                             <Zap className="h-3 w-3" /> Transaction Preview
                         </h3>
                         <p className="text-xs text-shield-text">
-                            You are about to sign <span className="font-mono text-shield-success">1</span> transaction containing <span className="font-mono text-shield-success">{closeableAccounts.length}</span> <span className="font-mono bg-shield-border/30 px-1 rounded">closeAccount</span> instructions. No other authority is granted.
+                            You are about to sign <span className="font-mono text-shield-success">{transactionCount}</span> transaction containing <span className="font-mono text-shield-success">{closeableAccounts.length}</span> <span className="font-mono bg-shield-border/30 px-1 rounded">closeAccount</span> instructions. No other authority is granted.
                         </p>
                     </div>
 

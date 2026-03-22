@@ -7,7 +7,7 @@ import {
     buildReclaimTransactions,
 } from '@/lib/reclaimRent';
 import { logReclaimInitiated, logReclaimComplete } from '@/lib/analytics';
-import { ERROR_CODES, ERROR_MESSAGES } from '@/config/constants';
+import { ERROR_CODES, ERROR_MESSAGES, TOKEN_ACCOUNT_RENT_LAMPORTS } from '@/config/constants';
 import type { AppError, ReclaimResult } from '@/types';
 
 /**
@@ -165,7 +165,7 @@ export function useReclaimRent() {
             }
 
             // Success
-            const approxReclaimedSOL = totalClosed * (2039280 / 1e9); // Accurate based on what succeeded
+            const approxReclaimedSOL = totalClosed * (TOKEN_ACCOUNT_RENT_LAMPORTS / 1e9); // Accurate based on what succeeded
 
             const result: ReclaimResult = {
                 success: true,
