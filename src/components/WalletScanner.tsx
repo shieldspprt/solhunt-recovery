@@ -3,6 +3,7 @@
 // Self-contained. Manages its own state. No props required.
 
 import { useState, useCallback, useEffect } from 'react';
+import { isValidSolanaAddress } from '@/lib/validation';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -23,12 +24,6 @@ interface ScanResult {
 type ScanState = 'idle' | 'loading' | 'success' | 'error';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-
-function isValidSolanaAddress(address: string): boolean {
-  const trimmed = address.trim();
-  if (trimmed.length < 32 || trimmed.length > 44) return false;
-  return /^[1-9A-HJ-NP-Za-km-z]+$/.test(trimmed);
-}
 
 function gradeColor(grade: string): string {
   switch (grade) {
