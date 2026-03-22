@@ -2,7 +2,7 @@
 // Wallet scanner component for SolHunt homepage
 // Self-contained. Manages its own state. No props required.
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -190,6 +190,22 @@ export function WalletScanner() {
   const [state, setState] = useState<ScanState>('idle');
   const [result, setResult] = useState<ScanResult | null>(null);
   const [error, setError] = useState<string>('');
+  const [liveStats, setLiveStats] = useState<{scanned: number, sol: number} | null>(null);
+
+  // Fetch live network overview stats strictly for the public pill
+  useEffect(() => {
+    fetch('/api/get-stats?days=1')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.success && data?.data?.today) {
+          setLiveStats({
+            scanned: data.data.today.wallets_scanned,
+            sol: data.data.today.total_recoverable_sol
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleScan = useCallback(async () => {
     const trimmed = address.trim();
@@ -248,6 +264,21 @@ export function WalletScanner() {
 
   return (
     <section className="w-full max-w-2xl mx-auto px-4 py-8 relative">
+
+      {/* Live Stats Pill */}
+      {liveStats && (
+        <div className="flex justify-center mb-5 animate-in fade-in duration-1000">
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-shield-accent/5 border border-shield-accent/20 backdrop-blur-sm shadow-[0_0_15px_rgba(20,241,149,0.05)]">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-shield-accent opacity-60"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-shield-accent"></span>
+            </span>
+            <span className="text-[10px] sm:text-xs font-mono text-shield-muted uppercase tracking-widest">
+              Live Network: <span className="text-white font-bold">{liveStats.scanned.toLocaleString()}</span> scanned • <span className="text-shield-accent font-bold drop-shadow-[0_0_8px_rgba(20,241,149,0.5)]">{liveStats.sol} SOL</span> Located
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Input row */}
       <div className="flex flex-col sm:flex-row gap-3 relative z-10">
