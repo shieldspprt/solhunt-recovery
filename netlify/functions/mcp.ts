@@ -173,10 +173,18 @@ async function executeTool(
   args: Record<string, any>,
   apiKey?: string
 ): Promise<any> {
-  // Analytics logging - tracks which functions are being called
-  console.log(`MCP_CALL: ${name} | wallet=${args.wallet_address || args.destination_wallet || 'N/A'} | ${new Date().toISOString()}`);
-  console.error(`MCP_CALL: ${name} | wallet=${args.wallet_address || args.destination_wallet || 'N/A'} | ${new Date().toISOString()}`);
+  // Log the tool call for analytics
+  const walletAddress = args.wallet_address || args.destination_wallet || 'N/A';
+  console.log(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
+  console.error(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
   
+  // Log to analytics endpoint
+  fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tool: name, wallet: args.wallet_address || 'N/A', duration: 0, success: true })
+  }).catch(() => {}); // Silent fail if logging fails
+
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(apiKey ? { 'X-API-Key': apiKey } : {})
