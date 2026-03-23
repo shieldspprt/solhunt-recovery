@@ -397,3 +397,23 @@ export type MEVClaimStatus =
     | 'sending_fee'
     | 'complete'
     | 'error';
+
+// ─── HOME WALLET SCANNER ────────────────────────────────
+
+/**
+ * API response type for wallet scan endpoint.
+ * Uses snake_case to match the API response structure.
+ */
+export interface WalletScanResponse {
+    address: string;
+    health_score: number;
+    grade: string;
+    health_label: string;
+    closeable_accounts: number;
+    dust_tokens: number;
+    recoverable_sol: number;
+    estimated_tx_cost_sol: number;
+    net_recoverable_sol: number;
+    worth_cleaning: boolean;
+    scanned_at: string;
+}

@@ -2,29 +2,12 @@
 // Wallet scanner component for SolHunt homepage
 // Self-contained. Manages its own state. No props required.
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, memo } from 'react';
 import { isValidSolanaAddress } from '@/lib/validation';
 import { shortenAddress } from '@/lib/formatting';
+import type { WalletScanResponse } from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
-
-/**
- * API response type for wallet scan endpoint.
- * Uses snake_case to match the API response structure.
- */
-interface WalletScanResponse {
-  address: string;
-  health_score: number;
-  grade: string;
-  health_label: string;
-  closeable_accounts: number;
-  dust_tokens: number;
-  recoverable_sol: number;
-  estimated_tx_cost_sol: number;
-  net_recoverable_sol: number;
-  worth_cleaning: boolean;
-  scanned_at: string;
-}
 
 type ScanState = 'idle' | 'loading' | 'success' | 'error';
 
@@ -58,7 +41,7 @@ function formatSol(sol: number): string {
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
-function ScoreBar({ score }: { score: number }) {
+const ScoreBar = memo(function ScoreBar({ score }: { score: number }) {
   return (
     <div className="w-full bg-gray-700 rounded-full h-2">
       <div
@@ -67,9 +50,9 @@ function ScoreBar({ score }: { score: number }) {
       />
     </div>
   );
-}
+});
 
-function StatCard({
+const StatCard = memo(function StatCard({
   label,
   value,
   sub,
@@ -89,7 +72,7 @@ function StatCard({
       {sub && <p className="text-xs text-shield-muted/70 mt-1.5 font-light">{sub}</p>}
     </div>
   );
-}
+});
 
 // ── Results display ───────────────────────────────────────────────────────────
 
