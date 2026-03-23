@@ -6,7 +6,8 @@
  *
  * Audit Spec §5.3 — Network Failure Scenarios.
  */
-import { ERROR_CODES, ERROR_MESSAGES } from '@/config/constants';
+import { Connection } from '@solana/web3.js';
+import { ERROR_MESSAGES } from '@/config/constants';
 import type { AppError } from '@/types';
 
 /**
@@ -16,14 +17,14 @@ import type { AppError } from '@/types';
 export async function withTimeout<T>(
     promise: Promise<T>,
     timeoutMs: number,
-    errorCode: keyof typeof ERROR_CODES = 'RPC_TIMEOUT'
+    errorCode: 'RPC_TIMEOUT' | 'TX_TIMEOUT' = 'RPC_TIMEOUT'
 ): Promise<T> {
     let timeoutId: ReturnType<typeof setTimeout>;
 
     const timeoutPromise = new Promise<never>((_resolve, reject) => {
         timeoutId = setTimeout(() => {
             const appError: AppError = {
-                code: ERROR_CODES[errorCode],
+                code: errorCode,
                 message: ERROR_MESSAGES[errorCode],
                 technicalDetail: `Operation timed out after ${timeoutMs}ms`,
             };
@@ -50,7 +51,7 @@ export async function withTimeout<T>(
  * Audit Spec §5.4 — Transaction Confirmation Robustness.
  */
 export async function confirmTransactionRobust(
-    connection: { getSignatureStatus: (sig: string) => Promise<{ value: { err: unknown; confirmationStatus?: string | null } | null }> },
+    connection: Connection,
     signature: string,
     commitment: 'confirmed' | 'finalized' = 'confirmed',
     maxTimeoutMs: number = 60_000
@@ -64,13 +65,11 @@ export async function confirmTransactionRobust(
             const status = result.value;
 
             if (status === null) {
-                // Transaction not found yet — wait and retry
                 await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
                 continue;
             }
 
             if (status.err) {
-                // Transaction found but failed on-chain
                 throw {
                     code: 'TX_FAILED',
                     message: ERROR_MESSAGES.TX_FAILED,
@@ -87,14 +86,11 @@ export async function confirmTransactionRobust(
 
             await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
         } catch (err) {
-            // If it's our own AppError, re-throw
             if (err && typeof err === 'object' && 'code' in err) throw err;
-            // Otherwise, it's a network error — retry
             await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
         }
     }
 
-    // Timeout — transaction may or may not have gone through
     throw {
         code: 'TX_TIMEOUT',
         message: ERROR_MESSAGES.TX_TIMEOUT,

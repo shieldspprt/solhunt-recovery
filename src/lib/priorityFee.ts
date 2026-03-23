@@ -10,6 +10,7 @@ import {
     type Connection,
     type TransactionInstruction,
 } from '@solana/web3.js';
+import { withTimeout } from './withTimeout';
 
 // ─── Defaults ──────────────────────────────────────────────
 /** Fallback if the RPC call fails (50k micro-lamports ≈ 0.000005 SOL per 200k CU) */
@@ -36,11 +37,14 @@ export async function getOptimalPriorityFee(
     connection: Connection
 ): Promise<number> {
     try {
-        const fees: PrioritizationFee[] = await (
-            connection as unknown as {
-                getRecentPrioritizationFees: () => Promise<PrioritizationFee[]>;
-            }
-        ).getRecentPrioritizationFees();
+        const fees: PrioritizationFee[] = await withTimeout(
+            (
+                connection as unknown as {
+                    getRecentPrioritizationFees: () => Promise<PrioritizationFee[]>;
+                }
+            ).getRecentPrioritizationFees(),
+            5000
+        );
 
         if (!fees || fees.length === 0) {
             return DEFAULT_PRIORITY_FEE_MICRO_LAMPORTS;
