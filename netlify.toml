@@ -7,6 +7,16 @@
 
 # Route API calls to Netlify functions
 [[redirects]]
+  from = "/api/dd-sign"
+  to = "/.netlify/functions/dd-sign"
+  status = 200
+
+[[redirects]]
+  from = "/api/dd-payment"
+  to = "/.netlify/functions/dd-payment"
+  status = 200
+
+[[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
