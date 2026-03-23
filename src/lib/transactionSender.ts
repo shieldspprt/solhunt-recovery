@@ -13,6 +13,8 @@ import {
     VersionedTransaction,
     type TransactionInstruction,
 } from '@solana/web3.js';
+import { ERROR_CODES, ERROR_MESSAGES } from '@/config/constants';
+import type { AppError } from '@/types';
 
 // ─── Jito Configuration ──────────────────────────────────────
 
@@ -104,12 +106,21 @@ export async function sendWithJito(
 
     try {
         signature = await submitToJito(serialized as Uint8Array);
-    } catch {
+    } catch (jitoError) {
         // Jito failed — fall back to standard RPC
-        signature = await connection.sendRawTransaction(serialized as Buffer, {
-            skipPreflight: true,
-            maxRetries: 3,
-        });
+        try {
+            signature = await connection.sendRawTransaction(serialized as Buffer, {
+                skipPreflight: true,
+                maxRetries: 3,
+            });
+        } catch (rpcError) {
+            const appError: AppError = {
+                code: ERROR_CODES.RPC_ERROR,
+                message: ERROR_MESSAGES.RPC_ERROR,
+                technicalDetail: `Jito failed: ${jitoError instanceof Error ? jitoError.message : String(jitoError)}. RPC fallback also failed: ${rpcError instanceof Error ? rpcError.message : String(rpcError)}`,
+            };
+            throw appError;
+        }
     }
 
     // Confirm with a reasonable timeout

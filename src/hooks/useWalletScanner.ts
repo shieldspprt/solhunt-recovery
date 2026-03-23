@@ -47,9 +47,9 @@ export function useWalletScanner() {
                 (SCAN_COOLDOWN_MS - timeSinceLastScan) / 1000
             );
             setScanError({
-                code: 'RATE_LIMITED',
+                code: ERROR_CODES.UNKNOWN,
                 message: `Please wait ${remainingSeconds} seconds before scanning again.`,
-                technicalDetail: `Rate limited: ${timeSinceLastScan}ms since last scan`,
+                technicalDetail: `Rate limited: ${timeSinceLastScan}ms since last scan (cooldown: ${SCAN_COOLDOWN_MS}ms)`,
             });
             return;
         }
