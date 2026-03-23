@@ -76,7 +76,7 @@ const StatCard = memo(function StatCard({
 
 // ── Results display ───────────────────────────────────────────────────────────
 
-function ScanResults({ result }: { result: WalletScanResponse }) {
+const ScanResults = memo(function ScanResults({ result }: { result: WalletScanResponse }) {
   return (
     <div className="mt-6 space-y-4 animate-in fade-in duration-300">
 
@@ -160,7 +160,7 @@ function ScanResults({ result }: { result: WalletScanResponse }) {
       </p>
     </div>
   );
-}
+});
 
 // ── Main component ────────────────────────────────────────────────────────────
 
@@ -269,6 +269,10 @@ export function WalletScanner() {
             onChange={handleAddressChange}
             onKeyDown={handleKeyDown}
             placeholder="[ Paste Wallet Address ]"
+            aria-label="Solana wallet address to scan"
+            aria-invalid={!!error}
+            aria-describedby={error ? 'wallet-scan-error' : undefined}
+            aria-busy={state === 'loading'}
             className={[
               'relative w-full bg-shield-bg/90 backdrop-blur-xl border rounded-xl px-5 py-4 text-sm text-white',
               'placeholder-shield-muted/50 outline-none transition-all font-mono shadow-inner',
@@ -311,7 +315,7 @@ export function WalletScanner() {
 
       {/* Validation error */}
       {error && state !== 'loading' && (
-        <p className="mt-2 text-red-400 text-xs pl-1">{error}</p>
+        <p id="wallet-scan-error" className="mt-2 text-red-400 text-xs pl-1" role="alert">{error}</p>
       )}
 
       {/* Loading state */}
