@@ -5,17 +5,25 @@ import {
     SystemProgram,
 } from '@solana/web3.js';
 import { createRevokeInstruction, TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
-import type { TokenDelegation, AppError } from '@/types';
+import type { TokenDelegation } from '@/types';
 import {
     TREASURY_WALLET,
     SERVICE_FEE_SOL,
     SERVICE_FEE_LAMPORTS,
     MAX_REVOKES_PER_TX,
     NETWORK_FEE_PER_SIGNATURE_SOL,
-    ERROR_CODES,
-    ERROR_MESSAGES,
 } from '@/config/constants';
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
+import { createAppError } from '@/lib/errors';
+
+/**
+ * A revoke transaction paired with the number of revoke instructions it contains.
+ * Knowing the count is required for accurate delegation tracking in useRevoke.
+ */
+export interface RevokeTx {
+    transaction: Transaction;
+    revokeCount: number;
+}
 
 /**
  * Maps our TokenProgramId string to the actual PublicKey.
@@ -28,23 +36,9 @@ function getTokenProgramPublicKey(programId: string): PublicKey {
 }
 
 /**
- * Creates an AppError with the proper shape.
- */
-function createAppError(
-    code: keyof typeof ERROR_CODES,
-    technicalDetail: string
-): AppError {
-    return {
-        code: ERROR_CODES[code],
-        message: ERROR_MESSAGES[code],
-        technicalDetail,
-    };
-}
-
-/**
  * Builds revoke transactions for the given delegations.
  *
- * Returns an ARRAY of transactions because Solana transactions have a size limit.
+ * Returns an ARRAY of RevokeTx because Solana transactions have a size limit.
  * Each transaction contains up to MAX_REVOKES_PER_TX (15) revoke instructions.
  * The service fee transfer is added to the FIRST transaction only.
  *
@@ -55,7 +49,7 @@ export async function buildRevokeTransaction(
     delegations: TokenDelegation[],
     walletPublicKey: PublicKey,
     connection: Connection
-): Promise<Transaction[]> {
+): Promise<RevokeTx[]> {
     // Step 1: Validate inputs
     if (!delegations || delegations.length === 0) {
         throw createAppError(
@@ -83,7 +77,7 @@ export async function buildRevokeTransaction(
     }
 
     // Step 3–5: Build transactions
-    const transactions: Transaction[] = [];
+    const revokeTxs: RevokeTx[] = [];
     const priorityFee = await getOptimalPriorityFee(connection);
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
@@ -125,11 +119,11 @@ export async function buildRevokeTransaction(
         transaction.recentBlockhash = recentBlockhash;
         transaction.feePayer = walletPublicKey;
 
-        transactions.push(transaction);
+        revokeTxs.push({ transaction, revokeCount: batch.length });
     }
 
     // Validation: verify all transactions before returning (Section 10.3)
-    for (const tx of transactions) {
+    for (const { transaction: tx } of revokeTxs) {
         if (!tx.recentBlockhash) {
             throw createAppError('TX_BUILD_FAILED', 'Transaction missing recentBlockhash');
         }
@@ -144,7 +138,7 @@ export async function buildRevokeTransaction(
         }
     }
 
-    return transactions;
+    return revokeTxs;
 }
 
 /**

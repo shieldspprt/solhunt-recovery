@@ -7,16 +7,14 @@ import type {
     ScanResult,
     RiskLevel,
     TokenProgramId,
-    AppError,
 } from '@/types';
 import {
     KNOWN_DELEGATE_ADDRESSES,
     RENT_PER_TOKEN_ACCOUNT_LAMPORTS,
     RENT_PER_TOKEN_ACCOUNT_SOL,
-    ERROR_CODES,
-    ERROR_MESSAGES,
 } from '@/config/constants';
 import { isValidSolanaPublicKey } from '@/lib/validation';
+import { createAppError } from '@/lib/errors';
 
 /**
  * Parsed token account info shape from Solana RPC.
@@ -28,20 +26,6 @@ interface ParsedAccountInfo {
     delegate?: string;
     delegatedAmount?: { amount?: string; decimals?: number; uiAmount?: number };
     tokenAmount?: { amount?: string; decimals?: number; uiAmount?: number };
-}
-
-/**
- * Creates an AppError with the proper shape.
- */
-function createAppError(
-    code: keyof typeof ERROR_CODES,
-    technicalDetail: string
-): AppError {
-    return {
-        code: ERROR_CODES[code],
-        message: ERROR_MESSAGES[code],
-        technicalDetail,
-    };
 }
 
 /**

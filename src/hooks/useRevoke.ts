@@ -69,9 +69,9 @@ export function useRevoke() {
                 let lastSignature: string | null = null;
                 let totalRevoked = 0;
 
-                for (const tx of transactions) {
+                for (const revokeTx of transactions) {
                     try {
-                        const signature = await sendTransaction(tx, connection);
+                        const signature = await sendTransaction(revokeTx.transaction, connection);
                         lastSignature = signature;
 
                         // Confirming on-chain
@@ -88,13 +88,8 @@ export function useRevoke() {
                             );
                         }
 
-                        // Count revoked delegations in this batch
-                        // Subtract 1 from first tx instruction count (the fee transfer)
-                        const revokeInstructions =
-                            tx === transactions[0]
-                                ? tx.instructions.length - 1
-                                : tx.instructions.length;
-                        totalRevoked += revokeInstructions;
+                        // Accumulate the revoke count from the batch metadata
+                        totalRevoked += revokeTx.revokeCount;
                     } catch (txError) {
                         // Check if user rejected the transaction
                         const errorMessage =
