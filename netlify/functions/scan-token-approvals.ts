@@ -74,7 +74,6 @@ function isValidSolanaAddress(address: string): boolean {
 // ── Risk Assessment ──────────────────────────────────────────────────────────
 
 function assessRisk(
-  delegate: string,
   delegatedAmount: string,
   ownerBalance: number,
   isKnownDelegate: boolean
@@ -183,7 +182,7 @@ export const handler: Handler = async (event) => {
       if (delegatedAmount === '0') continue;
 
       const isKnownDelegate = KNOWN_DELEGATES.has(delegate);
-      const riskLevel = assessRisk(delegate, delegatedAmount, uiAmount, isKnownDelegate);
+      const riskLevel = assessRisk(delegatedAmount, uiAmount, isKnownDelegate);
       
       // Count by risk level
       if (riskLevel === 'HIGH') highRiskCount++;

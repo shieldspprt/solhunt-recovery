@@ -4,7 +4,7 @@
 
 import { Handler } from '@netlify/functions';
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
-import { createRevokeInstruction, TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
+import { createRevokeInstruction, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
 
 const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
 const RPC_URL = HELIUS_API_KEY
