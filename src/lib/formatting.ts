@@ -64,12 +64,12 @@ export function formatNumber(value: number, decimals = 2): string {
 }
 
 /**
- * Formats a value as USD currency.
+ * Formats a value as USD currency using the user's browser locale.
  */
 export function formatCurrency(value: number): string {
     if (value === 0) return '$0.00';
     if (value < 0.01) return '< $0.01';
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(navigator.language ?? 'en-US', {
         style: 'currency',
         currency: 'USD',
     }).format(value);

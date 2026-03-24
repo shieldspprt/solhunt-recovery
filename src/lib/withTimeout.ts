@@ -19,7 +19,7 @@ export async function withTimeout<T>(
     timeoutMs: number,
     errorCode: 'RPC_TIMEOUT' | 'TX_TIMEOUT' = 'RPC_TIMEOUT'
 ): Promise<T> {
-    let timeoutId: ReturnType<typeof setTimeout>;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
     const timeoutPromise = new Promise<never>((_resolve, reject) => {
         timeoutId = setTimeout(() => {
@@ -34,10 +34,10 @@ export async function withTimeout<T>(
 
     try {
         const result = await Promise.race([promise, timeoutPromise]);
-        clearTimeout(timeoutId!);
+        if (timeoutId !== undefined) clearTimeout(timeoutId);
         return result;
     } catch (error) {
-        clearTimeout(timeoutId!);
+        if (timeoutId !== undefined) clearTimeout(timeoutId);
         throw error;
     }
 }
