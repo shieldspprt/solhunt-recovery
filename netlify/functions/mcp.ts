@@ -13,6 +13,7 @@ import { Handler } from '@netlify/functions';
 // get_wallet_report: understand the wallet
 // build_recovery_transaction: fix the wallet
 // discover_platform_features: understand the ecosystem
+
 const TOOLS = [
   {
     name: "get_wallet_report",
@@ -38,16 +39,99 @@ Free tier: no API key needed (10 calls/day limit).`,
     }
   },
   {
+    name: "scan_token_approvals",
+    description: `CRITICAL SECURITY: Scan for dApps with spending rights on your wallet.
+Finds ALL token approvals/delegations (unlimited and limited) and rates them by risk.
+
+Risk Levels:
+- HIGH: Unknown dApps with unlimited approval — can drain your wallet
+- MEDIUM: Unknown dApps with limited approval — monitor closely  
+- LOW: Known protocols (Jupiter, Orca, Raydium, etc.) — generally safe
+
+Returns: count of approvals by risk, total exposed value, list of dApps with permission to move your tokens, and a security recommendation.
+
+Use this BEFORE build_revoke_transactions to identify which approvals to revoke.
+Also use periodically (monthly) to check for new approvals you forgot about.
+
+Free tier: no API key needed.`,
+    inputSchema: {
+      type: "object",
+      required: ["wallet_address"],
+      properties: {
+        wallet_address: {
+          type: "string",
+          description: "Solana wallet to scan for token approvals"
+        }
+      }
+    }
+  },
+  {
+    name: "build_revoke_transactions",
+    description: `Build unsigned Solana transaction to REVOKE token approvals.
+Stops dApps from being able to spend your tokens.
+
+IMPORTANT: This ONLY builds the transaction. The operator must:
+1. Sign with their own wallet
+2. Submit to Solana RPC
+
+Fee: 0.001 SOL service fee (first transaction only)
+
+Input: List of token_account objects from scan_token_approvals response.
+Each account needs: address, mint, and optionally programId.
+
+Returns: base64-encoded unsigned transaction ready for signing.
+
+Safety: Revoking is always safe — it only removes permissions, never adds them.`,
+    inputSchema: {
+      type: "object",
+      required: ["wallet_address", "token_accounts"],
+      properties: {
+        wallet_address: {
+          type: "string",
+          description: "Your Solana wallet address"
+        },
+        token_accounts: {
+          type: "array",
+          description: "Array of token accounts to revoke (from scan_token_approvals)",
+          items: {
+            type: "object",
+            required: ["address", "mint"],
+            properties: {
+              address: {
+                type: "string",
+                description: "Token account address (the approval to revoke)"
+              },
+              mint: {
+                type: "string",
+                description: "Token mint address"
+              },
+              programId: {
+                type: "string",
+                description: "Token program ID (optional, defaults to SPL Token)"
+              }
+            }
+          }
+        },
+        batch_number: {
+          type: "number",
+          description: "Which batch to build (default: 1). Up to 15 revocations per transaction.",
+          default: 1
+        }
+      }
+    }
+  },
+  {
     name: "build_recovery_transaction",
     description: `Build unsigned Solana transaction bytes for wallet recovery.
+Close zero-balance token accounts to recover rent (0.002039 SOL per account).
+
 Returns base64-encoded unsigned transaction(s) ready for signing.
 The operator signs with their own wallet and submits — SolHunt never
 has custody. Each transaction includes closeAccount instructions AND
 a 15% fee transfer to SolHunt built atomically. What you see in
 preview_recovery is exactly what gets executed — no surprises.
 
-IMPORTANT: This requires a live Helius RPC call to get a recent blockhash.
-Transactions expire after about 90 seconds on Solana.
+IMPORTANT: Transactions expire after about 90 seconds on Solana.
 The unsigned transaction needs to be signed and submitted quickly after building!`,
     inputSchema: {
       type: "object",
@@ -223,6 +307,28 @@ async function executeTool(
             scanned_at: health.scanned_at ?? new Date().toISOString()
           }
         };
+      }
+
+      case 'scan_token_approvals': {
+        const address = args.wallet_address;
+        const res = await fetch(
+          `${API_BASE}/api/scan-token-approvals?address=${encodeURIComponent(address)}`,
+          { headers, signal: AbortSignal.timeout(10000) }
+        );
+        return res.json();
+      }
+
+      case 'build_revoke_transactions': {
+        const res = await fetch(
+          `${API_BASE}/api/build-revoke`,
+          {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(args),
+            signal: AbortSignal.timeout(20000)
+          }
+        );
+        return res.json();
       }
 
       case 'build_recovery_transaction': {
