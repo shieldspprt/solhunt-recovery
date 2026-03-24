@@ -40,6 +40,38 @@ export function calculateServiceFeePercent(willCompound: boolean): number {
     return willCompound ? HARVEST_COMPOUND_FEE_PERCENT : HARVEST_FEE_PERCENT;
 }
 
+/**
+ * Confirms a transaction with a hard timeout to prevent indefinite hangs.
+ */
+async function confirmWithTimeout(
+    connection: Connection,
+    signature: string,
+    blockhash: string,
+    lastValidBlockHeight: number,
+    timeoutMs: number = 60_000
+): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            reject(new Error(`Confirmation timed out after ${timeoutMs}ms`));
+        }, timeoutMs);
+
+        connection.confirmTransaction(
+            { signature, blockhash, lastValidBlockHeight },
+            'confirmed'
+        ).then((result: { value: { err: unknown } }) => {
+            clearTimeout(timer);
+            if (result.value.err) {
+                reject(new Error(`Transaction failed: ${JSON.stringify(result.value.err)}`));
+            } else {
+                resolve();
+            }
+        }).catch((err: unknown) => {
+            clearTimeout(timer);
+            reject(err);
+        });
+    });
+}
+
 export async function collectServiceFee(params: {
     harvestResult: Omit<HarvestResult, 'feeSignature'>;
     willCompound: boolean;
@@ -63,7 +95,7 @@ export async function collectServiceFee(params: {
 
     if (feeLamports <= 0) return null;
 
-    const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
     const priorityFee = await getOptimalPriorityFee(connection);
     const tx = new Transaction();
     tx.feePayer = walletPublicKey;
@@ -81,10 +113,7 @@ export async function collectServiceFee(params: {
     );
 
     const signature = await sendTransaction(tx, connection);
-    const confirmation = await connection.confirmTransaction(signature, 'confirmed');
-    if (confirmation.value.err) {
-        throw new Error(`Fee transfer failed: ${JSON.stringify(confirmation.value.err)}`);
-    }
+    await confirmWithTimeout(connection, signature, blockhash, lastValidBlockHeight);
 
     return signature;
 }

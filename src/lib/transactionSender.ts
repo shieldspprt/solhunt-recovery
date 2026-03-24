@@ -91,23 +91,66 @@ async function submitToJito(
 }
 
 /**
+ * Confirms a transaction with a hard timeout, preventing indefinite hangs.
+ */
+function confirmWithTimeout(
+    connection: Connection,
+    signature: string,
+    blockhash: string,
+    lastValidBlockHeight: number,
+    commitment: 'confirmed' | 'finalized' = 'confirmed',
+    timeoutMs: number = 60_000
+): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => {
+            reject({
+                code: ERROR_CODES.TX_TIMEOUT,
+                message: ERROR_MESSAGES.TX_TIMEOUT,
+                technicalDetail: `Confirmation timed out after ${timeoutMs}ms for signature: ${signature}`,
+            } satisfies AppError);
+        }, timeoutMs);
+
+        connection.confirmTransaction(
+            { signature, blockhash, lastValidBlockHeight },
+            commitment
+        ).then((result) => {
+            clearTimeout(timer);
+            if (result.value.err) {
+                reject({
+                    code: ERROR_CODES.TX_FAILED,
+                    message: ERROR_MESSAGES.TX_FAILED,
+                    technicalDetail: JSON.stringify(result.value.err),
+                } satisfies AppError);
+            } else {
+                resolve();
+            }
+        }).catch((err) => {
+            clearTimeout(timer);
+            reject(err);
+        });
+    });
+}
+
+/**
  * Send a signed (legacy OR versioned) transaction with Jito-first strategy.
  *
  * 1. Try Jito Block Engine for faster block inclusion
  * 2. Fall back to standard RPC if Jito fails
- * 3. Confirm the transaction
+ * 3. Confirm the transaction with a hard timeout
  */
 export async function sendWithJito(
     signedTx: Transaction | VersionedTransaction,
     connection: Connection
 ): Promise<string> {
     const serialized = signedTx.serialize();
+    const { blockhash, lastValidBlockHeight } =
+        await connection.getLatestBlockhash('confirmed');
     let signature: string;
 
     try {
         signature = await submitToJito(serialized as Uint8Array);
     } catch (jitoError) {
-        // Jito failed — fall back to standard RPC
+        // Jito failed — fall back to standard RPC with timeout
         try {
             signature = await connection.sendRawTransaction(serialized as Buffer, {
                 skipPreflight: true,
@@ -123,14 +166,7 @@ export async function sendWithJito(
         }
     }
 
-    // Confirm with a reasonable timeout
-    const { blockhash, lastValidBlockHeight } =
-        await connection.getLatestBlockhash('confirmed');
-
-    await connection.confirmTransaction(
-        { signature, blockhash, lastValidBlockHeight },
-        'confirmed'
-    );
+    await confirmWithTimeout(connection, signature, blockhash, lastValidBlockHeight);
 
     return signature;
 }
@@ -153,10 +189,7 @@ export async function sendWithRetry(
     const { blockhash, lastValidBlockHeight } =
         await connection.getLatestBlockhash('confirmed');
 
-    await connection.confirmTransaction(
-        { signature, blockhash, lastValidBlockHeight },
-        'confirmed'
-    );
+    await confirmWithTimeout(connection, signature, blockhash, lastValidBlockHeight);
 
     return signature;
 }
