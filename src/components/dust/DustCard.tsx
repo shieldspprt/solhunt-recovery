@@ -32,7 +32,7 @@ export function DustCard() {
 
     if (isFetchingDust) {
         return (
-            <div className="rounded-auth border border-shield-border bg-shield-card p-6 shadow-xl w-full">
+            <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
                         <Sparkles className="h-5 w-5 text-shield-accent" />
@@ -51,7 +51,7 @@ export function DustCard() {
 
     if (dustScanResult.dustTokens.length === 0) {
         return (
-            <div className="rounded-auth border border-shield-border bg-shield-card p-6 shadow-xl w-full">
+            <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-success/10 border border-shield-success/20">
                         <Sparkles className="h-5 w-5 text-shield-success" />
@@ -69,7 +69,7 @@ export function DustCard() {
     const receiveSOL = Math.max(estimatedSelectionSOL - serviceFeeSOL, 0);
 
     return (
-        <div className="rounded-auth border border-shield-border bg-shield-card p-6 shadow-xl w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">

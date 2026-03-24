@@ -66,7 +66,7 @@ export function formatNumber(value: number, decimals = 2): string {
 /**
  * Formats a value as USD currency using the user's browser locale.
  */
-export function formatCurrency(value: number): string {
+export function formatUSD(value: number): string {
     if (value === 0) return '$0.00';
     if (value < 0.01) return '< $0.01';
     return new Intl.NumberFormat(navigator.language ?? 'en-US', {
@@ -76,10 +76,16 @@ export function formatCurrency(value: number): string {
 }
 
 /**
- * Legacy wrapper for estimateUSD.
+ * Alias for formatUSD — kept for backward compatibility.
+ */
+export const formatCurrency = formatUSD;
+
+/**
+ * Formats SOL amount as USD estimate using an optional SOL price.
+ * Defaults to $150/SOL when no price is provided.
  */
 export function estimateUSD(solAmount: number, solPriceUSD = 150): string {
-    return `~${formatCurrency(solAmount * solPriceUSD)}`;
+    return `~${formatUSD(solAmount * solPriceUSD)}`;
 }
 
 /**

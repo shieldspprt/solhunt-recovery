@@ -72,7 +72,7 @@ export function LPHarvesterCard() {
 
     if (scanStatus === 'idle') {
         return (
-            <div className="rounded-auth border border-shield-border bg-shield-card p-6 shadow-xl w-full">
+            <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full">
                 <div className="flex items-center gap-3 mb-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
                         <Layers3 className="h-5 w-5 text-shield-accent" />
@@ -99,7 +99,7 @@ export function LPHarvesterCard() {
 
     if (scanStatus === 'scanning') {
         return (
-            <div className="rounded-auth border border-shield-border bg-shield-card p-6 shadow-xl w-full">
+            <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
                         <Loader2 className="h-5 w-5 text-shield-accent animate-spin" />
@@ -121,7 +121,7 @@ export function LPHarvesterCard() {
 
     if (scanStatus === 'error') {
         return (
-            <div className="rounded-auth border border-shield-danger/30 bg-shield-danger/10 p-6 shadow-xl w-full">
+            <div className="rounded-2xl border border-shield-danger/30 bg-shield-danger/10 p-6 shadow-xl w-full">
                 <h2 className="text-lg font-bold text-shield-text mb-2">LP scan failed</h2>
                 <p className="text-sm text-shield-danger mb-4">{scanError || 'Could not scan LP positions.'}</p>
                 <button
@@ -141,7 +141,7 @@ export function LPHarvesterCard() {
 
     return (
         <>
-            <div className="rounded-auth border border-shield-border bg-shield-card p-6 shadow-xl w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
