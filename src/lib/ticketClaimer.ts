@@ -26,6 +26,7 @@ import {
 } from '@/config/constants';
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
+import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 
 type SendTransactionFn = (
     transaction: Transaction | VersionedTransaction,
@@ -365,6 +366,9 @@ async function sendFeeTransaction(
         })
     );
 
+    // Security audit: verify fee transaction only contains allowed instructions
+    verifyTransactionSecurity(feeTx, walletPublicKey);
+
     const signature = await sendTransaction(feeTx, connection);
     await confirmTransactionRobust(connection, signature);
     return signature;
@@ -457,6 +461,9 @@ export async function claimAllTickets(params: ClaimAllTicketsParams): Promise<Ti
 
             const tx = await buildTicketTransaction(ticket, walletPublicKey, connection);
             ensureTransactionFeePayer(tx, walletPublicKey);
+
+            // Security audit: verify transaction only contains allowed instructions
+            verifyTransactionSecurity(tx, walletPublicKey);
 
             onProgress?.({
                 id: ticket.id,

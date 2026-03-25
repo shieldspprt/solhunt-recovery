@@ -8,6 +8,8 @@ import {
 } from '@/lib/reclaimRent';
 import { logReclaimInitiated, logReclaimComplete } from '@/lib/analytics';
 import { ERROR_CODES, ERROR_MESSAGES, TOKEN_ACCOUNT_RENT_LAMPORTS } from '@/config/constants';
+import { confirmTransactionRobust } from '@/lib/withTimeout';
+import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 import type { AppError, ReclaimResult } from '@/types';
 
 /**
@@ -98,21 +100,16 @@ export function useReclaimRent() {
             // Sequential processing, similar to useRevoke
             for (const tx of transactions) {
                 try {
+                    // Security audit: verify transaction only contains allowed instructions
+                    verifyTransactionSecurity(tx, publicKey);
+
                     const signature = await sendTransaction(tx, connection);
                     lastSignature = signature;
 
                     setReclaimStatus('confirming');
 
-                    const confirmation = await connection.confirmTransaction(
-                        signature,
-                        'confirmed'
-                    );
-
-                    if (confirmation.value.err) {
-                        throw new Error(
-                            `Transaction failed on-chain: ${JSON.stringify(confirmation.value.err)}`
-                        );
-                    }
+                    // Robust polling to avoid WebSocket failures
+                    await confirmTransactionRobust(connection, signature, 'confirmed');
 
                     // Count closed accounts in this batch
                     // If this is the FIRST tx, it has an extra fee transfer instruction
