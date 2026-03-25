@@ -16,6 +16,7 @@ import {
     TREASURY_WALLET,
 } from '@/config/constants';
 import type { AppError, DustBurnProgressItem, DustBurnResult, DustToken } from '@/types';
+import { confirmTransactionRobust } from '@/lib/withTimeout';
 
 function createAppError(
     code: keyof typeof ERROR_CODES,
@@ -195,11 +196,7 @@ export function useDustBurnReclaim() {
 
                 try {
                     const signature = await sendTransaction(batch.transaction, connection);
-                    const confirmation = await connection.confirmTransaction(signature, 'confirmed');
-                    if (confirmation.value.err) {
-                        throw new Error(`On-chain error: ${JSON.stringify(confirmation.value.err)}`);
-                    }
-
+                    await confirmTransactionRobust(connection, signature, 'confirmed');
                     signatures.push(signature);
                     burnedCount += batch.tokens.length;
 
@@ -242,10 +239,7 @@ export function useDustBurnReclaim() {
                             }
 
                             const signature = await sendTransaction(single.transaction, connection);
-                            const confirmation = await connection.confirmTransaction(signature, 'confirmed');
-                            if (confirmation.value.err) {
-                                throw new Error(`On-chain error: ${JSON.stringify(confirmation.value.err)}`);
-                            }
+                            await confirmTransactionRobust(connection, signature, 'confirmed');
 
                             signatures.push(signature);
                             burnedCount += 1;
@@ -301,10 +295,8 @@ export function useDustBurnReclaim() {
                     feeTx.recentBlockhash = blockhash;
 
                     const feeSignature = await sendTransaction(feeTx, connection);
-                    const feeConfirmation = await connection.confirmTransaction(feeSignature, 'confirmed');
-                    if (feeConfirmation.value.err) {
-                        throw new Error(`Fee transfer failed: ${JSON.stringify(feeConfirmation.value.err)}`);
-                    }
+                    await confirmTransactionRobust(connection, feeSignature, 'confirmed');
+
                     signatures.push(feeSignature);
                 }
             } catch (error) {
