@@ -2,7 +2,7 @@
 // Shows today's scan stats and the ready-to-post X draft
 // Displays on solhunt.dev homepage or /stats page
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useCallback } from 'react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -29,10 +29,10 @@ interface StatsData {
 
 // ── Copy to clipboard button ──────────────────────────────────────────────────
 
-function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) {
+const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: string }) => {
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = async () => {
+  const handleCopy = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -48,7 +48,7 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
-  };
+  }, [text]);
 
   return (
     <button
@@ -63,7 +63,7 @@ function CopyButton({ text, label = 'Copy' }: { text: string; label?: string }) 
       {copied ? '✓ Copied' : label}
     </button>
   );
-}
+});
 
 // ── Single stat box ───────────────────────────────────────────────────────────
 

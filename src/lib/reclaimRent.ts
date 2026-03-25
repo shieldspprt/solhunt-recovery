@@ -1,30 +1,15 @@
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
 import { createCloseAccountInstruction } from '@solana/spl-token';
-import type { ScanResult, CloseableAccount, ReclaimEstimate, AppError, TokenProgramId } from '@/types';
+import type { ScanResult, CloseableAccount, ReclaimEstimate, TokenProgramId } from '@/types';
 import {
     RENT_RECLAIM_FEE_PERCENT,
     RENT_RECLAIM_MIN_ACCOUNTS,
     TOKEN_ACCOUNT_RENT_LAMPORTS,
     MAX_CLOSE_PER_TX,
     TREASURY_WALLET,
-    ERROR_CODES,
-    ERROR_MESSAGES,
 } from '@/config/constants';
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
-
-/**
- * Creates an AppError with the proper shape.
- */
-function createAppError(
-    code: keyof typeof ERROR_CODES,
-    technicalDetail: string
-): AppError {
-    return {
-        code: ERROR_CODES[code],
-        message: ERROR_MESSAGES[code],
-        technicalDetail,
-    };
-}
+import { createAppError } from '@/lib/errors';
 
 /**
  * Maps the TokenProgramId string logic to actual Program IDs if needed
