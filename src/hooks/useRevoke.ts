@@ -11,6 +11,8 @@ import {
     ERROR_CODES,
     ERROR_MESSAGES,
 } from '@/config/constants';
+import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
+import { confirmTransactionRobust } from '@/lib/withTimeout';
 import type { TokenDelegation, AppError, RevokeResult } from '@/types';
 
 /**
@@ -71,22 +73,15 @@ export function useRevoke() {
 
                 for (const revokeTx of transactions) {
                     try {
+                        // Security audit: verify transaction only contains allowed instructions
+                        verifyTransactionSecurity(revokeTx.transaction, publicKey);
+
                         const signature = await sendTransaction(revokeTx.transaction, connection);
                         lastSignature = signature;
 
-                        // Confirming on-chain
+                        // Confirming on-chain (robust polling to avoid WebSocket failures)
                         setRevokeStatus('confirming');
-
-                        const confirmation = await connection.confirmTransaction(
-                            signature,
-                            'confirmed'
-                        );
-
-                        if (confirmation.value.err) {
-                            throw new Error(
-                                `Transaction failed on-chain: ${JSON.stringify(confirmation.value.err)}`
-                            );
-                        }
+                        await confirmTransactionRobust(connection, signature, 'confirmed');
 
                         // Accumulate the revoke count from the batch metadata
                         totalRevoked += revokeTx.revokeCount;

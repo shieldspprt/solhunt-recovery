@@ -16,6 +16,7 @@ import {
     MEV_SERVICE_FEE_DENOMINATOR,
     MEV_MAX_CLAIMS_PER_TX,
 } from '@/config/constants';
+import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 import type { MEVScanResult, MEVClaimEstimate, MEVClaimResultItem } from '@/types';
 import { logger } from '@/lib/logger';
 
@@ -139,6 +140,9 @@ export function useMEVClaims() {
                 setMEVProgressText(`Claiming batch ${i + 1} of ${transactions.length}...`);
 
                 try {
+                    // Security audit: verify transaction only contains allowed instructions
+                    verifyTransactionSecurity(transactions[i], publicKey);
+
                     const signed = await signTransaction(transactions[i]);
                     const sig = await sendTransaction(signed, connection);
                     await confirmTransactionRobust(connection, sig, 'confirmed');
