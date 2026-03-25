@@ -6,6 +6,7 @@ import {
 } from '@solana/web3.js';
 import { TREASURY_WALLET } from '@/config/constants';
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
+import { confirmTransactionRobust } from '@/lib/withTimeout';
 import {
     HARVEST_COMPOUND_FEE_PERCENT,
     HARVEST_FEE_PERCENT,
@@ -40,38 +41,6 @@ export function calculateServiceFeePercent(willCompound: boolean): number {
     return willCompound ? HARVEST_COMPOUND_FEE_PERCENT : HARVEST_FEE_PERCENT;
 }
 
-/**
- * Confirms a transaction with a hard timeout to prevent indefinite hangs.
- */
-async function confirmWithTimeout(
-    connection: Connection,
-    signature: string,
-    blockhash: string,
-    lastValidBlockHeight: number,
-    timeoutMs: number = 60_000
-): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const timer = setTimeout(() => {
-            reject(new Error(`Confirmation timed out after ${timeoutMs}ms`));
-        }, timeoutMs);
-
-        connection.confirmTransaction(
-            { signature, blockhash, lastValidBlockHeight },
-            'confirmed'
-        ).then((result: { value: { err: unknown } }) => {
-            clearTimeout(timer);
-            if (result.value.err) {
-                reject(new Error(`Transaction failed: ${JSON.stringify(result.value.err)}`));
-            } else {
-                resolve();
-            }
-        }).catch((err: unknown) => {
-            clearTimeout(timer);
-            reject(err);
-        });
-    });
-}
-
 export async function collectServiceFee(params: {
     harvestResult: Omit<HarvestResult, 'feeSignature'>;
     willCompound: boolean;
@@ -95,7 +64,7 @@ export async function collectServiceFee(params: {
 
     if (feeLamports <= 0) return null;
 
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
+    const { blockhash } = await connection.getLatestBlockhash('confirmed');
     const priorityFee = await getOptimalPriorityFee(connection);
     const tx = new Transaction();
     tx.feePayer = walletPublicKey;
@@ -113,7 +82,7 @@ export async function collectServiceFee(params: {
     );
 
     const signature = await sendTransaction(tx, connection);
-    await confirmWithTimeout(connection, signature, blockhash, lastValidBlockHeight);
+    await confirmTransactionRobust(connection, signature, 'confirmed', 60_000);
 
     return signature;
 }

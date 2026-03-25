@@ -25,6 +25,7 @@ import {
     TREASURY_WALLET,
 } from '@/config/constants';
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
+import { confirmTransactionRobust } from '@/lib/withTimeout';
 
 type SendTransactionFn = (
     transaction: Transaction | VersionedTransaction,
@@ -130,13 +131,6 @@ function ensureTransactionFeePayer(
             'TICKET_CLAIM_FAILED',
             `Transaction fee payer mismatch for ${walletPublicKey.toBase58()}.`
         );
-    }
-}
-
-async function confirmSignature(connection: Connection, signature: string): Promise<void> {
-    const confirmation = await connection.confirmTransaction(signature, 'confirmed');
-    if (confirmation.value.err) {
-        throw new Error(`On-chain confirmation failed: ${JSON.stringify(confirmation.value.err)}`);
     }
 }
 
@@ -372,7 +366,7 @@ async function sendFeeTransaction(
     );
 
     const signature = await sendTransaction(feeTx, connection);
-    await confirmSignature(connection, signature);
+    await confirmTransactionRobust(connection, signature);
     return signature;
 }
 
@@ -473,7 +467,7 @@ export async function claimAllTickets(params: ClaimAllTicketsParams): Promise<Ti
             });
 
             const signature = await sendTransaction(tx, connection);
-            await confirmSignature(connection, signature);
+            await confirmTransactionRobust(connection, signature);
 
             signatures.push(signature);
             claimedCount += 1;

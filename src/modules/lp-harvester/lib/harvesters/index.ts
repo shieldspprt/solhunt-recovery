@@ -13,6 +13,7 @@ import { isCompoundAllowed } from '../validator';
 import { buildOrcaHarvestTransaction } from './orcaHarvester';
 import { buildRaydiumHarvestTransaction } from './raydiumHarvester';
 import { buildMeteoraHarvestTransaction } from './meteoraHarvester';
+import { confirmTransactionRobust } from '@/lib/withTimeout';
 import type {
     CompoundResult,
     HarvestResult,
@@ -69,19 +70,6 @@ function buildFailureItem(position: LPPosition, errorMessage: string): HarvestRe
         signature: null,
         errorMessage,
     };
-}
-
-async function sendAndConfirm(
-    transaction: Transaction | VersionedTransaction,
-    sendTransaction: WalletContextState['sendTransaction'],
-    connection: Connection
-): Promise<string> {
-    const signature = await sendTransaction(transaction, connection);
-    const confirmation = await connection.confirmTransaction(signature, 'confirmed');
-    if (confirmation.value.err) {
-        throw new Error(`Transaction failed: ${JSON.stringify(confirmation.value.err)}`);
-    }
-    return signature;
 }
 
 async function compoundHarvestedFees(
@@ -190,11 +178,8 @@ export async function harvestAllPositions(
                 connection
             );
 
-            const signature = await sendAndConfirm(
-                transaction,
-                sendTransaction,
-                connection
-            );
+            const signature = await sendTransaction(transaction, connection);
+            await confirmTransactionRobust(connection, signature);
 
             const successItem = buildSuccessItem(position, signature);
             items.push(successItem);
