@@ -17,6 +17,7 @@ import {
     TREASURY_WALLET,
 } from '@/config/constants';
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
+import { confirmTransactionRobust } from '@/lib/withTimeout';
 
 
 
@@ -144,10 +145,7 @@ async function fetchSerializedRaydiumTransactions(
 }
 
 async function confirmSignature(connection: Connection, signature: string): Promise<void> {
-    const confirmation = await connection.confirmTransaction(signature, 'confirmed');
-    if (confirmation.value.err) {
-        throw new Error(`On-chain confirmation failed: ${JSON.stringify(confirmation.value.err)}`);
-    }
+    await confirmTransactionRobust(connection, signature, 'confirmed');
 }
 
 async function sendFeeTransfer(
@@ -317,7 +315,7 @@ export async function executeDustSwaps(params: ExecuteDustSwapsParams): Promise<
             for (const tx of transactions) {
                 ensureWalletIsFeePayer(tx, walletPublicKey);
                 const signature = await sendTransaction(tx, connection);
-                await confirmSignature(connection, signature);
+                await confirmTransactionRobust(connection, signature);
                 signatures.push(signature);
                 lastSignature = signature;
             }

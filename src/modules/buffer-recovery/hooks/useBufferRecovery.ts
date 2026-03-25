@@ -5,6 +5,7 @@ import { useAppStore } from '@/hooks/useAppStore';
 import { scanForBuffers } from '../lib/bufferScanner';
 import { createCloseBufferInstructions } from '../lib/bufferCloser';
 import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
+import { confirmTransactionRobust } from '@/lib/withTimeout';
 import {
     logBufferScanComplete,
     logBufferCloseInitiated,
@@ -106,7 +107,7 @@ export function useBufferRecovery() {
             verifyTransactionSecurity(transaction, publicKey);
 
             const signature = await sendTransaction(transaction, connection);
-            await connection.confirmTransaction(signature, 'confirmed');
+            await confirmTransactionRobust(connection, signature, 'confirmed');
 
             const result = {
                 success: true,
