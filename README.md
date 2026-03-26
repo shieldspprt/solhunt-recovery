@@ -25,20 +25,20 @@ In an ecosystem plagued by wallet drainers, **trust must be verified through cod
 
 ## ⚙️ The Recovery Engines
 
-SolHunt currently operates 8 highly-specialized on-chain recovery engines:
+SolHunt currently operates 9 production recovery engines (plus 1 in preview):
 
 | Engine | Technical Execution | Action |
 | :--- | :--- | :--- |
-| **1. Revoke Permissions** | `spl-token Revoke` | Nullifies `delegate` and `delegate_amount` fields on SPL Token accounts, neutralizing smart contract exploit vectors. |
+| **1. Revoke Permissions** | `spl-token Revoke` | Nullifies `delegate` and `delegate_amount` fields on SPL Token accounts, neutralising smart contract exploit vectors. |
 | **2. Reclaim Rent** | `spl-token CloseAccount` | Dismantles empty token accounts, triggering the BPF runtime to refund the locked ~0.002 SOL rent exemption directly to your base address. |
-| **3. Sweep Dust** | Jupiter V6 Swap + `spl-token Burn` | Liquidates micro-balances via exact-out swap routing, or permanently burns unswappable tokens to execute `CloseAccount`. |
-| **4. Claim Stakes** | Anchor `Claim` | Parses `TicketAccountData` for unstaking delays (Marinade, Sanctum, Jito) and executes protocol-specific claim instructions. |
-| **5. Harvest LP Fees** | CLMM `collectFees` | Queries DexScreener/Raydium/Orca SDKs for Position NFTs and triggers pure fee harvests without touching principal liquidity. |
-| **6. MEV & Priority Fees** | Tip Distribution `Claim` | Fetches Merkle Proofs from Kobe Network and submits them to the Jito Tip Distribution program to claim your share of MEV block space tips. |
-| **7. Dead Protocol Rescue** | Anchor IDL Simulation | Identifies trapped LP tokens in decommissioned protocols (Friktion, Saber) and constructs direct contract withdrawal instructions. |
-| **8. Recover Program Buffers** | `BPFLoader Close` | Searches for orphaned deployment chunks and executes `BPF Close` to recover massive (1-50 SOL) rent deposits from failed deployments. |
+| **3. Sweep Dust** | Jupiter / Raydium swap, or `spl-token Burn` + `CloseAccount` | Liquidates micro-balances via swap routing, or permanently burns unswappable tokens to reclaim rent. |
+| **4. Claim Stakes** | Protocol-specific claim instructions | Parses `TicketAccountData` for unstaking delays (Marinade, Sanctum, Jito, BlazeStake) and executes protocol-specific claim instructions. |
+| **5. Harvest LP Fees** | CLMM `collectFees` | Queries Orca, Raydium, and Meteora SDKs for Position NFTs and triggers pure fee harvests without touching principal liquidity. |
+| **7. MEV & Priority Fees** | Jito Tip Distribution `claim` | Fetches Merkle Proofs from the Jito Kobe Network API and submits them to the Tip Distribution program to claim your share of MEV block-space tips. |
+| **9. Dead Protocol Rescue** | Anchor IDL simulation | Identifies trapped LP positions in decommissioned DeFi protocols and constructs direct withdrawal instructions. |
+| **10. Recover Program Buffers** *(preview)* | `BPFLoader Close` | Searches for orphaned deployment buffer accounts and executes `Close` to recover rent deposits from failed deployments (commonly 1–50 SOL). |
 
-*(Note: Engine numbers correspond to our internal routing identifiers).*
+*(Engine numbers correspond to internal routing IDs and are non-sequential.)*
 
 ---
 
@@ -46,7 +46,7 @@ SolHunt currently operates 8 highly-specialized on-chain recovery engines:
 
 Built for developers and researchers to verify, fork, and learn from.
 
-- **Frontend:** React 18, Vite, Tailwind CSS, Zustand
+- **Frontend:** React 19, Vite, Tailwind CSS, Zustand
 - **Blockchain Execution:** `@solana/web3.js`, `@solana/wallet-adapter-react`, SPL Token Standard
 - **Infrastructure:** Helius DAS API, Jupiter V6 Aggregator, Jito Kobe Network
 - **Agent Intelligence:** Native MCP (Model Context Protocol) integration for autonomous agents and LLMs.
