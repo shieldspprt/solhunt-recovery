@@ -1,3 +1,15 @@
+/**
+ * Dust swap execution module.
+ *
+ * Orchestrates the full dust-to-SOL swap workflow:
+ * 1. Fetches serialized swap transactions from Jupiter or Raydium
+ * 2. Validates fee payer on each transaction
+ * 3. Sends transactions sequentially and confirms each
+ * 4. Transfers the service fee to the treasury
+ *
+ * All swaps are sent as VersionedTransactions (for Raydium) or
+ * legacy Transactions (for Jupiter), confirmed via polling.
+ */
 import {
     Connection,
     PublicKey,
@@ -5,7 +17,12 @@ import {
     Transaction,
     VersionedTransaction,
 } from '@solana/web3.js';
-import type { DustResult, DustSwapProgressItem, DustSwapQuote, DustToken } from '@/types';
+import type {
+    DustResult,
+    DustSwapItemStatus,
+    DustSwapQuote,
+    DustToken,
+} from '@/types';
 import {
     DUST_SWAP_FEE_PERCENT,
     JUPITER_API_KEY,
@@ -18,41 +35,52 @@ import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
 import { createAppError } from '@/lib/errors';
 
-
-
-
-
-
+/** Disassembled base64 transaction strings returned by the Raydium API. */
 interface RaydiumSerializedTx {
     transaction?: string;
 }
 
+/** Raydium compute-swap transaction endpoint response shape. */
 interface RaydiumSwapTxResponse {
     success?: boolean;
     data?: RaydiumSerializedTx[];
     msg?: string;
 }
 
+/** Jupiter swap endpoint response shape. */
 interface JupiterSwapResponse {
     swapTransaction?: string;
 }
 
+/** Type alias for the wallet adapter's sendTransaction signature. */
 type SendTransactionFn = (
     transaction: Transaction | VersionedTransaction,
     connection: Connection
 ) => Promise<string>;
 
+/** Parameters for executeDustSwaps(). */
 interface ExecuteDustSwapsParams {
     tokens: DustToken[];
     quotes: Map<string, DustSwapQuote>;
     walletPublicKey: PublicKey;
     connection: Connection;
     sendTransaction: SendTransactionFn;
-    onProgress?: (update: DustSwapProgressItem) => void;
+    onProgress?: (update: { mint: string; tokenSymbol: string; status: DustSwapItemStatus; signature: string | null; receivedSOL: number; message: string }) => void;
 }
 
+/**
+ * Converts a base64-encoded transaction string into a Uint8Array
+ * suitable for VersionedTransaction.deserialize().
+ *
+ * @throws {AppError} If the base64 string is malformed
+ */
 function base64ToBytes(base64: string): Uint8Array {
-    const binary = atob(base64);
+    let binary: string;
+    try {
+        binary = atob(base64);
+    } catch {
+        throw createAppError('DUST_SWAP_FAILED', `Invalid base64 in serialized transaction.`);
+    }
     const bytes = new Uint8Array(binary.length);
     for (let index = 0; index < binary.length; index += 1) {
         bytes[index] = binary.charCodeAt(index);
@@ -60,6 +88,12 @@ function base64ToBytes(base64: string): Uint8Array {
     return bytes;
 }
 
+/**
+ * Validates that the first account key (fee payer) on a VersionedTransaction
+ * matches the connected wallet.
+ *
+ * @throws {AppError} If fee payer is missing or mismatched, or if recentBlockhash is absent
+ */
 function ensureWalletIsFeePayer(
     transaction: VersionedTransaction,
     walletPublicKey: PublicKey
@@ -77,9 +111,12 @@ function ensureWalletIsFeePayer(
     }
 }
 
-
-
-
+/**
+ * Fetches fully-signed serialized transaction bytes from the Raydium API.
+ * Converts them into VersionedTransaction objects ready to send.
+ *
+ * @throws {AppError} On HTTP failure or when the API returns no transactions
+ */
 async function fetchSerializedRaydiumTransactions(
     token: DustToken,
     quote: DustSwapQuote,
@@ -132,10 +169,20 @@ async function fetchSerializedRaydiumTransactions(
         .map((base64) => VersionedTransaction.deserialize(base64ToBytes(base64)));
 }
 
+/**
+ * Awaits confirmation of a signature using the robust poller.
+ * Wraps confirmTransactionRobust for caller ergonomics.
+ */
 async function confirmSignature(connection: Connection, signature: string): Promise<void> {
     await confirmTransactionRobust(connection, signature, 'confirmed');
 }
 
+/**
+ * Transfers the service fee to the treasury wallet after all swaps complete.
+ * Calculates DUST_SWAP_FEE_PERCENT of the total lamports received.
+ *
+ * @returns The signature of the fee transfer, or null if the fee amount is zero
+ */
 async function sendFeeTransfer(
     walletPublicKey: PublicKey,
     connection: Connection,
@@ -150,7 +197,6 @@ async function sendFeeTransfer(
     const { blockhash } = await connection.getLatestBlockhash('confirmed');
     const priorityFee = await getOptimalPriorityFee(connection);
     const feeTx = new Transaction();
-    // Add priority fee instructions
     for (const ix of buildPriorityFeeIxs(priorityFee)) {
         feeTx.add(ix);
     }
@@ -169,15 +215,24 @@ async function sendFeeTransfer(
     return feeSignature;
 }
 
+/**
+ * Returns a human-readable label for a dust token.
+ * Uses the resolved symbol when available, falls back to the first 6 chars of the mint.
+ */
 function tokenLabel(token: DustToken): string {
     return token.tokenSymbol !== 'UNKNOWN' ? token.tokenSymbol : token.mint.slice(0, 6);
 }
 
+/** API source descriptor used to iterate Jupiter swap endpoints. */
 interface ApiSource {
     url: string;
     headers?: Record<string, string>;
 }
 
+/**
+ * Returns the available Jupiter swap API sources in priority order.
+ * The API-keyed endpoint is tried first; the public lite endpoint is the fallback.
+ */
 function getJupiterSwapSources(): ApiSource[] {
     const sources: ApiSource[] = [];
     if (JUPITER_API_KEY) {
@@ -190,6 +245,12 @@ function getJupiterSwapSources(): ApiSource[] {
     return sources;
 }
 
+/**
+ * Fetches a signed transaction from the Jupiter swap API.
+ * Tries all available sources (paid + free) until one succeeds.
+ *
+ * @throws {AppError} When all sources fail or return no transaction
+ */
 async function fetchSerializedJupiterTransactions(
     quote: DustSwapQuote,
     walletAddress: string
@@ -245,6 +306,23 @@ async function fetchSerializedJupiterTransactions(
     throw createAppError('ROUTER_UNAVAILABLE', 'Jupiter swap transaction endpoint unavailable.');
 }
 
+/**
+ * Executes dust token swaps for a batch of tokens with obtained swap quotes.
+ *
+ * Process:
+ * 1. Iterates each selected token with a valid quote
+ * 2. Fetches serialized swap transactions from Jupiter or Raydium
+ * 3. Validates fee payer, sends, and confirms each transaction
+ * 4. Transfers service fee to treasury on success
+ *
+ * @param params.tokens - Dust tokens selected for swapping
+ * @param params.quotes - Pre-fetched swap quotes keyed by mint address
+ * @param params.walletPublicKey - Connected wallet public key
+ * @param params.connection - Solana RPC connection
+ * @param params.sendTransaction - Wallet adapter sendTransaction function
+ * @param params.onProgress - Optional callback to report per-token progress
+ * @returns DustResult summarising swapped count, failures, and lamports received
+ */
 export async function executeDustSwaps(params: ExecuteDustSwapsParams): Promise<DustResult> {
     const {
         tokens,

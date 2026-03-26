@@ -1,3 +1,10 @@
+/**
+ * DexScreener token price and pair data fetcher.
+ *
+ * Polls the DexScreener REST API in batches of up to 30 mints per request
+ * (matching DexScreener's endpoint limit). Results are cached in a module-level
+ * Set to avoid redundant API calls for unsupported mints.
+ */
 import type {
     DexScreenerPair,
     DustScanResult,
