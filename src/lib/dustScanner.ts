@@ -1,5 +1,4 @@
 import type {
-    AppError,
     DexScreenerPair,
     DustScanResult,
     DustSwapQuote,
@@ -14,8 +13,6 @@ import {
     DUST_MAX_TOKENS_PER_SESSION,
     DUST_MAX_VALUE_USD,
     DUST_SLIPPAGE_BPS,
-    ERROR_CODES,
-    ERROR_MESSAGES,
     JUPITER_API_KEY,
     JUPITER_LITE_QUOTE_API,
     JUPITER_QUOTE_API,
@@ -23,6 +20,7 @@ import {
     RAYDIUM_QUOTE_API,
     SOL_MINT,
 } from '@/config/constants';
+import { createAppError } from '@/lib/errors';
 import { DEAD_PROTOCOLS } from '@/modules/decommission/registry/protocols';
 import type { DeadProtocol } from '@/modules/decommission/types';
 
@@ -38,17 +36,6 @@ const raydiumUnsupportedMints = new Set<string>();
 interface ApiSource {
     url: string;
     headers?: Record<string, string>;
-}
-
-function createAppError(
-    code: keyof typeof ERROR_CODES,
-    technicalDetail: string
-): AppError {
-    return {
-        code: ERROR_CODES[code],
-        message: ERROR_MESSAGES[code],
-        technicalDetail,
-    };
 }
 
 function chunk<T>(items: T[], size: number): T[][] {

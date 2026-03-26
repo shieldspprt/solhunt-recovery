@@ -8,21 +8,11 @@ import {
     logDustSwapComplete,
     logDustSwapInitiated,
 } from '@/lib/analytics';
-import { DUST_MAX_TOKENS_PER_SESSION, ERROR_CODES, ERROR_MESSAGES } from '@/config/constants';
+import { DUST_MAX_TOKENS_PER_SESSION } from '@/config/constants';
 import type { AppError, DustScanResult, DustSwapProgressItem, DustToken } from '@/types';
+import { createAppError } from '@/lib/errors';
 
 let lastFetchedScanKey: string | null = null;
-
-function createAppError(
-    code: keyof typeof ERROR_CODES,
-    technicalDetail: string
-): AppError {
-    return {
-        code: ERROR_CODES[code],
-        message: ERROR_MESSAGES[code],
-        technicalDetail,
-    };
-}
 
 function buildDustScanResult(tokens: DustToken[]): DustScanResult {
     const swappableCount = tokens.filter((token) => token.isSwappable).length;

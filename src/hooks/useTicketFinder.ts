@@ -11,8 +11,6 @@ import {
     logTicketScanStarted,
 } from '@/lib/analytics';
 import {
-    ERROR_CODES,
-    ERROR_MESSAGES,
     NETWORK_FEE_PER_SIGNATURE_SOL,
     TICKET_CLAIM_FEE_PERCENT,
 } from '@/config/constants';
@@ -21,17 +19,7 @@ import type {
     TicketClaimEstimate,
     TicketClaimProgressItem,
 } from '@/types';
-
-function createAppError(
-    code: keyof typeof ERROR_CODES,
-    technicalDetail: string
-): AppError {
-    return {
-        code: ERROR_CODES[code],
-        message: ERROR_MESSAGES[code],
-        technicalDetail,
-    };
-}
+import { createAppError } from '@/lib/errors';
 
 export function useTicketFinder() {
     const { connection } = useConnection();

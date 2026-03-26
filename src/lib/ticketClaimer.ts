@@ -8,15 +8,12 @@ import {
     VersionedTransaction,
 } from '@solana/web3.js';
 import type {
-    AppError,
     StakingTicket,
     TicketClaimResult,
     TicketClaimStatus,
     TicketProgressStatus,
 } from '@/types';
 import {
-    ERROR_CODES,
-    ERROR_MESSAGES,
     MARINADE_CLAIM_DISCRIMINATOR,
     MARINADE_PROGRAM_ID,
     MARINADE_STATE_ADDRESS,
@@ -27,6 +24,7 @@ import {
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
 import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
+import { createAppError } from '@/lib/errors';
 
 type SendTransactionFn = (
     transaction: Transaction | VersionedTransaction,
@@ -67,17 +65,6 @@ interface SanctumRedeemResponse {
 }
 
 type TxInstructionData = ConstructorParameters<typeof TransactionInstruction>[0]['data'];
-
-function createAppError(
-    code: keyof typeof ERROR_CODES,
-    technicalDetail: string
-): AppError {
-    return {
-        code: ERROR_CODES[code],
-        message: ERROR_MESSAGES[code],
-        technicalDetail,
-    };
-}
 
 function base64ToBytes(base64: string): Uint8Array {
     const binary = atob(base64);

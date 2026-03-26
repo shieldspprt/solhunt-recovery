@@ -5,11 +5,9 @@ import {
     Transaction,
     VersionedTransaction,
 } from '@solana/web3.js';
-import type { AppError, DustResult, DustSwapProgressItem, DustSwapQuote, DustToken } from '@/types';
+import type { DustResult, DustSwapProgressItem, DustSwapQuote, DustToken } from '@/types';
 import {
     DUST_SWAP_FEE_PERCENT,
-    ERROR_CODES,
-    ERROR_MESSAGES,
     JUPITER_API_KEY,
     JUPITER_LITE_SWAP_API,
     JUPITER_SWAP_API,
@@ -18,6 +16,7 @@ import {
 } from '@/config/constants';
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
+import { createAppError } from '@/lib/errors';
 
 
 
@@ -50,17 +49,6 @@ interface ExecuteDustSwapsParams {
     connection: Connection;
     sendTransaction: SendTransactionFn;
     onProgress?: (update: DustSwapProgressItem) => void;
-}
-
-function createAppError(
-    code: keyof typeof ERROR_CODES,
-    technicalDetail: string
-): AppError {
-    return {
-        code: ERROR_CODES[code],
-        message: ERROR_MESSAGES[code],
-        technicalDetail,
-    };
 }
 
 function base64ToBytes(base64: string): Uint8Array {

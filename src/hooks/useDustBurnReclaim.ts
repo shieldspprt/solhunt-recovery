@@ -10,24 +10,12 @@ import {
 import { logDustBurnComplete, logDustBurnInitiated } from '@/lib/analytics';
 import {
     DUST_BURN_RECLAIM_FEE_PERCENT,
-    ERROR_CODES,
-    ERROR_MESSAGES,
     TOKEN_ACCOUNT_RENT_LAMPORTS,
     TREASURY_WALLET,
 } from '@/config/constants';
 import type { AppError, DustBurnProgressItem, DustBurnResult, DustToken } from '@/types';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
-
-function createAppError(
-    code: keyof typeof ERROR_CODES,
-    technicalDetail: string
-): AppError {
-    return {
-        code: ERROR_CODES[code],
-        message: ERROR_MESSAGES[code],
-        technicalDetail,
-    };
-}
+import { createAppError } from '@/lib/errors';
 
 export function useDustBurnReclaim() {
     const { connection } = useConnection();

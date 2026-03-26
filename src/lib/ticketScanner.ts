@@ -6,7 +6,6 @@ import {
     StakeProgram,
 } from '@solana/web3.js';
 import type {
-    AppError,
     StakingProtocol,
     StakingTicket,
     TicketClaimStatus,
@@ -15,8 +14,6 @@ import type {
 import {
     BLAZESTAKE_STAKE_POOL,
     EPOCH_DURATION_HOURS,
-    ERROR_CODES,
-    ERROR_MESSAGES,
     JITO_STAKE_POOL,
     MARINADE_PROGRAM_ID,
     MAX_U64,
@@ -26,6 +23,7 @@ import {
 } from '@/config/constants';
 import { isValidSolanaPublicKey } from '@/lib/validation';
 import { logger } from '@/lib/logger';
+import { createAppError } from '@/lib/errors';
 
 interface StakeAuthorizedInfo {
     staker?: string;
@@ -94,17 +92,6 @@ let sanctumApiSkipUntilMs = 0;
 // Conservative placeholders. Unknown stake accounts are classified as native.
 const JITO_VALIDATOR_VOTE_ACCOUNTS = new Set<string>([JITO_STAKE_POOL]);
 const BLAZESTAKE_VALIDATOR_VOTE_ACCOUNTS = new Set<string>([BLAZESTAKE_STAKE_POOL]);
-
-function createAppError(
-    code: keyof typeof ERROR_CODES,
-    technicalDetail: string
-): AppError {
-    return {
-        code: ERROR_CODES[code],
-        message: ERROR_MESSAGES[code],
-        technicalDetail,
-    };
-}
 
 function toNumberEpoch(value: string | number | null | undefined): number | null {
     if (value === null || value === undefined) return null;
