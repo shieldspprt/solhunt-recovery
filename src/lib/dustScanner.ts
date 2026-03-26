@@ -14,11 +14,12 @@ import {
     SOL_MINT,
 } from '@/config/constants';
 import { DEAD_PROTOCOLS } from '@/modules/decommission/registry/protocols';
+import type { DeadProtocol } from '@/modules/decommission/types';
 
 const PROTECTED_MINTS = new Set<string>(
     DEAD_PROTOCOLS
-        .filter((p: any) => p.isRecoverable)
-        .flatMap((p: any) => p.positionTokenMints.map((t: any) => t.mint))
+        .filter((p: DeadProtocol) => p.isRecoverable)
+        .flatMap((p: DeadProtocol) => p.positionTokenMints.map((t) => t.mint))
 );
 
 interface DexScreenerTokenInfo {

@@ -1,30 +1,18 @@
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { createBurnInstruction, createCloseAccountInstruction } from '@solana/spl-token';
-import type { AppError, DustBurnEstimate, DustToken, TokenProgramId } from '@/types';
+import type { DustBurnEstimate, DustToken, TokenProgramId } from '@/types';
 import {
     DUST_BURN_RECLAIM_FEE_PERCENT,
     DUST_MAX_BURN_CLOSE_PER_TX,
-    ERROR_CODES,
-    ERROR_MESSAGES,
     NETWORK_FEE_PER_SIGNATURE_SOL,
     TOKEN_ACCOUNT_RENT_LAMPORTS,
 } from '@/config/constants';
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
+import { createAppError } from '@/lib/errors';
 
 export interface DustBurnBatch {
     transaction: Transaction;
     tokens: DustToken[];
-}
-
-function createAppError(
-    code: keyof typeof ERROR_CODES,
-    technicalDetail: string
-): AppError {
-    return {
-        code: ERROR_CODES[code],
-        message: ERROR_MESSAGES[code],
-        technicalDetail,
-    };
 }
 
 function getTokenProgramPublicKey(programId: TokenProgramId): PublicKey {

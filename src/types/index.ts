@@ -128,6 +128,8 @@ export interface DustToken {
     isSwappable: boolean;
     routeSource: string;
     programId: TokenProgramId;
+    /** Which swap provider to use. Only set when isSwappable is true and a quote has been obtained */
+    provider?: 'jupiter' | 'raydium';
 }
 
 export interface DustScanResult {
@@ -147,7 +149,38 @@ export interface DustSwapQuote {
     priceImpactPct: number;
     routePlan: string;
     provider: 'jupiter' | 'raydium';
-    rawQuote: unknown;
+    /** Raw quote from the swap provider for debugging and replay */
+    rawQuote: JupiterQuoteResponse | RaydiumQuoteData;
+}
+
+/** Raw Jupiter quote response shape */
+interface JupiterQuoteResponse {
+    inputMint?: string;
+    outputMint?: string;
+    inAmount?: string;
+    outAmount?: string;
+    priceImpactPct?: string;
+    routePlan?: JupiterRoutePlan[];
+}
+
+/** Raw Raydium quote response shape */
+interface RaydiumQuoteData {
+    inputMint?: string;
+    outputMint?: string;
+    inputAmount?: string;
+    outputAmount?: string;
+    priceImpactPct?: number | string;
+    routePlan?: RaydiumRoutePlan[];
+}
+
+interface JupiterRoutePlan {
+    swapInfo?: {
+        label?: string;
+    };
+}
+
+interface RaydiumRoutePlan {
+    poolId?: string;
 }
 
 export type DustStatus =
