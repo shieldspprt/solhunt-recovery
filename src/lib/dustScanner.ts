@@ -1,4 +1,14 @@
-import type { AppError, DustScanResult, DustSwapQuote, DustToken, ScanResult } from '@/types';
+import type {
+    AppError,
+    DexScreenerPair,
+    DustScanResult,
+    DustSwapQuote,
+    DustToken,
+    JupiterQuoteResponse,
+    RaydiumQuoteData,
+    RaydiumQuoteResponse,
+    ScanResult,
+} from '@/types';
 import {
     DEXSCREENER_TOKEN_PRICES_API,
     DUST_MAX_TOKENS_PER_SESSION,
@@ -22,66 +32,13 @@ const PROTECTED_MINTS = new Set<string>(
         .flatMap((p: DeadProtocol) => p.positionTokenMints.map((t) => t.mint))
 );
 
-interface DexScreenerTokenInfo {
-    address: string;
-    symbol?: string;
-}
-
-interface DexScreenerPairInfo {
-    imageUrl?: string;
-}
-
-interface DexScreenerLiquidity {
-    usd?: number;
-}
-
-interface DexScreenerPair {
-    dexId?: string;
-    priceUsd?: string;
-    baseToken?: DexScreenerTokenInfo;
-    quoteToken?: DexScreenerTokenInfo;
-    liquidity?: DexScreenerLiquidity;
-    info?: DexScreenerPairInfo;
-}
-
-interface RaydiumQuoteRoutePlan {
-    poolId?: string;
-}
-
-interface RaydiumQuoteData {
-    inputMint?: string;
-    outputMint?: string;
-    inputAmount?: string;
-    outputAmount?: string;
-    priceImpactPct?: number | string;
-    routePlan?: RaydiumQuoteRoutePlan[];
-}
-
-interface RaydiumQuoteResponse {
-    success?: boolean;
-    data?: RaydiumQuoteData;
-    msg?: string;
-}
-
-interface JupiterRouteSwapInfo {
-    label?: string;
-}
-
-interface JupiterRoutePlan {
-    swapInfo?: JupiterRouteSwapInfo;
-}
-
-interface JupiterQuoteResponse {
-    inputMint?: string;
-    outputMint?: string;
-    inAmount?: string;
-    outAmount?: string;
-    priceImpactPct?: string;
-    routePlan?: JupiterRoutePlan[];
-}
-
 const jupiterUnsupportedMints = new Set<string>();
 const raydiumUnsupportedMints = new Set<string>();
+
+interface ApiSource {
+    url: string;
+    headers?: Record<string, string>;
+}
 
 function createAppError(
     code: keyof typeof ERROR_CODES,
@@ -314,11 +271,6 @@ async function fetchRaydiumQuote(
     }
 
     return payload.data;
-}
-
-interface ApiSource {
-    url: string;
-    headers?: Record<string, string>;
 }
 
 function getJupiterQuoteSources(): ApiSource[] {

@@ -153,36 +153,6 @@ export interface DustSwapQuote {
     rawQuote: JupiterQuoteResponse | RaydiumQuoteData;
 }
 
-/** Raw Jupiter quote response shape */
-interface JupiterQuoteResponse {
-    inputMint?: string;
-    outputMint?: string;
-    inAmount?: string;
-    outAmount?: string;
-    priceImpactPct?: string;
-    routePlan?: JupiterRoutePlan[];
-}
-
-/** Raw Raydium quote response shape */
-interface RaydiumQuoteData {
-    inputMint?: string;
-    outputMint?: string;
-    inputAmount?: string;
-    outputAmount?: string;
-    priceImpactPct?: number | string;
-    routePlan?: RaydiumRoutePlan[];
-}
-
-interface JupiterRoutePlan {
-    swapInfo?: {
-        label?: string;
-    };
-}
-
-interface RaydiumRoutePlan {
-    poolId?: string;
-}
-
 export type DustStatus =
     | 'idle'
     | 'fetching_prices'
@@ -430,6 +400,66 @@ export type MEVClaimStatus =
     | 'sending_fee'
     | 'complete'
     | 'error';
+
+// ─── SHARED API RESPONSE TYPES ──────────────────────────────
+
+export interface DexScreenerTokenInfo {
+    address: string;
+    symbol?: string;
+}
+
+export interface DexScreenerPairInfo {
+    imageUrl?: string;
+}
+
+export interface DexScreenerLiquidity {
+    usd?: number;
+}
+
+export interface DexScreenerPair {
+    dexId?: string;
+    priceUsd?: string;
+    baseToken?: DexScreenerTokenInfo;
+    quoteToken?: DexScreenerTokenInfo;
+    liquidity?: DexScreenerLiquidity;
+    info?: DexScreenerPairInfo;
+}
+
+export interface RaydiumQuoteRoutePlan {
+    poolId?: string;
+}
+
+export interface RaydiumQuoteData {
+    inputMint?: string;
+    outputMint?: string;
+    inputAmount?: string;
+    outputAmount?: string;
+    priceImpactPct?: number | string;
+    routePlan?: RaydiumQuoteRoutePlan[];
+}
+
+export interface RaydiumQuoteResponse {
+    success?: boolean;
+    data?: RaydiumQuoteData;
+    msg?: string;
+}
+
+export interface JupiterRouteSwapInfo {
+    label?: string;
+}
+
+export interface JupiterRoutePlan {
+    swapInfo?: JupiterRouteSwapInfo;
+}
+
+export interface JupiterQuoteResponse {
+    inputMint?: string;
+    outputMint?: string;
+    inAmount?: string;
+    outAmount?: string;
+    priceImpactPct?: string;
+    routePlan?: JupiterRoutePlan[];
+}
 
 // ─── HOME WALLET SCANNER ────────────────────────────────
 
