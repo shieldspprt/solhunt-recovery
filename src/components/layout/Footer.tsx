@@ -22,8 +22,16 @@ export function Footer() {
                             @solhuntapp
                         </a>
                         <span className="text-shield-border">•</span>
-                        <Link to="/audit" className="hover:text-shield-text transition-colors">
-                            Security Audit
+                        <Link to="/privacy" className="hover:text-shield-text transition-colors">
+                            Privacy
+                        </Link>
+                        <span className="text-shield-border">•</span>
+                        <Link to="/license" className="hover:text-shield-text transition-colors">
+                            License
+                        </Link>
+                        <span className="text-shield-border">•</span>
+                        <Link to="/copyright" className="hover:text-shield-text transition-colors">
+                            Copyright
                         </Link>
                         <span className="text-shield-border">•</span>
                         <span>Non-custodial • No data stored</span>

@@ -25,6 +25,8 @@ import { LearnPage } from '@/pages/LearnPage';
 import { DecommissionPage } from '@/modules/decommission/components/DecommissionPage';
 import { PrivacyPage } from '@/pages/PrivacyPage';
 import { TermsPage } from '@/pages/TermsPage';
+import { LicensePage } from '@/pages/LicensePage';
+import { CopyrightPage } from '@/pages/CopyrightPage';
 import { useAppStore } from '@/hooks/useAppStore';
 
 // Default styles that can be overridden by your app
@@ -105,6 +107,8 @@ function App() {
                                 <Route path="/decommission" element={<DecommissionPage />} />
                                 <Route path="/privacy" element={<PrivacyPage />} />
                                 <Route path="/terms" element={<TermsPage />} />
+                                <Route path="/license" element={<LicensePage />} />
+                                <Route path="/copyright" element={<CopyrightPage />} />
                                 <Route path="/404" element={<NotFoundPage />} />
                                 <Route path="*" element={<Navigate to="/404" replace />} />
                             </Routes>
