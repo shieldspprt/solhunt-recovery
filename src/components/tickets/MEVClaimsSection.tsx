@@ -63,11 +63,14 @@ export function MEVClaimsSection() {
                 <div className="space-y-2">
                     {mevScanResult.items.map((item) => {
                         const id = `${item.stakeAccount}-${item.epoch}`;
+                        const isSelected = selectedItems.some(
+                            (s) => s.stakeAccount === item.stakeAccount && s.epoch === item.epoch
+                        );
                         return (
                             <MEVClaimRow
                                 key={id}
                                 item={item}
-                                isSelected={selectedItems.some((s) => `${s.stakeAccount}-${s.epoch}` === id)}
+                                isSelected={isSelected}
                                 onToggle={() => toggleMEVItem(id)}
                             />
                         );
