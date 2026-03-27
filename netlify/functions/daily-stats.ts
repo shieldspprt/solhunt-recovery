@@ -91,12 +91,20 @@ async function getRecentActiveWallets(limit: number): Promise<ActiveWallet[]> {
 
   // Filter out program addresses (they are not user wallets)
   const programAddresses = new Set(TARGET_PROGRAMS);
-  const wallets: ActiveWallet[] = Array.from(walletMap.entries())
-    .filter(([w]) => !programAddresses.has(w))
+  const allWallets = Array.from(walletMap.entries())
+    .filter(([w]) => !programAddresses.has(w));
+
+  // Fisher-Yates shuffle so each run scans a different subset
+  for (let i = allWallets.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [allWallets[i], allWallets[j]] = [allWallets[j], allWallets[i]];
+  }
+
+  const wallets: ActiveWallet[] = allWallets
     .slice(0, limit)
     .map(([address, sourceProject]) => ({ address, sourceProject }));
 
-  console.log(`Found ${wallets.length} unique active wallets`);
+  console.log(`Found ${wallets.length} unique active wallets (shuffled)`);
   return wallets;
 }
 
@@ -171,7 +179,8 @@ async function scanAllWallets(wallets: ActiveWallet[]): Promise<{
 
 function computeStats(
   walletCount: number,
-  results: { address: string; sourceProject: string; closeable: number; recoverable_sol: number }[]
+  results: { address: string; sourceProject: string; closeable: number; recoverable_sol: number }[],
+  excludeWorstWallets: Set<string> = new Set()
 ): {
   wallets_scanned: number;
   wallets_with_dust: number;
@@ -187,7 +196,15 @@ function computeStats(
   const totalSol = withDust.reduce((sum, r) => sum + r.recoverable_sol, 0);
   const avgSol = withDust.length > 0 ? totalSol / withDust.length : 0;
 
-  const worst = withDust.sort((a, b) => b.recoverable_sol - a.recoverable_sol)[0];
+  const sorted = withDust.sort((a, b) => b.recoverable_sol - a.recoverable_sol);
+
+  // Pick the first wallet NOT in the exclusion set, fall back to absolute worst
+  const worst = sorted.find(w => !excludeWorstWallets.has(w.address)) || sorted[0];
+
+  if (excludeWorstWallets.size > 0) {
+    console.log(`Excluding ${excludeWorstWallets.size} recent worst wallets:`, Array.from(excludeWorstWallets));
+    console.log(`Selected worst wallet: ${worst?.address || 'none'} (${worst?.recoverable_sol.toFixed(4) || 0} SOL)`);
+  }
 
   const projectStats = new Map<string, number>();
   for (const r of withDust) {
@@ -291,20 +308,20 @@ export const handler: Handler = async (event) => {
 
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
-  // Check if already ran today
-  const { data: existing } = await supabase
-    .from('daily_stats')
-    .select('id')
-    .eq('date', today)
-    .single();
-
-  if (existing) {
-    return {
-      statusCode: 200,
-      headers,
-      body: JSON.stringify({ success: true, message: 'Already ran today', date: today })
-    };
-  }
+  // NOTE: "run once per day" guard disabled for testing — re-enable for production
+  // const { data: existing } = await supabase
+  //   .from('daily_stats')
+  //   .select('id')
+  //   .eq('date', today)
+  //   .single();
+  //
+  // if (existing) {
+  //   return {
+  //     statusCode: 200,
+  //     headers,
+  //     body: JSON.stringify({ success: true, message: 'Already ran today', date: today })
+  //   };
+  // }
 
   try {
     console.log('Starting daily stats run for', today);
@@ -322,8 +339,18 @@ export const handler: Handler = async (event) => {
     // Step 2 & 3: Scan
     const results = await scanAllWallets(wallets);
 
-    // Step 4: Compute stats
-    const stats = computeStats(wallets.length, results);
+    // Step 4: Fetch recent worst wallets to exclude, then compute stats
+    const { data: recentWorst } = await supabase
+      .from('daily_stats')
+      .select('worst_wallet')
+      .order('date', { ascending: false })
+      .limit(10);
+
+    const excludeWallets = new Set(
+      (recentWorst || []).map((r: any) => r.worst_wallet).filter(Boolean)
+    );
+
+    const stats = computeStats(wallets.length, results, excludeWallets);
 
     // Step 5: Generate X draft
     const xDraft = await generateXDraft(stats, today);
