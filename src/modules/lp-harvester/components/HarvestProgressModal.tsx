@@ -20,16 +20,6 @@ function statusText(status: LPHarvestStatus): string {
     return 'Processing';
 }
 
-function rowStatusLabel(item: HarvestResultItem): string {
-    return item.success ? 'success' : 'failed';
-}
-
-function rowStatusClass(item: HarvestResultItem): string {
-    return item.success
-        ? 'text-shield-success'
-        : 'text-shield-danger';
-}
-
 export function HarvestProgressModal({
     open,
     status,
@@ -99,8 +89,8 @@ export function HarvestProgressModal({
                             <div key={item.positionId} className="rounded-lg border border-shield-border bg-shield-bg/50 p-3">
                                 <div className="flex items-center justify-between gap-2">
                                     <span className="text-sm font-medium text-shield-text truncate">{item.poolName}</span>
-                                    <span className={`text-xs uppercase ${rowStatusClass(item)}`}>
-                                        {rowStatusLabel(item)}
+                                    <span className={`text-xs uppercase ${item.success ? 'text-shield-success' : 'text-shield-danger'}`}>
+                                        {item.success ? 'success' : 'failed'}
                                     </span>
                                 </div>
                                 <p className="text-xs text-shield-muted mt-1">

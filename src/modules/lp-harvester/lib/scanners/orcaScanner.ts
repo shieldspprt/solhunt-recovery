@@ -14,6 +14,7 @@ import {
 } from '../../constants';
 import type { LPPosition } from '../../types';
 import { KNOWN_TOKEN_SYMBOLS } from '../../utils/addresses';
+import { createReadonlyWallet, toBase58, toUiAmount } from '../../utils/readonlyWallet';
 
 interface ParsedTokenAccountInfo {
     mint: string;
@@ -24,29 +25,8 @@ interface ParsedTokenAccountInfo {
     };
 }
 
-function toBase58(value: unknown): string {
-    if (typeof value === 'string') return value;
-    if (value && typeof value === 'object' && 'toBase58' in value) {
-        const fn = value.toBase58;
-        if (typeof fn === 'function') {
-            try {
-                return fn.call(value);
-            } catch {
-                return '';
-            }
-        }
-    }
-    return '';
-}
-
 function toDisplaySymbol(mint: string): string {
     return KNOWN_TOKEN_SYMBOLS[mint] || `${mint.slice(0, 4)}...${mint.slice(-4)}`;
-}
-
-function toUiAmount(rawAmount: string, decimals: number): number {
-    const raw = Number(rawAmount);
-    if (!Number.isFinite(raw) || raw <= 0) return 0;
-    return raw / 10 ** decimals;
 }
 
 function asParsedTokenInfo(data: unknown): ParsedTokenAccountInfo | null {
@@ -56,18 +36,6 @@ function asParsedTokenInfo(data: unknown): ParsedTokenAccountInfo | null {
     const info = (parsed as { info?: unknown }).info;
     if (!info || typeof info !== 'object') return null;
     return info as ParsedTokenAccountInfo;
-}
-
-function createReadonlyWallet(walletPublicKey: PublicKey) {
-    return {
-        publicKey: walletPublicKey,
-        signTransaction: async () => {
-            throw new Error('Read-only wallet cannot sign transactions.');
-        },
-        signAllTransactions: async () => {
-            throw new Error('Read-only wallet cannot sign transactions.');
-        },
-    };
 }
 
 export async function scanOrcaPositions(

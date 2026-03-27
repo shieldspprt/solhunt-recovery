@@ -2,18 +2,7 @@ import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { WhirlpoolContext, buildWhirlpoolClient } from '@orca-so/whirlpools-sdk';
 import { ORCA_WHIRLPOOL_PROGRAM_ID } from '../../constants';
 import type { LPPosition } from '../../types';
-
-function createReadonlyWallet(walletPublicKey: PublicKey) {
-    return {
-        publicKey: walletPublicKey,
-        signTransaction: async () => {
-            throw new Error('Read-only wallet cannot sign transactions.');
-        },
-        signAllTransactions: async () => {
-            throw new Error('Read-only wallet cannot sign transactions.');
-        },
-    };
-}
+import { createReadonlyWallet } from '../../utils/readonlyWallet';
 
 export async function buildOrcaHarvestTransaction(
     positions: LPPosition[],
