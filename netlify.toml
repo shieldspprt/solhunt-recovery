@@ -3,7 +3,8 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "20"
+  # Vite 7 requires Node ^20.19.0 or >=22.12.0
+  NODE_VERSION = "22.12.0"
 
 # Route API calls to Netlify functions
 [[redirects]]
