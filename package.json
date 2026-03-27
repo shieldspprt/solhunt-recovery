@@ -7,9 +7,9 @@
     "build": "npx tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "npx tsc --noEmit",
-    "android:twa:init": "npx @nicksenger/bubblewrap-cli init --manifest=https://solhunt.dev/manifest.webmanifest",
-    "android:twa:build": "npx @nicksenger/bubblewrap-cli build",
-    "android:twa:doctor": "npx @nicksenger/bubblewrap-cli doctor"
+    "android:twa:init": "npx @bubblewrap/cli init --manifest=https://solhunt.dev/manifest.webmanifest",
+    "android:twa:build": "npx @bubblewrap/cli build",
+    "android:twa:doctor": "npx @bubblewrap/cli doctor"
   },
   "keywords": [],
   "author": "",

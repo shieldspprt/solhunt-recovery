@@ -10,6 +10,10 @@ docs/
 key.properties
 local.properties
 
-# Bubblewrap / TWA build artifacts
-android/
-twa-manifest.json
+# Bubblewrap / TWA local build artifacts
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+*.idsig
