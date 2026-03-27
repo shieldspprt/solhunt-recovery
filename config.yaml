@@ -1,0 +1,49 @@
+# SolHunt dApp Store Publishing Config (CLI)
+# See: https://github.com/nicksenger/dapp-store
+# All `address` fields are auto-populated after minting NFTs
+
+publisher:
+  address: ""                    # Auto-filled after minting Publisher NFT
+  name: "SolHunt"
+  website: "https://solhunt.dev"
+  email: "support@solhunt.dev"   # Update with your actual support email
+  icon: "assets/dapp-store/icon/icon-512.png"
+
+app:
+  address: ""                    # Auto-filled after minting App NFT
+  name: "SolHunt"
+  category: "defi"
+  urls:
+    website: "https://solhunt.dev"
+    privacy_policy: "https://solhunt.dev/privacy"
+    terms_of_service: "https://solhunt.dev/terms"
+    support: "https://x.com/solhuntapp"
+  
+  locales:
+    en:
+      short_description: "Recover locked SOL, reclaim rent, revoke risky approvals, and harvest unclaimed value — securely and client-side."
+      long_description: |
+        SolHunt is the premier Solana wallet recovery protocol. It scans your wallet 
+        for trapped value and builds optimized recovery transactions entirely in your browser.
+        
+        Features: revoke delegations, reclaim rent, sweep dust, claim unstaking tickets, 
+        harvest LP fees, claim MEV tips, and recover from decommissioned protocols.
+  
+  icon: "assets/dapp-store/icon/icon-512.png"
+  screenshots:
+    - "assets/dapp-store/screenshots/01-home.png"
+    - "assets/dapp-store/screenshots/02-connect.png"
+    - "assets/dapp-store/screenshots/03-scan.png"
+    - "assets/dapp-store/screenshots/04-lp-fees.png"
+  banner: "assets/dapp-store/banner/banner-1200x600.png"
+
+release:
+  address: ""                    # Auto-filled after minting Release NFT
+  version: "1.0.0"
+  version_code: 1
+  apk_path: "./app-release-signed.apk"   # Path to signed APK
+  whats_new: "Initial release on the Solana dApp Store."
+  
+  # Storage provider for uploading assets to Arweave
+  storage:
+    provider: "ardrive"

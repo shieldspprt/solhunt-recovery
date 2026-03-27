@@ -3,6 +3,12 @@ import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-r
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+import {
+    SolanaMobileWalletAdapter,
+    createDefaultAddressSelector,
+    createDefaultAuthorizationResultCache,
+    createDefaultWalletNotFoundHandler,
+} from '@solana-mobile/wallet-adapter-mobile';
 import { Toaster } from 'react-hot-toast';
 
 import { primaryConnection } from '@/config/solana';
@@ -17,6 +23,8 @@ import { HowItWorksPage } from '@/pages/HowItWorksPage';
 import { EngineHowItWorksPage } from '@/pages/EngineHowItWorksPage';
 import { LearnPage } from '@/pages/LearnPage';
 import { DecommissionPage } from '@/modules/decommission/components/DecommissionPage';
+import { PrivacyPage } from '@/pages/PrivacyPage';
+import { TermsPage } from '@/pages/TermsPage';
 import { useAppStore } from '@/hooks/useAppStore';
 
 // Default styles that can be overridden by your app
@@ -45,10 +53,21 @@ function App() {
     // We use the Helius connection URL configured in solana.ts
     const endpoint = primaryConnection.rpcEndpoint;
 
-    // Configure supported wallets
+    // Configure supported wallets (desktop + Solana Mobile)
     const wallets = useMemo(
         () => {
             const adapters = [
+                new SolanaMobileWalletAdapter({
+                    addressSelector: createDefaultAddressSelector(),
+                    appIdentity: {
+                        name: 'SolHunt',
+                        uri: 'https://solhunt.dev',
+                        icon: '/icons/icon-192.png',
+                    },
+                    authorizationResultCache: createDefaultAuthorizationResultCache(),
+                    cluster: 'mainnet-beta',
+                    onWalletNotFound: createDefaultWalletNotFoundHandler(),
+                }),
                 new PhantomWalletAdapter(),
                 new SolflareWalletAdapter(),
             ];
@@ -84,6 +103,8 @@ function App() {
                                 <Route path="/learn" element={<LearnPage />} />
                                 <Route path="/learn/:id" element={<LearnPage />} />
                                 <Route path="/decommission" element={<DecommissionPage />} />
+                                <Route path="/privacy" element={<PrivacyPage />} />
+                                <Route path="/terms" element={<TermsPage />} />
                                 <Route path="/404" element={<NotFoundPage />} />
                                 <Route path="*" element={<Navigate to="/404" replace />} />
                             </Routes>

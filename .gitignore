@@ -3,3 +3,13 @@ dist/
 .env.local
 .DS_Store
 docs/
+
+# Android signing (never commit)
+*.jks
+*.keystore
+key.properties
+local.properties
+
+# Bubblewrap / TWA build artifacts
+android/
+twa-manifest.json

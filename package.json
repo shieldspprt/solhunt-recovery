@@ -6,7 +6,10 @@
     "dev": "vite",
     "build": "npx tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "npx tsc --noEmit"
+    "typecheck": "npx tsc --noEmit",
+    "android:twa:init": "npx @nicksenger/bubblewrap-cli init --manifest=https://solhunt.dev/manifest.webmanifest",
+    "android:twa:build": "npx @nicksenger/bubblewrap-cli build",
+    "android:twa:doctor": "npx @nicksenger/bubblewrap-cli doctor"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +23,7 @@
     "@orca-so/common-sdk": "0.6.4",
     "@orca-so/whirlpools-sdk": "0.13.12",
     "@raydium-io/raydium-sdk-v2": "2.0.0-rc.20",
+    "@solana-mobile/wallet-adapter-mobile": "^2.2.6",
     "@solana/spl-account-compression": "^0.4.1",
     "@solana/spl-token": "^0.4.14",
     "@solana/wallet-adapter-base": "^0.9.27",
@@ -51,6 +55,10 @@
     "tailwindcss": "^3.4.19",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
-    "vite-plugin-node-polyfills": "^0.25.0"
+    "vite-plugin-node-polyfills": "^0.25.0",
+    "vite-plugin-pwa": "^1.2.0",
+    "workbox-precaching": "^7.4.0",
+    "workbox-routing": "^7.4.0",
+    "workbox-strategies": "^7.4.0"
   }
 }
