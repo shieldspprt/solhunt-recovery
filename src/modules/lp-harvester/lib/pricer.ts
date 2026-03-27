@@ -1,19 +1,5 @@
 import { DEXSCREENER_SOLANA_TOKENS_API } from '../constants';
-
-interface DexScreenerTokenInfo {
-    address?: string;
-}
-
-interface DexScreenerLiquidity {
-    usd?: number;
-}
-
-interface DexScreenerPair {
-    priceUsd?: string;
-    baseToken?: DexScreenerTokenInfo;
-    quoteToken?: DexScreenerTokenInfo;
-    liquidity?: DexScreenerLiquidity;
-}
+import type { DexScreenerPair } from '../../../types';
 
 function chunk<T>(items: T[], size: number): T[][] {
     const chunks: T[][] = [];
