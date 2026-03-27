@@ -358,7 +358,7 @@ export const handler: Handler = async (event) => {
     // Step 6: Save to Supabase
     const { error: dbError } = await supabase
       .from('daily_stats')
-      .insert({
+      .upsert({
         date: today,
         wallets_scanned: stats.wallets_scanned,
         wallets_with_dust: stats.wallets_with_dust,
@@ -368,7 +368,7 @@ export const handler: Handler = async (event) => {
         worst_wallet: stats.worst_wallet,
         percent_with_dust: stats.percent_with_dust,
         x_draft: xDraft
-      });
+      }, { onConflict: 'date' });
 
     if (dbError) throw new Error(`DB error: ${dbError.message}`);
 
