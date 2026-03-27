@@ -9,6 +9,7 @@ import {
 } from '@/config/constants';
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { createAppError } from '@/lib/errors';
+import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 
 export interface DustBurnBatch {
     transaction: Transaction;
@@ -115,6 +116,10 @@ export async function buildDustBurnReclaimTransactions(
 
         tx.feePayer = walletPublicKey;
         tx.recentBlockhash = blockhash;
+
+        // Security audit: verify transaction only contains allowed instructions
+        verifyTransactionSecurity(tx, walletPublicKey);
+
         txBatches.push({ transaction: tx, tokens: validTokens });
     }
 

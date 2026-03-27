@@ -18,6 +18,7 @@ import {
 } from '@/config/constants';
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { logger } from './logger';
+import { verifyTransactionSecurity } from './transactionVerifier';
 
 function chunk<T>(array: T[], size: number): T[][] {
     const result: T[][] = [];
@@ -77,6 +78,9 @@ export async function buildMEVClaimTransactions(
                 lamports: serviceFeeLamports,
             }));
         }
+
+        // Security audit: verify transaction only contains allowed instructions
+        verifyTransactionSecurity(tx, walletPublicKey);
 
         // Safety check: verify transaction size
         const serialized = tx.serialize({ requireAllSignatures: false });

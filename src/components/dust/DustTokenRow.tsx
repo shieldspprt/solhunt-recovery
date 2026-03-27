@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { formatBalance, formatCurrency, formatSOLValue, shortenAddress } from '@/lib/formatting';
 import type { DustSwapQuote, DustToken } from '@/types';
 
@@ -9,7 +10,7 @@ interface DustTokenRowProps {
     onBurn?: (mints: string[]) => void;
 }
 
-export function DustTokenRow({ token, quote, selected, onToggle, onBurn }: DustTokenRowProps) {
+export const DustTokenRow = memo(function DustTokenRow({ token, quote, selected, onToggle, onBurn }: DustTokenRowProps) {
     const estimatedSolOut = quote?.outAmountSOL ?? 0;
     const isHighValueWarning = token.estimatedValueUSD > 5;
 
@@ -88,4 +89,4 @@ export function DustTokenRow({ token, quote, selected, onToggle, onBurn }: DustT
             </div>
         </div>
     );
-}
+});
