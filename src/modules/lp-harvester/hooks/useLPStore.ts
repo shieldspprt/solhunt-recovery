@@ -5,9 +5,6 @@ import type {
     LPStoreActions,
     LPStoreState,
     LPScanResult,
-    LPHarvestStatus,
-    LPScanStatus,
-    HarvestResult,
 } from '../types';
 
 interface LPStore extends LPStoreState, LPStoreActions {}
@@ -32,14 +29,6 @@ const initialState: LPStoreState = {
     completedItems: [],
 };
 
-function setStatus<State extends LPScanStatus | LPHarvestStatus>(status: State): State {
-    return status;
-}
-
-function setHarvestResult(result: HarvestResult | null): HarvestResult | null {
-    return result;
-}
-
 function setCompletedItems(item: HarvestResultItem, existing: HarvestResultItem[]): HarvestResultItem[] {
     const index = existing.findIndex((entry) => entry.positionId === item.positionId);
     if (index === -1) return [...existing, item];
@@ -50,7 +39,7 @@ function setCompletedItems(item: HarvestResultItem, existing: HarvestResultItem[
 export const useLPStore = create<LPStore>((set) => ({
     ...initialState,
 
-    setScanStatus: (status) => set({ scanStatus: setStatus(status) }),
+    setScanStatus: (status) => set({ scanStatus: status }),
     setScanResult: (result) => set({
         scanResult: result,
         scanStatus: 'scan_complete',
@@ -62,9 +51,9 @@ export const useLPStore = create<LPStore>((set) => ({
         scanStatus: error ? 'error' : state.scanStatus,
     })),
 
-    setHarvestStatus: (status) => set({ harvestStatus: setStatus(status) }),
+    setHarvestStatus: (status) => set({ harvestStatus: status }),
     setHarvestResult: (result) => set({
-        harvestResult: setHarvestResult(result),
+        harvestResult: result,
         harvestStatus: result ? 'complete' : 'idle',
         harvestError: null,
     }),
