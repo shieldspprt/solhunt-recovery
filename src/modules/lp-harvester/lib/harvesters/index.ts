@@ -14,6 +14,7 @@ import { buildOrcaHarvestTransaction } from './orcaHarvester';
 import { buildRaydiumHarvestTransaction } from './raydiumHarvester';
 import { buildMeteoraHarvestTransaction } from './meteoraHarvester';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
+import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 import type {
     CompoundResult,
     HarvestResult,
@@ -177,6 +178,9 @@ export async function harvestAllPositions(
                 walletPublicKey,
                 connection
             );
+
+            // Security audit: verify transaction only contains allowed instructions before signing
+            verifyTransactionSecurity(transaction, walletPublicKey);
 
             const signature = await sendTransaction(transaction, connection);
             await confirmTransactionRobust(connection, signature);
