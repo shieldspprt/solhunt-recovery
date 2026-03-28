@@ -5,7 +5,7 @@ import {
     SystemProgram,
 } from '@solana/web3.js';
 import { createRevokeInstruction, TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
-import type { TokenDelegation } from '@/types';
+import type { TokenDelegation, TokenProgramId } from '@/types';
 import {
     TREASURY_WALLET,
     SERVICE_FEE_SOL,
@@ -28,7 +28,7 @@ export interface RevokeTx {
 /**
  * Maps our TokenProgramId string to the actual PublicKey.
  */
-function getTokenProgramPublicKey(programId: string): PublicKey {
+function getTokenProgramPublicKey(programId: TokenProgramId): PublicKey {
     if (programId === 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb') {
         return TOKEN_2022_PROGRAM_ID;
     }
