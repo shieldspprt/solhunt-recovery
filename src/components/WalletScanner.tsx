@@ -220,7 +220,7 @@ export function WalletScanner() {
 
       setResult(data.data);
       setState('success');
-    } catch (e: any) {
+    } catch (e: unknown) {
       setState('error');
       setError('Network error. Check your connection and try again.');
     }
