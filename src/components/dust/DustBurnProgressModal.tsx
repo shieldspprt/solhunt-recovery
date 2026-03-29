@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { CheckCircle2, ExternalLink, Flame, RefreshCw, X, XCircle } from 'lucide-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { useDustBurnReclaim } from '@/hooks/useDustBurnReclaim';
@@ -24,11 +25,11 @@ export function DustBurnProgressModal() {
 
     const isProcessing = dustBurnStatus === 'burning';
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         if (!isProcessing) {
             clearDustBurn();
         }
-    };
+    }, [isProcessing, clearDustBurn]);
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
