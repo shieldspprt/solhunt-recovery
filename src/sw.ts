@@ -1,4 +1,4 @@
-import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from 'workbox-precaching';
+import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, PrecacheEntry } from 'workbox-precaching';
 import { registerRoute, NavigationRoute } from 'workbox-routing';
 import { NetworkFirst, NetworkOnly } from 'workbox-strategies';
 
@@ -7,7 +7,7 @@ declare let self: ServiceWorkerGlobalScope;
 // ──────────────────────────────────────────────────────
 // 1. Precache static build assets (injected by vite-plugin-pwa)
 // ──────────────────────────────────────────────────────
-precacheAndRoute(self.__WB_MANIFEST);
+precacheAndRoute(self.__WB_MANIFEST as unknown as Array<PrecacheEntry>);
 cleanupOutdatedCaches();
 
 // ──────────────────────────────────────────────────────
