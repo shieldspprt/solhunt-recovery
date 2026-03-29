@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { TrendingUp, Users, Zap, Shield } from 'lucide-react';
 import { PLATFORM_STATS } from '@/config/constants';
 
@@ -34,7 +35,7 @@ interface PlatformStatsProps {
     compact?: boolean;
 }
 
-export function PlatformStats({ compact = false }: PlatformStatsProps) {
+export const PlatformStats = memo(function PlatformStats({ compact = false }: PlatformStatsProps) {
     if (compact) {
         return (
             <div className="flex items-center gap-4 text-xs text-shield-muted">
@@ -70,4 +71,4 @@ export function PlatformStats({ compact = false }: PlatformStatsProps) {
             })}
         </div>
     );
-}
+});

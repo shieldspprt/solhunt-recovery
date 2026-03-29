@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import clsx from 'clsx';
 import type { RiskLevel } from '@/types';
 
@@ -24,7 +25,7 @@ const RISK_CONFIG: Record<RiskLevel, { label: string; bgClass: string; textClass
     },
 };
 
-export function RiskBadge({ level, className }: RiskBadgeProps) {
+export const RiskBadge = memo(function RiskBadge({ level, className }: RiskBadgeProps) {
     const config = RISK_CONFIG[level];
 
     return (
@@ -39,4 +40,4 @@ export function RiskBadge({ level, className }: RiskBadgeProps) {
             {config.label}
         </span>
     );
-}
+});
