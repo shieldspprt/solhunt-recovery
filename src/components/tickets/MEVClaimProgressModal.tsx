@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { AlertTriangle, CheckCircle2, Clock3, Loader2, XCircle } from 'lucide-react';
 import { useMEVClaims } from '@/hooks/useMEVClaims';
 import { useAppStore } from '@/hooks/useAppStore';
@@ -11,7 +12,7 @@ function ProgressIcon({ status }: { status: string }) {
     return <Loader2 className="h-4 w-4 text-shield-accent animate-spin" />;
 }
 
-export function MEVClaimProgressModal() {
+export const MEVClaimProgressModal = memo(() => {
     const {
         mevClaimStatus,
         mevClaimResult,
@@ -125,4 +126,4 @@ export function MEVClaimProgressModal() {
             </div>
         </div>
     );
-}
+});

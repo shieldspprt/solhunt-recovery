@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { CheckCircle2, ExternalLink, RefreshCw, X, XCircle } from 'lucide-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { useDustConsolidator } from '@/hooks/useDustConsolidator';
@@ -26,17 +27,17 @@ export function DustProgressModal() {
         new Set(dustProgress.filter((item) => item.status === 'failed').map((item) => item.mint))
     );
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         if (!isProcessing) {
             clearDust();
         }
-    };
+    }, [isProcessing, clearDust]);
 
-    const handleBurnFailed = () => {
+    const handleBurnFailed = useCallback(() => {
         if (failedMints.length === 0) return;
         clearDust();
         startBurnForMints(failedMints);
-    };
+    }, [failedMints.length, clearDust, startBurnForMints]);
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
