@@ -21,9 +21,13 @@ const supabase = createClient(
 );
 
 export const handler: Handler = async (event) => {
+  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
+  const origin = event.headers.origin || event.headers.Origin || '';
+  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
+
   const headers = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': corsOrigin,
     'Cache-Control': 'public, max-age=3600' // cache for 1 hour
   };
 
