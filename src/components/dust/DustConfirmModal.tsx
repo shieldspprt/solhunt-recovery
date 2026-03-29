@@ -1,10 +1,11 @@
+import { memo } from 'react';
 import { ArrowRightLeft, X } from 'lucide-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { useDustConsolidator } from '@/hooks/useDustConsolidator';
 import { DUST_SWAP_FEE_PERCENT } from '@/config/constants';
 import { estimateUSD, formatSOLValue } from '@/lib/formatting';
 
-export function DustConfirmModal() {
+export const DustConfirmModal = memo(function DustConfirmModal() {
     const { dustStatus } = useAppStore();
     const {
         selectedTokens,
@@ -115,4 +116,4 @@ export function DustConfirmModal() {
             </div>
         </div>
     );
-}
+});
