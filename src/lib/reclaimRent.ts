@@ -106,10 +106,10 @@ export async function buildReclaimTransactions(
     try {
         const { blockhash } = await connection.getLatestBlockhash('confirmed');
         recentBlockhash = blockhash;
-    } catch (error) {
+    } catch (err: unknown) {
         throw createAppError(
             'RPC_ERROR',
-            `Failed to fetch blockhash: ${error instanceof Error ? error.message : String(error)}`
+            `Failed to fetch blockhash: ${err instanceof Error ? err.message : String(err)}`
         );
     }
 

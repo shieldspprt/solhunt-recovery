@@ -36,9 +36,9 @@ export async function withTimeout<T>(
         const result = await Promise.race([promise, timeoutPromise]);
         if (timeoutId !== undefined) clearTimeout(timeoutId);
         return result;
-    } catch (error) {
+    } catch (err: unknown) {
         if (timeoutId !== undefined) clearTimeout(timeoutId);
-        throw error;
+        throw err;
     }
 }
 
@@ -85,7 +85,7 @@ export async function confirmTransactionRobust(
             }
 
             await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
-        } catch (err) {
+        } catch (err: unknown) {
             if (err && typeof err === 'object' && 'code' in err) throw err;
             await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
         }

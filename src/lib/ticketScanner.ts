@@ -225,10 +225,10 @@ async function scanMarinadeTickets(
                 currentEpoch
             ))
             .filter((ticket): ticket is StakingTicket => Boolean(ticket));
-    } catch (error) {
+    } catch (err: unknown) {
         throw createAppError(
             'MARINADE_SCAN_FAILED',
-            error instanceof Error ? error.message : String(error)
+            err instanceof Error ? err.message : String(err)
         );
     }
 }
@@ -247,10 +247,10 @@ async function scanSanctumTickets(
 
     try {
         response = await fetch(endpoint, { cache: 'no-store' });
-    } catch (error) {
+    } catch (err: unknown) {
         throw createAppError(
             'SANCTUM_API_FAILED',
-            error instanceof Error ? error.message : String(error)
+            err instanceof Error ? err.message : String(err)
         );
     }
 
@@ -496,10 +496,10 @@ async function scanJitoStakeAccounts(
             })
             .map((entry) => mapStakeAccountToTicket(entry, 'jito', currentEpoch))
             .filter((ticket): ticket is StakingTicket => Boolean(ticket));
-    } catch (error) {
+    } catch (err: unknown) {
         throw createAppError(
             'JITO_SCAN_FAILED',
-            error instanceof Error ? error.message : String(error)
+            err instanceof Error ? err.message : String(err)
         );
     }
 }
@@ -520,10 +520,10 @@ async function scanBlazeStakeAccounts(
             })
             .map((entry) => mapStakeAccountToTicket(entry, 'blazestake', currentEpoch))
             .filter((ticket): ticket is StakingTicket => Boolean(ticket));
-    } catch (error) {
+    } catch (err: unknown) {
         throw createAppError(
             'STAKE_SCAN_FAILED',
-            error instanceof Error ? error.message : String(error)
+            err instanceof Error ? err.message : String(err)
         );
     }
 }
@@ -540,10 +540,10 @@ async function scanNativeStakeAccounts(
             .filter((entry): entry is SanitizedStakeAccount => Boolean(entry))
             .map((entry) => mapStakeAccountToTicket(entry, 'native_stake', currentEpoch))
             .filter((ticket): ticket is StakingTicket => Boolean(ticket));
-    } catch (error) {
+    } catch (err: unknown) {
         throw createAppError(
             'STAKE_SCAN_FAILED',
-            error instanceof Error ? error.message : String(error)
+            err instanceof Error ? err.message : String(err)
         );
     }
 }
