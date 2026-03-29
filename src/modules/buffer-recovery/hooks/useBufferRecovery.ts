@@ -64,12 +64,14 @@ export function useBufferRecovery() {
                 totalLockedSOL: result.totalLockedSOL,
                 hasRecentBuffers: buffers.some(b => Date.now() - b.createdAt < RECENT_BUFFER_THRESHOLD_MS)
             });
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Buffer scan failed:', error);
+            const message = error instanceof Error ? error.message : 'Failed to scan for program buffers';
+            const technicalDetail = error instanceof Error ? error.toString() : String(error);
             setBufferScanError({
                 code: 'BUFFER_SCAN_FAILED',
-                message: error.message || 'Failed to scan for program buffers',
-                technicalDetail: error.toString()
+                message,
+                technicalDetail
             });
         }
     }, [targetWallet, connection, setBufferScanStatus, setBufferScanResult, setBufferScanError]);
@@ -123,12 +125,14 @@ export function useBufferRecovery() {
             toast.success(`Successfully reclaimed ${totalSOL.toFixed(3)} SOL!`);
 
             await runScan();
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error('Buffer close failed:', error);
+            const message = error instanceof Error ? error.message : 'Failed to close buffer accounts';
+            const technicalDetail = error instanceof Error ? error.toString() : String(error);
             const appError = {
                 code: 'BUFFER_CLOSE_FAILED',
-                message: error.message || 'Failed to close buffer accounts',
-                technicalDetail: error.toString()
+                message,
+                technicalDetail
             };
             setBufferCloseError(appError);
             logBufferCloseComplete({
