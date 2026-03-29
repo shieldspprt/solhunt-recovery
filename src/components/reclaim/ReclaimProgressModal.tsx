@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { useReclaimRent } from '@/hooks/useReclaimRent';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -20,11 +21,11 @@ export function ReclaimProgressModal() {
     // Prevent closing during transaction processing
     const isProcessing = ['building_transaction', 'awaiting_signature', 'confirming'].includes(reclaimStatus);
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         if (!isProcessing) {
             clearReclaim();
         }
-    };
+    }, [isProcessing, clearReclaim]);
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
