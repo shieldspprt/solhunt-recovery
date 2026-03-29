@@ -165,11 +165,12 @@ export function useMEVClaims() {
                         });
                         claimedLamports += item.totalLamports;
                     });
-                } catch (txErr: any) {
+                } catch (txErr: unknown) {
                     const batchItems = selectedItems.slice(
                         i * MEV_MAX_CLAIMS_PER_TX,
                         (i + 1) * MEV_MAX_CLAIMS_PER_TX
                     );
+                    const txErrMessage = txErr instanceof Error ? txErr.message : String(txErr);
                     batchItems.forEach((item) => {
                         resultItems.push({
                             stakeAccount: item.stakeAccount,
@@ -177,7 +178,7 @@ export function useMEVClaims() {
                             success: false,
                             signature: null,
                             claimedLamports: 0,
-                            errorMessage: txErr.message ?? 'Transaction failed',
+                            errorMessage: txErrMessage || 'Transaction failed',
                         });
                     });
                 }
@@ -205,13 +206,14 @@ export function useMEVClaims() {
                 totalClaimedSOL: claimedLamports / LAMPORTS_PER_SOL,
             });
 
-        } catch (err: any) {
-            logger.error('MEV executeClaim error', err);
+        } catch (err: unknown) {
+            logger.error('MEV executeClaim error', { err });
+            const errMessage = err instanceof Error ? err.message : String(err);
             setMEVClaimStatus('error');
             setMEVClaimError({
                 code: 'MEV_CLAIM_FAILED',
                 message: 'Claim failed. Your rewards were not affected.',
-                technicalDetail: err.message ?? String(err),
+                technicalDetail: errMessage,
             });
             logMEVClaimComplete({
                 successCount: 0,
