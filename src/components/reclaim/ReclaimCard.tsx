@@ -1,9 +1,10 @@
+import { memo } from 'react';
 import { useReclaimRent } from '@/hooks/useReclaimRent';
 import { RENT_RECLAIM_MIN_ACCOUNTS } from '@/config/constants';
 import { formatSOLValue } from '@/lib/formatting';
 import { Coins, ArrowRight, Zap } from 'lucide-react';
 
-export function ReclaimCard() {
+export const ReclaimCard = memo(function ReclaimCard() {
     const {
         closeableAccounts,
         reclaimEstimate,
@@ -72,4 +73,4 @@ export function ReclaimCard() {
             </p>
         </div>
     );
-}
+});

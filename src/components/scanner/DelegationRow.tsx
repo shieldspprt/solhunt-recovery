@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { ExternalLink, CheckCircle2 } from 'lucide-react';
 import { RiskBadge } from '@/components/common/RiskBadge';
 import { shortenAddress, formatTokenAmount, formatBalance } from '@/lib/formatting';
@@ -8,7 +9,7 @@ interface DelegationRowProps {
     delegation: TokenDelegation;
 }
 
-export function DelegationRow({ delegation }: DelegationRowProps) {
+export const DelegationRow = memo(function DelegationRow({ delegation }: DelegationRowProps) {
     const knownName = getKnownDelegateName(delegation.delegate);
     const formattedDelegatedAmount = formatTokenAmount(
         delegation.delegatedAmount,
@@ -135,4 +136,4 @@ export function DelegationRow({ delegation }: DelegationRowProps) {
             </tr>
         </>
     );
-}
+});
