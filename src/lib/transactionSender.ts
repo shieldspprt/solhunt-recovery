@@ -124,7 +124,7 @@ function confirmWithTimeout(
             } else {
                 resolve();
             }
-        }).catch((err) => {
+        }).catch((err: unknown) => {
             clearTimeout(timer);
             reject(err);
         });

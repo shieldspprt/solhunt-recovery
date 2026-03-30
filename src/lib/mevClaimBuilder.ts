@@ -152,7 +152,7 @@ function buildSingleClaimInstruction(
             ],
             data,
         });
-    } catch (err) {
+    } catch (err: unknown) {
         logger.error('buildSingleClaimInstruction failed', err);
         return null;
     }

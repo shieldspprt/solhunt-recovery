@@ -82,7 +82,7 @@ export async function fetchMEVClaims(
                         const pageRewards = pageData?.rewards ?? [];
                         rewards = [...rewards, ...pageRewards];
                     }
-                } catch (pageErr) {
+                } catch (pageErr: unknown) {
                     logger.error(`fetchMEVClaims page ${page} failed`, pageErr);
                 }
             }
@@ -97,7 +97,7 @@ export async function fetchMEVClaims(
                     MEV_MIN_CLAIM_LAMPORTS
             )
             .map((r) => transformReward(r));
-    } catch (err) {
+    } catch (err: unknown) {
         logger.error('fetchMEVClaims failed', err);
         return []; // Never block the rest of Engine 4 scan
     }
