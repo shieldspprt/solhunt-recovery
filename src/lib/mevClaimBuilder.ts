@@ -168,7 +168,7 @@ function buildClaimInstructionData(
     let offset = 0;
 
     // 8-byte discriminator
-    CLAIM_DISCRIMINATOR.copy(buf, offset);
+    Buffer.from(CLAIM_DISCRIMINATOR).copy(buf, offset);
     offset += 8;
 
     // Amount as u64 little-endian

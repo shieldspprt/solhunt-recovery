@@ -270,9 +270,7 @@ export const JITO_STAKER_REWARDS_ENDPOINT = '/api/v1/staker_rewards';
 
 // Claim instruction discriminator
 // sha256("global:claim")[0..8] — first 8 bytes
-export const CLAIM_DISCRIMINATOR = Buffer.from([
-    62, 198, 214, 193, 213, 159, 108, 210
-]);
+export const CLAIM_DISCRIMINATOR = new Uint8Array([62, 198, 214, 193, 213, 159, 108, 210]);
 
 // Fees
 export const MEV_SERVICE_FEE_PERCENT = 5;
