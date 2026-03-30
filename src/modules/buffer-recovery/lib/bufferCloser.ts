@@ -11,17 +11,21 @@ import { TREASURY_WALLET } from '@/config/constants';
 
 /**
  * Builds instructions to close BPFLoaderUpgradeable buffers and handle fees.
+ *
+ * @param walletAddress - The wallet owning the buffers.
+ * @param bufferInfos  - Array of { address, lamports } for each selected buffer.
+ *                       lamports is the GROSS rent deposit (before any fee deduction).
+ * @param totalLamports - Pre-summed gross lamports for all selected buffers.
  */
 export function createCloseBufferInstructions(
     walletAddress: string,
-    bufferAddresses: string[],
-    totalRecoverableSOL: number
+    bufferInfos: Array<{ address: string; lamports: number }>,
+    totalLamports: number
 ): TransactionInstruction[] {
     const walletPubkey = new PublicKey(walletAddress);
     const instructions: TransactionInstruction[] = [];
 
-    // 1. Service Fee Instruction
-    const totalLamports = bufferAddresses.length > 0 ? (totalRecoverableSOL * 1e9) : 0;
+    // Service fee: percentage of gross lamports recovered
     const feeLamports = Math.floor(totalLamports * (BUFFER_CLOSE_FEE_PERCENT / 100));
 
     if (feeLamports > 0) {
@@ -34,9 +38,9 @@ export function createCloseBufferInstructions(
         );
     }
 
-    // 2. Close Buffer Instructions
-    bufferAddresses.forEach((addr) => {
-        const bufferPubkey = new PublicKey(addr);
+    // Close Buffer Instructions
+    for (const { address: bufferAddress } of bufferInfos) {
+        const bufferPubkey = new PublicKey(bufferAddress);
 
         // BPFLoaderUpgradeable CloseBuffer instruction
         // Discriminator is [5, 0, 0, 0] for CloseBuffer
@@ -53,7 +57,7 @@ export function createCloseBufferInstructions(
                 data
             })
         );
-    });
+    }
 
     return instructions;
 }

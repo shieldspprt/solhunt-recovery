@@ -97,8 +97,8 @@ export function useBufferRecovery() {
 
             const instructions = createCloseBufferInstructions(
                 publicKey.toBase58(),
-                selectedBufferAddresses,
-                totalSOL + serviceFee
+                selectedBuffers.map(b => ({ address: b.address, lamports: b.lamports })),
+                selectedBuffers.reduce((acc, b) => acc + b.lamports, 0)
             );
 
             const transaction = new Transaction().add(...instructions);
