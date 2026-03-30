@@ -15,6 +15,7 @@ import {
 } from '@/config/constants';
 import { isValidSolanaPublicKey } from '@/lib/validation';
 import { createAppError } from '@/lib/errors';
+import { withTimeout } from '@/lib/withTimeout';
 
 /**
  * Parsed token account info shape from Solana RPC.
@@ -52,7 +53,7 @@ function calculateRiskLevel(
 
 /**
  * Fetches parsed token accounts for a given owner and program ID.
- * Retries ONCE with exponential backoff on failure.
+ * Retries once with exponential backoff on failure to handle transient RPC issues.
  */
 async function fetchTokenAccounts(
     connection: Connection,
@@ -64,26 +65,28 @@ async function fetchTokenAccounts(
         account: { data: { parsed: { info: ParsedAccountInfo } } };
     }>
 > {
-    const fetchOnce = async () => {
-        const result = await connection.getParsedTokenAccountsByOwner(
-            ownerPubkey,
-            { programId },
-            'confirmed'
+    const attemptFetch = async (): Promise<ReturnType<typeof connection.getParsedTokenAccountsByOwner>> => {
+        return withTimeout(
+            connection.getParsedTokenAccountsByOwner(ownerPubkey, { programId }, 'confirmed'),
+            10_000,
+            'RPC_TIMEOUT'
         );
-        return result.value;
     };
 
     try {
-        return await fetchOnce();
+        const result = await attemptFetch();
+        return result.value;
     } catch (firstError) {
-        // Retry once with 500ms delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
+        // Retry once with exponential backoff (500ms, then 1s)
+        await new Promise<void>((resolve) => setTimeout(resolve, 500));
         try {
-            return await fetchOnce();
+            await new Promise<void>((resolve) => setTimeout(resolve, 500)); // 2nd delay = 1s total
+            const result = await attemptFetch();
+            return result.value;
         } catch (retryError) {
             throw createAppError(
                 'RPC_ERROR',
-                `Failed after retry: ${retryError instanceof Error ? retryError.message : String(retryError)}`
+                `Failed to fetch token accounts after retry: ${retryError instanceof Error ? retryError.message : String(retryError)}`
             );
         }
     }
