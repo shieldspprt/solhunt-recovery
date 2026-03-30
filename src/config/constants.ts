@@ -142,13 +142,16 @@ export const KNOWN_DELEGATE_ADDRESSES = new Set(
     KNOWN_DELEGATES.map((d) => d.address)
 );
 
+export const KNOWN_DELEGATES_MAP = new Map(
+    KNOWN_DELEGATES.map((d) => [d.address, d.name])
+);
+
 /**
  * Looks up a known delegate by address.
  * Returns the protocol name if found, null otherwise.
  */
 export function getKnownDelegateName(address: string): string | null {
-    const found = KNOWN_DELEGATES.find((d) => d.address === address);
-    return found ? found.name : null;
+    return KNOWN_DELEGATES_MAP.get(address) || null;
 }
 
 // ─── External Links ─────────────────────────────────────────────
