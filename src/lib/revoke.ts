@@ -4,8 +4,8 @@ import {
     Transaction,
     SystemProgram,
 } from '@solana/web3.js';
-import { createRevokeInstruction, TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
-import type { TokenDelegation, TokenProgramId } from '@/types';
+import { createRevokeInstruction } from '@solana/spl-token';
+import type { TokenDelegation } from '@/types';
 import {
     TREASURY_WALLET,
     SERVICE_FEE_SOL,
@@ -15,6 +15,7 @@ import {
 } from '@/config/constants';
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { createAppError } from '@/lib/errors';
+import { toTokenProgramPublicKey } from '@/lib/tokenProgram';
 
 /**
  * A revoke transaction paired with the number of revoke instructions it contains.
@@ -23,16 +24,6 @@ import { createAppError } from '@/lib/errors';
 export interface RevokeTx {
     transaction: Transaction;
     revokeCount: number;
-}
-
-/**
- * Maps our TokenProgramId string to the actual PublicKey.
- */
-function getTokenProgramPublicKey(programId: TokenProgramId): PublicKey {
-    if (programId === 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb') {
-        return TOKEN_2022_PROGRAM_ID;
-    }
-    return TOKEN_PROGRAM_ID;
 }
 
 /**
@@ -103,7 +94,7 @@ export async function buildRevokeTransaction(
         // Step 4: Add revoke instructions for each delegation in the batch
         for (const delegation of batch) {
             const tokenAccountPubkey = new PublicKey(delegation.tokenAccountAddress);
-            const programId = getTokenProgramPublicKey(delegation.programId);
+            const programId = toTokenProgramPublicKey(delegation.programId);
 
             transaction.add(
                 createRevokeInstruction(
