@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useBufferRecovery } from '../hooks/useBufferRecovery';
 import { BufferRow } from './BufferRow';
 import { ConfirmCloseModal } from './ConfirmCloseModal';
 import { Search, Code2, TrendingUp, Info } from 'lucide-react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { estimateBufferClose } from '../lib/bufferCloser';
 
 export function BufferRecoveryCard() {
     const {
@@ -21,6 +22,14 @@ export function BufferRecoveryCard() {
     } = useBufferRecovery();
 
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
+    const closeEstimate = useMemo(() => {
+        if (!bufferScanResult) return null;
+        const selectedBuffers = bufferScanResult.closeableBuffers.filter(
+            b => selectedBufferAddresses.includes(b.address)
+        );
+        return estimateBufferClose(selectedBuffers);
+    }, [bufferScanResult, selectedBufferAddresses]);
 
     const handleInitialScan = () => {
         runScan();
@@ -181,14 +190,15 @@ export function BufferRecoveryCard() {
                 </div>
             )}
 
-            <ConfirmCloseModal
-                isOpen={isConfirmModalOpen}
-                onClose={() => setIsConfirmModalOpen(false)}
-                onConfirm={handleConfirmClose}
-                isClosing={isClosing}
-                count={selectedCount}
-                totalSOL={selectedSOL}
-            />
+            {closeEstimate && (
+                <ConfirmCloseModal
+                    isOpen={isConfirmModalOpen}
+                    onClose={() => setIsConfirmModalOpen(false)}
+                    onConfirm={handleConfirmClose}
+                    isClosing={isClosing}
+                    estimate={closeEstimate}
+                />
+            )}
         </div>
     );
 }

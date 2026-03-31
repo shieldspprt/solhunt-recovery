@@ -1,12 +1,14 @@
 import { AlertTriangle, Loader2 } from 'lucide-react';
+import { formatSOL } from '@/lib/formatting';
+import type { BufferCloseEstimate } from '../types';
 
 interface ConfirmCloseModalProps {
     isOpen: boolean;
     onClose: () => void;
     onConfirm: () => void;
     isClosing: boolean;
-    count: number;
-    totalSOL: number;
+    /** Pre-computed estimate from estimateBufferClose(). Preferred over manual count/sum. */
+    estimate: BufferCloseEstimate;
 }
 
 export function ConfirmCloseModal({
@@ -14,10 +16,11 @@ export function ConfirmCloseModal({
     onClose,
     onConfirm,
     isClosing,
-    count,
-    totalSOL
+    estimate,
 }: ConfirmCloseModalProps) {
     if (!isOpen) return null;
+
+    const { selectedCount, totalSOL, serviceFeeSOL, userReceivesSOL } = estimate;
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
@@ -28,9 +31,24 @@ export function ConfirmCloseModal({
 
                 <h2 className="text-xl font-bold text-center text-shield-text mb-2">Destructive Action</h2>
                 <p className="text-center text-shield-muted text-sm mb-6 leading-relaxed">
-                    You are about to close **{count} program buffer{count === 1 ? '' : 's'}**.
-                    This will permanently destroy the stored bytecode and reclaim **{totalSOL.toFixed(3)} SOL**.
+                    You are about to close <strong>{selectedCount} program buffer{selectedCount === 1 ? '' : 's'}</strong>.
+                    This will permanently destroy the stored bytecode.
                 </p>
+
+                <div className="space-y-3 mb-6">
+                    <div className="flex justify-between text-sm">
+                        <span className="text-shield-muted">Total Recoverable</span>
+                        <span className="text-shield-text font-medium">{formatSOL(totalSOL)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-shield-muted">Service Fee (10%)</span>
+                        <span className="text-shield-text font-medium">− {formatSOL(serviceFeeSOL)}</span>
+                    </div>
+                    <div className="border-t border-shield-border/50 pt-3 flex justify-between">
+                        <span className="text-shield-muted font-medium">You Receive</span>
+                        <span className="text-shield-accent font-bold">{formatSOL(userReceivesSOL)}</span>
+                    </div>
+                </div>
 
                 <div className="bg-shield-warning/5 rounded-xl border border-shield-warning/20 p-4 mb-6">
                     <p className="text-xs text-shield-warning font-medium leading-relaxed">
