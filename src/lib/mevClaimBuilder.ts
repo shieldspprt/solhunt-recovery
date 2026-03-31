@@ -19,14 +19,7 @@ import {
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { logger } from './logger';
 import { verifyTransactionSecurity } from './transactionVerifier';
-
-function chunk<T>(array: T[], size: number): T[][] {
-    const result: T[][] = [];
-    for (let i = 0; i < array.length; i += size) {
-        result.push(array.slice(i, i + size));
-    }
-    return result;
-}
+import { chunk } from '@/lib/arrayUtils';
 
 /**
  * Build batched claim transactions for selected MEV rewards.

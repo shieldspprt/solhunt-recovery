@@ -28,6 +28,7 @@ import {
     SOL_MINT,
 } from '@/config/constants';
 import { createAppError } from '@/lib/errors';
+import { chunk } from '@/lib/arrayUtils';
 import { DEAD_PROTOCOLS } from '@/modules/decommission/registry/protocols';
 import type { DeadProtocol } from '@/modules/decommission/types';
 
@@ -43,14 +44,6 @@ const raydiumUnsupportedMints = new Set<string>();
 interface ApiSource {
     url: string;
     headers?: Record<string, string>;
-}
-
-function chunk<T>(items: T[], size: number): T[][] {
-    const chunks: T[][] = [];
-    for (let index = 0; index < items.length; index += size) {
-        chunks.push(items.slice(index, index + size));
-    }
-    return chunks;
 }
 
 function delay(ms: number): Promise<void> {

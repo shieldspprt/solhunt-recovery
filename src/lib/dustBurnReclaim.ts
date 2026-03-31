@@ -11,18 +11,11 @@ import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { createAppError } from '@/lib/errors';
 import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 import { toTokenProgramPublicKey } from '@/lib/tokenProgram';
+import { chunk } from '@/lib/arrayUtils';
 
 export interface DustBurnBatch {
     transaction: Transaction;
     tokens: DustToken[];
-}
-
-function chunk<T>(items: T[], size: number): T[][] {
-    const batches: T[][] = [];
-    for (let index = 0; index < items.length; index += size) {
-        batches.push(items.slice(index, index + size));
-    }
-    return batches;
 }
 
 export function getBurnableDustTokens(dustTokens: DustToken[]): DustToken[] {
