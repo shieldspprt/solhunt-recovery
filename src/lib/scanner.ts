@@ -53,7 +53,7 @@ function calculateRiskLevel(
 
 /**
  * Fetches parsed token accounts for a given owner and program ID.
- * Retries once with exponential backoff on failure to handle transient RPC issues.
+ * Retries once on failure with exponential backoff (500ms, then 1s).
  */
 async function fetchTokenAccounts(
     connection: Connection,
@@ -74,16 +74,13 @@ async function fetchTokenAccounts(
     };
 
     try {
-        const result = await attemptFetch();
-        return result.value;
-    } catch (firstError) {
-        // Retry once with exponential backoff (500ms, then 1s)
-        await new Promise<void>((resolve) => setTimeout(resolve, 500));
+        return (await attemptFetch()).value;
+    } catch (firstError: unknown) {
+        // Retry once with exponential backoff (500ms delay, then 1s total)
+        await withTimeout(new Promise<void>((resolve) => setTimeout(resolve, 500)), 600, 'RPC_TIMEOUT');
         try {
-            await new Promise<void>((resolve) => setTimeout(resolve, 500)); // 2nd delay = 1s total
-            const result = await attemptFetch();
-            return result.value;
-        } catch (retryError) {
+            return (await attemptFetch()).value;
+        } catch (retryError: unknown) {
             throw createAppError(
                 'RPC_ERROR',
                 `Failed to fetch token accounts after retry: ${retryError instanceof Error ? retryError.message : String(retryError)}`

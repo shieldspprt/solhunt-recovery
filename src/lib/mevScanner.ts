@@ -9,6 +9,21 @@ import type { MEVClaimItem } from '@/types';
 import { withTimeout } from './withTimeout';
 import { logger } from './logger';
 
+/**
+ * Paginated fetch with timeout wrapper for MEV API pages.
+ */
+async function fetchWithTimeout(url: string, body: object): Promise<Response> {
+    return withTimeout(
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        }),
+        10_000,
+        'RPC_TIMEOUT'
+    );
+}
+
 export interface JitoStakerReward {
     stake_account: string;
     vote_account: string;
@@ -68,14 +83,10 @@ export async function fetchMEVClaims(
             );
             for (let page = 1; page <= additionalPages; page++) {
                 try {
-                    const pageResponse = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            wallet: walletAddress,
-                            limit: MEV_API_PAGE_SIZE,
-                            offset: page * MEV_API_PAGE_SIZE,
-                        }),
+                    const pageResponse = await fetchWithTimeout(url, {
+                        wallet: walletAddress,
+                        limit: MEV_API_PAGE_SIZE,
+                        offset: page * MEV_API_PAGE_SIZE,
                     });
                     if (pageResponse.ok) {
                         const pageData = await pageResponse.json();
