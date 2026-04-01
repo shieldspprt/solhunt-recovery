@@ -75,6 +75,6 @@ registerRoute(
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const sw = self as any;
 sw.skipWaiting();
-sw.addEventListener('activate', (event: any) => {
+sw.addEventListener('activate', (event: ExtendableEvent) => {
   event.waitUntil(sw.clients.claim());
 });
