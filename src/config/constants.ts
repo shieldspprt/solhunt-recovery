@@ -33,6 +33,7 @@ export const ERROR_CODES = {
     TX_REJECTED: 'TX_REJECTED',
     TX_FAILED: 'TX_FAILED',
     TX_TIMEOUT: 'TX_TIMEOUT',
+    SCAN_FAILED: 'SCAN_FAILED',
     UNKNOWN: 'UNKNOWN',
 
     // Engine 2
@@ -75,6 +76,7 @@ export const ERROR_MESSAGES: Record<keyof typeof ERROR_CODES, string> = {
     TX_REJECTED: 'Transaction was cancelled. Your wallet was not changed.',
     TX_FAILED: 'The transaction failed on-chain. No fees were charged. Please try again.',
     TX_TIMEOUT: 'Transaction sent but confirmation timed out. Check Solscan to see if it went through.',
+    SCAN_FAILED: 'Could not complete the scan. Please try again.',
     UNKNOWN: 'Something unexpected happened. Please refresh the page and try again.',
 
     // Engine 2

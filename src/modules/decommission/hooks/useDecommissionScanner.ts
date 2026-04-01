@@ -5,6 +5,7 @@ import { useDecommissionStore } from '../store/decommissionStore';
 import { scanForDeadProtocolPositions } from '../lib/decommissionScanner';
 import { buildWithdrawalTransactions } from '../lib/withdrawalBuilder';
 import { DecommissionRecoveryEstimate, DecommissionRecoveryItemResult } from '../types';
+import { createAppError } from '@/lib/errors';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
 import { DECOMMISSION_SERVICE_FEE_PERCENT, DECOMMISSION_FEE_SOL_MIN } from '../constants';
 
@@ -44,8 +45,10 @@ export function useDecommissionScanner() {
             });
 
         } catch (err: unknown) {
+            const appError = createAppError('SCAN_FAILED', err instanceof Error ? err.message : String(err));
             store.setScanStatus('error');
-            store.setScanError('Scan failed. Please try again.');
+            store.setScanError(appError.message);
+            logEvent('decommission_scan_failed', { error: appError.technicalDetail });
         }
     }, [publicKey, connection, store]);
 
@@ -141,6 +144,7 @@ export function useDecommissionScanner() {
                         });
 
                     } catch (txErr: unknown) {
+                        const appTxError = createAppError('TX_FAILED', txErr instanceof Error ? txErr.message : String(txErr));
                         resultItems.push({
                             protocolId: item.protocol.id,
                             protocolName: item.protocol.name,
@@ -148,7 +152,7 @@ export function useDecommissionScanner() {
                             success: false,
                             signature: null,
                             recoveredValueUSD: null,
-                            errorMessage: txErr instanceof Error ? txErr.message : 'Transaction failed',
+                            errorMessage: appTxError.message,
                             redirectUrl: item.protocol.recoveryUrl,
                         });
                     }
