@@ -1,5 +1,5 @@
 /**
- * Shared array utilities to avoid duplication across modules.
+ * Shared array and number utilities to avoid duplication across modules.
  */
 
 /**
@@ -13,4 +13,13 @@ export function chunk<T>(items: T[], size: number): T[][] {
         chunks.push(items.slice(index, index + size));
     }
     return chunks;
+}
+
+/**
+ * Safely parses a value as a float, returning 0 for nullish/invalid values.
+ */
+export function safeParseFloat(value: string | number | undefined): number {
+    if (value === undefined) return 0;
+    const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : 0;
 }

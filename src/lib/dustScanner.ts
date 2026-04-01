@@ -28,7 +28,7 @@ import {
     SOL_MINT,
 } from '@/config/constants';
 import { createAppError } from '@/lib/errors';
-import { chunk } from '@/lib/arrayUtils';
+import { chunk, safeParseFloat } from '@/lib/arrayUtils';
 import { DEAD_PROTOCOLS } from '@/modules/decommission/registry/protocols';
 import type { DeadProtocol } from '@/modules/decommission/types';
 
@@ -50,12 +50,6 @@ function delay(ms: number): Promise<void> {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
-}
-
-function safeParseFloat(value: string | number | undefined): number {
-    if (value === undefined) return 0;
-    const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
-    return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function getPairLiquidityUSD(pair: DexScreenerPair): number {

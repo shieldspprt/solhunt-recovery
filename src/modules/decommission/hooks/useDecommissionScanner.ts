@@ -8,7 +8,7 @@ import { DecommissionRecoveryEstimate, DecommissionRecoveryItemResult } from '..
 import { confirmTransactionRobust } from '@/lib/withTimeout';
 import { DECOMMISSION_SERVICE_FEE_PERCENT, DECOMMISSION_FEE_SOL_MIN } from '../constants';
 
-const logEvent = (..._args: any[]) => { };
+const logEvent = (..._args: unknown[]) => { };
 
 export function useDecommissionScanner() {
     const { publicKey, signTransaction, sendTransaction } = useWallet();
@@ -43,7 +43,7 @@ export function useDecommissionScanner() {
                 windingDownCount: result.windingDownCount,
             });
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             store.setScanStatus('error');
             store.setScanError('Scan failed. Please try again.');
         }
@@ -140,7 +140,7 @@ export function useDecommissionScanner() {
                             redirectUrl: null,
                         });
 
-                    } catch (txErr: any) {
+                    } catch (txErr: unknown) {
                         resultItems.push({
                             protocolId: item.protocol.id,
                             protocolName: item.protocol.name,
@@ -148,7 +148,7 @@ export function useDecommissionScanner() {
                             success: false,
                             signature: null,
                             recoveredValueUSD: null,
-                            errorMessage: txErr.message ?? 'Transaction failed',
+                            errorMessage: txErr instanceof Error ? txErr.message : 'Transaction failed',
                             redirectUrl: item.protocol.recoveryUrl,
                         });
                     }
@@ -174,7 +174,7 @@ export function useDecommissionScanner() {
                 failed: resultItems.filter(r => !r.success && !r.redirectUrl).length,
             });
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             store.setRecoveryStatus('error');
             store.setRecoveryError('Recovery failed. Please try again.');
         }
