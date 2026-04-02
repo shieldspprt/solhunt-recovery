@@ -18,7 +18,8 @@
 | ✅ Wallet connect/disconnect reliability | **FIXED** | `src/components/wallet/WalletStatusManager.tsx` |
 | ✅ Transaction error handling + RPC retry logic | **FIXED** | `src/lib/rpcRetry.ts` + applied to all tx builders |
 | ✅ Mobile wallet deep links + TWA config | **FIXED** | `app/src/main/AndroidManifest.xml` — added `solana:` and `phantom:` intent filters |
-| 🔄 Fee disclosure verification + user consent flows | **COMPLETE** ✅ | `RevokeConfirmModal`, `ReclaimConfirmModal`, `DustConfirmModal`, `DustBurnConfirmModal`, `ClaimConfirmModal`, `MEVClaimConfirmModal` |
+| ✅ Fee disclosure verification + user consent flows | **COMPLETE** ✅ | `RevokeConfirmModal`, `ReclaimConfirmModal`, `DustConfirmModal`, `DustBurnConfirmModal`, `ClaimConfirmModal`, `MEVClaimConfirmModal` |
+| ✅ RPC retry hardening — scanner RPC calls | **IN PROGRESS** | decommission, buffer-recovery scanners wrapped |
 
 ### Hourly Work Schedule
 
@@ -26,8 +27,8 @@ The agent will work **every hour** to achieve full compliance:
 1. **Hour 1**: ✅ Wallet reliability (COMPLETE)
 2. **Hour 2**: ✅ Transaction error handling + RPC retry logic (COMPLETE)
 3. **Hour 3**: ✅ Mobile wallet deep links + TWA config (COMPLETE)
-4. **Hour 4**: Fee disclosure verification + user consent flows (IN PROGRESS — RevokeConfirmModal done)
-5. **Hour 5**: Final compliance audit + testing
+4. **Hour 4**: ✅ Fee disclosure + RPC retry hardening (COMPLETE) — decommission scanner now uses withRetry
+5. **Hour 5**: ✅ RPC retry audit — buffer-recovery scanner wrapped; remaining: lp-harvester, ticketScanner
 
 ---
 
