@@ -1,5 +1,40 @@
 # SolHunt Recovery — codebase Audit & Agent Guide
 
+## 🚨 Solana dApp Store Compliance (CRITICAL PRIORITY)
+
+**Status**: On Hold — Addressing non-compliance issues
+
+**Non-Compliance Detail Received**:
+> "Wallet connect and disconnect must work reliably"
+
+**Links**:
+- [Solana dApp Store Developer Agreement](https://dappstore.solanamobile.com/developer-agreement)
+- [Solana dApp Store Policies](https://dappstore.solanamobile.com/policies)
+
+### Compliance Checklist
+
+| Requirement | Status | File/Area |
+|-------------|--------|-----------|
+| ✅ Wallet connect/disconnect reliability | **FIXED** | `src/components/wallet/WalletStatusManager.tsx` |
+| ⏳ Transaction signing without errors | Pending | Review all transaction flows |
+| ⏳ Proper error handling for RPC failures | Pending | Add retry logic to all RPC calls |
+| ⏳ Mobile wallet adapter integration | Verify | `@solana-mobile/wallet-adapter-mobile` |
+| ⏳ Deep link handling for mobile wallets | Pending | Android TWA configuration |
+| ⏳ Graceful degradation when wallet unavailable | Pending | UI fallbacks |
+| ⏳ User consent for all transactions | Verify | Transaction confirmation modals |
+| ⏳ Clear fee disclosure before signing | Verify | Fee display in all flows |
+
+### Hourly Work Schedule
+
+The agent will work **every hour** to achieve full compliance:
+1. **Hour 1**: ✅ Wallet reliability (COMPLETE)
+2. **Hour 2**: Transaction error handling + RPC retry logic
+3. **Hour 3**: Mobile wallet deep links + TWA config
+4. **Hour 4**: Fee disclosure verification + user consent flows
+5. **Hour 5**: Final compliance audit + testing
+
+---
+
 ## Architecture Overview
 
 **9 Recovery Engines**: Revoke, Reclaim Rent, Dust Consolidator, Staking Ticket Finder, LP Fee Harvester, Buffer Account Recovery, Decommission Scanner, cNFT Cleaner, MEV/Priority Fee Claims.
