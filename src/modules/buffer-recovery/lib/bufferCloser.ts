@@ -8,6 +8,7 @@ import {
     BUFFER_CLOSE_FEE_PERCENT
 } from '../constants';
 import { TREASURY_WALLET } from '@/config/constants';
+import { toValidPublicKey } from '@/lib/validation';
 import type { BufferCloseEstimate } from '../types';
 
 /**
@@ -30,7 +31,7 @@ export function createCloseBufferInstructions(
     bufferInfos: Array<{ address: string; lamports: number }>,
     totalLamports: number
 ): TransactionInstruction[] {
-    const walletPubkey = new PublicKey(walletAddress);
+    const walletPubkey = toValidPublicKey(walletAddress);
     const instructions: TransactionInstruction[] = [];
 
     // Service fee: percentage of gross lamports recovered
@@ -48,7 +49,7 @@ export function createCloseBufferInstructions(
 
     // Close Buffer Instructions
     for (const { address: bufferAddress } of bufferInfos) {
-        const bufferPubkey = new PublicKey(bufferAddress);
+        const bufferPubkey = toValidPublicKey(bufferAddress);
 
         // BPFLoaderUpgradeable CloseBuffer instruction
         // Discriminator is [5, 0, 0, 0] for CloseBuffer
