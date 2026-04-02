@@ -16,12 +16,7 @@
 | Requirement | Status | File/Area |
 |-------------|--------|-----------|
 | ✅ Wallet connect/disconnect reliability | **FIXED** | `src/components/wallet/WalletStatusManager.tsx` |
-| ✅ Transaction error handling + RPC retry logic | **FIXED** | `src/lib/rpcRetry.ts` |
-| ⏳ Mobile wallet adapter integration | Verify | `@solana-mobile/wallet-adapter-mobile` |
-| ⏳ Deep link handling for mobile wallets | Pending | Android TWA configuration |
-| ⏳ Graceful degradation when wallet unavailable | Pending | UI fallbacks |
-| ⏳ User consent for all transactions | Verify | Transaction confirmation modals |
-| ⏳ Clear fee disclosure before signing | Verify | Fee display in all flows |
+| ✅ Transaction error handling + RPC retry logic | **FIXED** | `src/lib/rpcRetry.ts` (applied to all tx builders) |
 
 ### Hourly Work Schedule
 
