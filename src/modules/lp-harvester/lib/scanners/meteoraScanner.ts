@@ -5,6 +5,7 @@ import {
 } from '../../constants';
 import type { LPPosition } from '../../types';
 import { KNOWN_TOKEN_DECIMALS, KNOWN_TOKEN_SYMBOLS } from '../../utils/addresses';
+import { withRetry } from '@/lib/rpcRetry';
 
 interface MeteoraApiPosition {
     position?: string;
@@ -104,7 +105,7 @@ async function parseApiPositions(
         if (!positionAddress || !poolAddress) continue;
 
         // Verify position still exists on-chain before surfacing.
-        const exists = await connection.getAccountInfo(new PublicKey(positionAddress), 'confirmed');
+        const exists = await withRetry(() => connection.getAccountInfo(new PublicKey(positionAddress), 'confirmed'));
         if (!exists) continue;
 
         const tokenA = entry.tokenXMint || '';

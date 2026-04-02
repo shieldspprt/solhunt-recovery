@@ -36,7 +36,44 @@ export const JITO_TIP_ACCOUNTS = [
 /** Jito tip: ~0.00005 SOL (50,000 lamports) — modest tip for inclusion priority */
 export const JITO_TIP_LAMPORTS = 50_000;
 
+/** Maximum retry attempts for Jito submission before falling back to RPC */
+export const MAX_JITO_RETRIES = 3;
+
 // ─── Helpers ──────────────────────────────────────────────
+
+/**
+ * Sleep for a given number of milliseconds.
+ */
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Submit a signed transaction via Jito Block Engine with exponential backoff retry.
+ * Returns the signature string on success.
+ * Retries up to maxRetries times before throwing.
+ */
+async function submitToJitoWithRetry(
+    serializedTx: Uint8Array,
+    maxRetries: number = MAX_JITO_RETRIES
+): Promise<string> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            return await submitToJito(serializedTx);
+        } catch (err) {
+            lastError = err instanceof Error ? err : new Error(String(err));
+            if (attempt < maxRetries) {
+                // Exponential backoff: 100ms, 200ms, 400ms, ...
+                const delayMs = 100 * Math.pow(2, attempt);
+                await sleep(delayMs);
+            }
+        }
+    }
+
+    throw lastError;
+}
 
 function getRandomTipAccount(): PublicKey {
     const index = Math.floor(Math.random() * JITO_TIP_ACCOUNTS.length);
@@ -124,7 +161,7 @@ function confirmWithTimeout(
             } else {
                 resolve();
             }
-        }).catch((err) => {
+        }).catch((err: unknown) => {
             clearTimeout(timer);
             reject(err);
         });
@@ -148,7 +185,7 @@ export async function sendWithJito(
     let signature: string;
 
     try {
-        signature = await submitToJito(serialized as Uint8Array);
+        signature = await submitToJitoWithRetry(serialized as Uint8Array);
     } catch (jitoError) {
         // Jito failed — fall back to standard RPC with timeout
         try {

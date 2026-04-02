@@ -1,10 +1,11 @@
+import { memo, useState } from 'react';
 import { ArrowRightLeft, X } from 'lucide-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { useDustConsolidator } from '@/hooks/useDustConsolidator';
 import { DUST_SWAP_FEE_PERCENT } from '@/config/constants';
 import { estimateUSD, formatSOLValue } from '@/lib/formatting';
 
-export function DustConfirmModal() {
+export const DustConfirmModal = memo(function DustConfirmModal() {
     const { dustStatus } = useAppStore();
     const {
         selectedTokens,
@@ -12,6 +13,7 @@ export function DustConfirmModal() {
         executeDustSwap,
         cancelDustSwap,
     } = useDustConsolidator();
+    const [feeConsent, setFeeConsent] = useState(false);
 
     if (dustStatus !== 'awaiting_confirmation') return null;
 
@@ -97,6 +99,21 @@ export function DustConfirmModal() {
                         </p>
                     </div>
 
+                    {/* Fee Disclosure & Consent */}
+                    <div className="rounded-xl border border-shield-accent/30 bg-shield-accent/5 p-4 mb-6">
+                        <label className="flex items-start gap-3 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={feeConsent}
+                                onChange={(e) => setFeeConsent(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-shield-border bg-shield-bg text-shield-accent focus:ring-shield-accent focus:ring-offset-0 cursor-pointer"
+                            />
+                            <span className="text-xs text-shield-text leading-relaxed">
+                                I understand that a service fee of <span className="font-semibold text-shield-accent">{formatSOLValue(serviceFeeSOL)}</span> will be deducted from my wallet upon confirmation.
+                            </span>
+                        </label>
+                    </div>
+
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
                             onClick={cancelDustSwap}
@@ -106,7 +123,8 @@ export function DustConfirmModal() {
                         </button>
                         <button
                             onClick={executeDustSwap}
-                            className="flex-1 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
+                            disabled={!feeConsent}
+                            className="flex-1 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white shadow-lg shadow-shield-accent/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none hover:bg-shield-accent/90"
                         >
                             Swap {selectedTokens.length} Tokens
                         </button>
@@ -115,4 +133,4 @@ export function DustConfirmModal() {
             </div>
         </div>
     );
-}
+});

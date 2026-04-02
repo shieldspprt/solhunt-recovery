@@ -1,6 +1,6 @@
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
 import { createCloseAccountInstruction } from '@solana/spl-token';
-import type { ScanResult, CloseableAccount, ReclaimEstimate, TokenProgramId } from '@/types';
+import type { ScanResult, CloseableAccount, ReclaimEstimate } from '@/types';
 import {
     RENT_RECLAIM_FEE_PERCENT,
     RENT_RECLAIM_MIN_ACCOUNTS,
@@ -10,14 +10,8 @@ import {
 } from '@/config/constants';
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { createAppError } from '@/lib/errors';
-
-/**
- * Maps the TokenProgramId string logic to actual Program IDs if needed
- * We store string literals in the type to avoid serialization issues in Zustand
- */
-function getTokenProgramPublicKey(programId: TokenProgramId): PublicKey {
-    return new PublicKey(programId);
-}
+import { toTokenProgramPublicKey } from '@/lib/tokenProgram';
+import { getLatestBlockhashWithRetry } from '@/lib/rpcRetry';
 
 /**
  * Filters ScanResult to find truly empty accounts eligible for closure.
@@ -101,15 +95,15 @@ export async function buildReclaimTransactions(
         batches.push(accounts.slice(i, i + MAX_CLOSE_PER_TX));
     }
 
-    // Step 3: Fetch latest blockhash
+    // Step 3: Fetch latest blockhash with retry for RPC compliance
     let recentBlockhash: string;
     try {
-        const { blockhash } = await connection.getLatestBlockhash('confirmed');
+        const { blockhash } = await getLatestBlockhashWithRetry(connection, 'confirmed');
         recentBlockhash = blockhash;
-    } catch (error) {
+    } catch (err: unknown) {
         throw createAppError(
             'RPC_ERROR',
-            `Failed to fetch blockhash: ${error instanceof Error ? error.message : String(error)}`
+            `Failed to fetch blockhash: ${err instanceof Error ? err.message : String(err)}`
         );
     }
 
@@ -140,7 +134,7 @@ export async function buildReclaimTransactions(
         // Add Close Account instruction for each empty account
         for (const account of batch) {
             const accountPubkey = new PublicKey(account.address);
-            const programId = getTokenProgramPublicKey(account.programId);
+            const programId = toTokenProgramPublicKey(account.programId);
 
             transaction.add(
                 createCloseAccountInstruction(

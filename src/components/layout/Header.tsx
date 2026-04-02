@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Zap } from 'lucide-react';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { shortenAddress } from '@/lib/formatting';
+import { useReliableDisconnect } from '@/components/wallet/WalletStatusManager';
 
 const NAV_LINKS = [
     { label: 'How It Works', path: '/how-it-works' },
@@ -14,7 +15,8 @@ const EXTERNAL_LINKS = [
 ];
 
 export function Header() {
-    const { publicKey, disconnect } = useWallet();
+    const { publicKey } = useWallet();
+    const { disconnect, isDisconnecting } = useReliableDisconnect();
     const location = useLocation();
 
     return (
@@ -70,9 +72,11 @@ export function Header() {
                             </span>
                             <button
                                 onClick={disconnect}
-                                className="text-xs text-shield-muted hover:text-shield-danger transition-colors px-2 py-1 rounded-md hover:bg-shield-danger/10"
+                                disabled={isDisconnecting}
+                                className="text-xs text-shield-muted hover:text-shield-danger transition-colors px-2 py-1 rounded-md hover:bg-shield-danger/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                                aria-label="Disconnect wallet"
                             >
-                                ✕
+                                {isDisconnecting ? '...' : '✕'}
                             </button>
                         </div>
                     ) : (

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Wallet } from 'lucide-react';
@@ -8,7 +9,7 @@ interface WalletConnectButtonProps {
     size?: 'sm' | 'md' | 'lg';
 }
 
-export function WalletConnectButton({
+export const WalletConnectButton = memo(function WalletConnectButton({
     label = 'Connect Wallet',
     className = '',
     size = 'md',
@@ -42,4 +43,4 @@ export function WalletConnectButton({
             {label}
         </button>
     );
-}
+});

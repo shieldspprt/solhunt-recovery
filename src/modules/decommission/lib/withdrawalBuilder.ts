@@ -25,6 +25,10 @@ export async function buildWithdrawalTransactions(
         Math.floor(DECOMMISSION_FEE_SOL_MIN * 1e9)
     );
 
+    // Track transactions that received at least one real instruction.
+    // The service fee is appended to the last such transaction.
+    let lastValidTxIndex = -1;
+
     for (let i = 0; i < inAppItems.length; i++) {
         const item = inAppItems[i];
         const tx = new Transaction();
@@ -34,25 +38,26 @@ export async function buildWithdrawalTransactions(
         const withdrawIx = await buildWithdrawInstruction(item);
 
         if (!withdrawIx) {
-            logger.warn('Could not build withdrawal for', item.protocol.id);
+            logger.warn('No withdrawal instruction for', item.protocol.id, '— skipping');
             continue;
         }
 
         tx.add(withdrawIx);
-
-        if (i === inAppItems.length - 1 && serviceFeeLamports > 0 && import.meta.env.VITE_TREASURY_WALLET) {
-            try {
-                tx.add(SystemProgram.transfer({
-                    fromPubkey: walletPublicKey,
-                    toPubkey: new PublicKey(import.meta.env.VITE_TREASURY_WALLET),
-                    lamports: serviceFeeLamports,
-                }));
-            } catch (e) {
-                logger.warn('Failed to add fee transfer', e);
-            }
-        }
-
+        lastValidTxIndex = transactions.length;
         transactions.push(tx);
+    }
+
+    // Append service fee to the last transaction that has actual instructions.
+    if (lastValidTxIndex >= 0 && serviceFeeLamports > 0 && import.meta.env.VITE_TREASURY_WALLET) {
+        try {
+            transactions[lastValidTxIndex].add(SystemProgram.transfer({
+                fromPubkey: walletPublicKey,
+                toPubkey: new PublicKey(import.meta.env.VITE_TREASURY_WALLET),
+                lamports: serviceFeeLamports,
+            }));
+        } catch (e) {
+            logger.warn('Failed to add fee transfer', e);
+        }
     }
 
     return transactions;

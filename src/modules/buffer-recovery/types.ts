@@ -45,3 +45,12 @@ export interface BufferCloseResult {
     signatures: string[];
     errorMessage: string | null;
 }
+
+export interface BufferCloseEstimate {
+    selectedCount: number;
+    totalLamports: number;
+    totalSOL: number;
+    serviceFeeSOL: number;
+    networkFeeSOL: number;
+    userReceivesSOL: number;
+}

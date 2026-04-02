@@ -1,5 +1,47 @@
 import { PublicKey } from '@solana/web3.js';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// SECURITY CONSTANTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Maximum input length to prevent memory exhaustion attacks (256 chars) */
+const MAX_INPUT_LENGTH = 256;
+
+/** Patterns that indicate injection attempts or malformed input */
+const DANGEROUS_PATTERNS = [
+    /\x00/,           // Null bytes
+    /[\r\n]/,         // Line breaks (injection vectors)
+    /</,              // HTML tags (XSS attempts)
+    />/,
+    /javascript:/i,   // JavaScript protocol injection
+    /data:/i,         // Data URI injection
+    /\$\{/,           // Template literal injection
+    /\`/              // Backtick injection
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUT SANITIZATION
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Sanitizes raw user input before validation.
+ * Strips whitespace and blocks dangerous patterns.
+ *
+ * @returns sanitized string or null if dangerous content detected
+ */
+function sanitizeInput(input: unknown): string | null {
+    if (typeof input !== 'string') return null;
+    if (input.length > MAX_INPUT_LENGTH) return null;
+
+    // Check for dangerous patterns
+    for (const pattern of DANGEROUS_PATTERNS) {
+        if (pattern.test(input)) return null;
+    }
+
+    // Normalize: trim + collapse whitespace
+    return input.trim().replace(/\s+/g, ' ');
+}
+
 /**
  * Validates whether a string is a valid Solana public key for a keypair-based address
  * (wallet, token account, stake account, vote account).
@@ -12,8 +54,11 @@ import { PublicKey } from '@solana/web3.js';
  * Do NOT use this to validate program IDs — use bs58 decoding + length check instead.
  */
 export function isValidSolanaPublicKey(address: string): boolean {
+    const sanitized = sanitizeInput(address);
+    if (sanitized === null) return false;
+
     try {
-        const key = new PublicKey(address);
+        const key = new PublicKey(sanitized);
         return PublicKey.isOnCurve(key.toBytes());
     } catch {
         return false;
@@ -30,12 +75,13 @@ export function isValidSolanaPublicKey(address: string): boolean {
  * since it additionally confirms the key is a valid ed25519 point.
  */
 export function isValidSolanaAddress(address: string): boolean {
-    if (!address || typeof address !== 'string') return false;
-    const trimmed = address.trim();
-    // Valid Solana addresses are 32–44 base58 characters
-    if (trimmed.length < 32 || trimmed.length > 44) return false;
+    const sanitized = sanitizeInput(address);
+    if (sanitized === null) return false;
+
+    if (sanitized.length < 32 || sanitized.length > 44) return false;
+
     try {
-        const key = new PublicKey(trimmed);
+        const key = new PublicKey(sanitized);
         return key.toBytes().length === 32;
     } catch {
         return false;

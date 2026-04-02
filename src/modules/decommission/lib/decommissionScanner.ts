@@ -8,6 +8,7 @@ import {
 } from '../types';
 import { DEAD_PROTOCOLS } from '../registry/protocols';
 import { estimatePositionValue } from './positionValueEstimator';
+import { withRetry } from '@/lib/rpcRetry';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -20,10 +21,10 @@ export async function scanForDeadProtocolPositions(
     const walletPubkey = new PublicKey(walletAddress);
 
     // Get all token accounts
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+    const tokenAccounts = await withRetry(() => connection.getParsedTokenAccountsByOwner(
         walletPubkey,
         { programId: TOKEN_PROGRAM_ID }
-    );
+    ));
 
     const activeProtocols = DEAD_PROTOCOLS.filter(p => !!p.positionTokenMints?.length);
     const items: DecommissionPositionItem[] = [];

@@ -127,19 +127,18 @@ async function buildProtocolHarvestTransaction(
         tx = await buildRaydiumHarvestTransaction([position], walletPublicKey, connection);
     }
 
-    // Add priority fee instructions to legacy transactions
+    // Ensure recentBlockhash is set before adding priority fees and sending.
+    // Individual harvesters may not set it (e.g. orca builder leaves it to caller).
+    if (tx instanceof Transaction && !tx.recentBlockhash) {
+        const { blockhash } = await connection.getLatestBlockhash('confirmed');
+        tx.recentBlockhash = blockhash;
+    }
+
+    // Add priority fee instructions to legacy transactions (prepended)
     if (tx instanceof Transaction) {
         const priorityFee = await getOptimalPriorityFee(connection);
         const priorityIxs = buildPriorityFeeIxs(priorityFee);
-        // Prepend priority fee instructions
-        const existingIxs = [...tx.instructions];
-        tx.instructions = [];
-        for (const ix of priorityIxs) {
-            tx.add(ix);
-        }
-        for (const ix of existingIxs) {
-            tx.add(ix);
-        }
+        tx.instructions = [...priorityIxs, ...tx.instructions];
     }
 
     return tx;

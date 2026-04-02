@@ -4,6 +4,7 @@ import { estimateTransactionCost } from '@/lib/revoke';
 import { formatSOLValue, estimateUSD } from '@/lib/formatting';
 import { ShieldAlert, X } from 'lucide-react';
 import type { TokenDelegation } from '@/types';
+import { useState } from 'react';
 
 interface RevokeConfirmModalProps {
     delegations: TokenDelegation[];
@@ -12,6 +13,7 @@ interface RevokeConfirmModalProps {
 export function RevokeConfirmModal({ delegations }: RevokeConfirmModalProps) {
     const { revokeStatus, clearRevoke } = useAppStore();
     const { revoke } = useRevoke();
+    const [feeConsent, setFeeConsent] = useState(false);
 
     // Only show when state is awaiting_confirmation
     if (revokeStatus !== 'awaiting_confirmation') return null;
@@ -92,6 +94,21 @@ export function RevokeConfirmModal({ delegations }: RevokeConfirmModalProps) {
                         </p>
                     </div>
 
+                    {/* Fee Disclosure & Consent */}
+                    <div className="rounded-xl border border-shield-accent/30 bg-shield-accent/5 p-4 mb-6">
+                        <label className="flex items-start gap-3 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={feeConsent}
+                                onChange={(e) => setFeeConsent(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-shield-border bg-shield-bg text-shield-accent focus:ring-shield-accent focus:ring-offset-0 cursor-pointer"
+                            />
+                            <span className="text-xs text-shield-text leading-relaxed">
+                                I understand that a service fee of <span className="font-semibold text-shield-accent">{formatSOLValue(cost.serviceFeeSOL)}</span> and network fees of approximately <span className="font-semibold text-shield-accent">{formatSOLValue(cost.networkFeeSOL)}</span> will be deducted from my wallet upon confirmation.
+                            </span>
+                        </label>
+                    </div>
+
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
                             onClick={clearRevoke}
@@ -101,7 +118,8 @@ export function RevokeConfirmModal({ delegations }: RevokeConfirmModalProps) {
                         </button>
                         <button
                             onClick={() => revoke(delegations)}
-                            className="flex-1 rounded-xl bg-shield-danger px-4 py-3 font-semibold text-white hover:bg-shield-danger/90 shadow-lg shadow-shield-danger/20 transition-colors"
+                            disabled={!feeConsent}
+                            className="flex-1 rounded-xl bg-shield-danger px-4 py-3 font-semibold text-white shadow-lg shadow-shield-danger/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none hover:bg-shield-danger/90 aria-disabled:opacity-40 aria-disabled:cursor-not-allowed"
                         >
                             Revoke {delegations.length} Permissions
                         </button>

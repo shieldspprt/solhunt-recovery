@@ -2,6 +2,7 @@ import { AlertTriangle, Ticket, X } from 'lucide-react';
 import { useTicketFinder } from '@/hooks/useTicketFinder';
 import { TICKET_CLAIM_FEE_PERCENT } from '@/config/constants';
 import { estimateUSD, formatSOLValue } from '@/lib/formatting';
+import { useState } from 'react';
 
 export function ClaimConfirmModal() {
     const {
@@ -11,6 +12,7 @@ export function ClaimConfirmModal() {
         cancelClaim,
         executeClaimAll,
     } = useTicketFinder();
+    const [feeConsent, setFeeConsent] = useState(false);
 
     if (ticketClaimStatus !== 'awaiting_confirmation' || !ticketScanResult) return null;
 
@@ -89,6 +91,21 @@ export function ClaimConfirmModal() {
                         </div>
                     )}
 
+                    {/* Fee Disclosure & Consent */}
+                    <div className="rounded-xl border border-shield-accent/30 bg-shield-accent/5 p-4 mb-6">
+                        <label className="flex items-start gap-3 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={feeConsent}
+                                onChange={(e) => setFeeConsent(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-shield-border bg-shield-bg text-shield-accent focus:ring-shield-accent focus:ring-offset-0 cursor-pointer"
+                            />
+                            <span className="text-xs text-shield-text leading-relaxed">
+                                I understand that a service fee of <span className="font-semibold text-shield-accent">{formatSOLValue(claimEstimate.serviceFeeSOL)}</span> and network fees of approximately <span className="font-semibold text-shield-accent">{formatSOLValue(claimEstimate.networkFeeSOL)}</span> will be deducted from my wallet upon confirmation.
+                            </span>
+                        </label>
+                    </div>
+
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
                             onClick={cancelClaim}
@@ -98,7 +115,8 @@ export function ClaimConfirmModal() {
                         </button>
                         <button
                             onClick={executeClaimAll}
-                            className="flex-1 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
+                            disabled={!feeConsent}
+                            className="flex-1 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white shadow-lg shadow-shield-accent/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none hover:bg-shield-accent/90"
                         >
                             Claim {formatSOLValue(claimEstimate.userReceivesSOL)}
                         </button>

@@ -7,29 +7,36 @@ import {
     BPF_LOADER_UPGRADEABLE,
     BUFFER_CLOSE_FEE_PERCENT
 } from '../constants';
+import { withRetry } from '@/lib/rpcRetry';
 
 /**
  * Scans for BPF Loader buffer accounts owned by the given wallet.
  */
 export async function scanForBuffers(
     walletAddress: string,
-    connection: Connection
+    _connection: Connection
 ): Promise<BufferAccount[]> {
-    // 1. Scan BPFLoaderUpgradeable buffers
-    const upgradeableBuffers = await connection.getProgramAccounts(
-        new PublicKey(BPF_LOADER_UPGRADEABLE),
-        {
-            filters: [
-                { memcmp: { offset: 0, bytes: bs58.encode([1]) } }, // State: Buffer
-                { memcmp: { offset: 4, bytes: walletAddress } },    // Authority: Wallet
-            ],
-            dataSlice: { offset: 0, length: 36 }
-        }
+    // 1. Scan BPFLoaderUpgradeable buffers with retry
+    const upgradeableBuffers = await withRetry(
+        (conn) => conn.getProgramAccounts(
+            new PublicKey(BPF_LOADER_UPGRADEABLE),
+            {
+                filters: [
+                    { memcmp: { offset: 0, bytes: bs58.encode([1]) } }, // State: Buffer
+                    { memcmp: { offset: 4, bytes: walletAddress } },    // Authority: Wallet
+                ],
+                dataSlice: { offset: 0, length: 36 }
+            }
+        ),
+        { operationName: 'scanForBuffers.getProgramAccounts' }
     );
 
     const loaderV3Buffers: BufferAccount[] = await Promise.all(
         upgradeableBuffers.map(async (acc) => {
-            const info = await connection.getAccountInfo(acc.pubkey);
+            const info = await withRetry(
+                (conn) => conn.getAccountInfo(acc.pubkey),
+                { operationName: 'scanForBuffers.getAccountInfo' }
+            );
             if (!info) return null;
 
             const lamports = info.lamports;

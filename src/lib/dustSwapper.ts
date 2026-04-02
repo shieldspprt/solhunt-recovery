@@ -396,9 +396,9 @@ export async function executeDustSwaps(params: ExecuteDustSwapsParams): Promise<
                 receivedSOL: quote.outAmountSOL,
                 message: `Swapped for ~${quote.outAmountSOL.toFixed(6)} SOL.`,
             });
-        } catch (error) {
+        } catch (err: unknown) {
             failedCount += 1;
-            const detail = error instanceof Error ? error.message : String(error);
+            const detail = err instanceof Error ? err.message : String(err);
             sessionErrorMessage = detail;
             onProgress?.({
                 mint: token.mint,
@@ -421,8 +421,8 @@ export async function executeDustSwaps(params: ExecuteDustSwapsParams): Promise<
         if (feeSignature) {
             signatures.push(feeSignature);
         }
-    } catch (error) {
-        const detail = error instanceof Error ? error.message : String(error);
+    } catch (err: unknown) {
+        const detail = err instanceof Error ? err.message : String(err);
         sessionErrorMessage = sessionErrorMessage
             ? `${sessionErrorMessage} | Fee transfer failed: ${detail}`
             : `Fee transfer failed: ${detail}`;

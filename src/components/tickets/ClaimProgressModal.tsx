@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { AlertTriangle, CheckCircle2, Clock3, Loader2, XCircle } from 'lucide-react';
 import { useTicketFinder } from '@/hooks/useTicketFinder';
 import { SOLSCAN_TX_URL, TICKET_CLAIM_FEE_PERCENT } from '@/config/constants';
@@ -10,7 +11,7 @@ function ProgressIcon({ status }: { status: string }) {
     return <Loader2 className="h-4 w-4 text-shield-accent animate-spin" />;
 }
 
-export function ClaimProgressModal() {
+export const ClaimProgressModal = memo(() => {
     const {
         ticketClaimStatus,
         ticketClaimResult,
@@ -116,4 +117,4 @@ export function ClaimProgressModal() {
             </div>
         </div>
     );
-}
+});

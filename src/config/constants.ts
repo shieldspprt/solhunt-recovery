@@ -33,6 +33,7 @@ export const ERROR_CODES = {
     TX_REJECTED: 'TX_REJECTED',
     TX_FAILED: 'TX_FAILED',
     TX_TIMEOUT: 'TX_TIMEOUT',
+    SCAN_FAILED: 'SCAN_FAILED',
     UNKNOWN: 'UNKNOWN',
 
     // Engine 2
@@ -75,6 +76,7 @@ export const ERROR_MESSAGES: Record<keyof typeof ERROR_CODES, string> = {
     TX_REJECTED: 'Transaction was cancelled. Your wallet was not changed.',
     TX_FAILED: 'The transaction failed on-chain. No fees were charged. Please try again.',
     TX_TIMEOUT: 'Transaction sent but confirmation timed out. Check Solscan to see if it went through.',
+    SCAN_FAILED: 'Could not complete the scan. Please try again.',
     UNKNOWN: 'Something unexpected happened. Please refresh the page and try again.',
 
     // Engine 2
@@ -142,13 +144,16 @@ export const KNOWN_DELEGATE_ADDRESSES = new Set(
     KNOWN_DELEGATES.map((d) => d.address)
 );
 
+export const KNOWN_DELEGATES_MAP = new Map(
+    KNOWN_DELEGATES.map((d) => [d.address, d.name])
+);
+
 /**
  * Looks up a known delegate by address.
  * Returns the protocol name if found, null otherwise.
  */
 export function getKnownDelegateName(address: string): string | null {
-    const found = KNOWN_DELEGATES.find((d) => d.address === address);
-    return found ? found.name : null;
+    return KNOWN_DELEGATES_MAP.get(address) || null;
 }
 
 // ─── External Links ─────────────────────────────────────────────
@@ -270,9 +275,7 @@ export const JITO_STAKER_REWARDS_ENDPOINT = '/api/v1/staker_rewards';
 
 // Claim instruction discriminator
 // sha256("global:claim")[0..8] — first 8 bytes
-export const CLAIM_DISCRIMINATOR = Buffer.from([
-    62, 198, 214, 193, 213, 159, 108, 210
-]);
+export const CLAIM_DISCRIMINATOR = new Uint8Array([62, 198, 214, 193, 213, 159, 108, 210]);
 
 // Fees
 export const MEV_SERVICE_FEE_PERCENT = 5;

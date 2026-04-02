@@ -3,10 +3,12 @@ import { useReclaimRent } from '@/hooks/useReclaimRent';
 import { formatSOLValue, estimateUSD } from '@/lib/formatting';
 import { Coins, X, Zap } from 'lucide-react';
 import { MAX_CLOSE_PER_TX } from '@/config/constants';
+import { useState } from 'react';
 
 export function ReclaimConfirmModal() {
     const { reclaimStatus, clearReclaim } = useAppStore();
     const { closeableAccounts, reclaimEstimate, executeReclaim } = useReclaimRent();
+    const [feeConsent, setFeeConsent] = useState(false);
 
     // Only show when state is awaiting_confirmation
     if (reclaimStatus !== 'awaiting_confirmation' || !reclaimEstimate) return null;
@@ -103,6 +105,21 @@ export function ReclaimConfirmModal() {
                         </p>
                     </div>
 
+                    {/* Fee Disclosure & Consent */}
+                    <div className="rounded-xl border border-shield-accent/30 bg-shield-accent/5 p-4 mb-6">
+                        <label className="flex items-start gap-3 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={feeConsent}
+                                onChange={(e) => setFeeConsent(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-shield-border bg-shield-bg text-shield-accent focus:ring-shield-accent focus:ring-offset-0 cursor-pointer"
+                            />
+                            <span className="text-xs text-shield-text leading-relaxed">
+                                I understand that a service fee of <span className="font-semibold text-shield-accent">{formatSOLValue(reclaimEstimate.serviceFeeSOL)}</span> and network fees of approximately <span className="font-semibold text-shield-accent">{formatSOLValue(reclaimEstimate.networkFeeSOL)}</span> will be deducted from my wallet upon confirmation.
+                            </span>
+                        </label>
+                    </div>
+
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
                             onClick={clearReclaim}
@@ -112,7 +129,8 @@ export function ReclaimConfirmModal() {
                         </button>
                         <button
                             onClick={executeReclaim}
-                            className="flex-1 rounded-xl bg-shield-success px-4 py-3 font-semibold text-white hover:bg-shield-success/90 shadow-lg shadow-shield-success/20 transition-colors flex justify-center items-center gap-2"
+                            disabled={!feeConsent}
+                            className="flex-1 rounded-xl bg-shield-success px-4 py-3 font-semibold text-white hover:bg-shield-success/90 shadow-lg shadow-shield-success/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none flex justify-center items-center gap-2"
                         >
                             <Coins className="h-5 w-5" />
                             Confirm Reclaim

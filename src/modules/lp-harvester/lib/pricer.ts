@@ -1,13 +1,6 @@
 import { DEXSCREENER_SOLANA_TOKENS_API } from '../constants';
 import type { DexScreenerPair } from '../../../types';
-
-function chunk<T>(items: T[], size: number): T[][] {
-    const chunks: T[][] = [];
-    for (let index = 0; index < items.length; index += size) {
-        chunks.push(items.slice(index, index + size));
-    }
-    return chunks;
-}
+import { chunk } from '@/lib/arrayUtils';
 
 function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));

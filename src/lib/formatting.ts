@@ -1,4 +1,11 @@
 /**
+ * Returns true if value is a finite, non-NaN number.
+ */
+function isValidNumber(value: unknown): value is number {
+    return typeof value === 'number' && Number.isFinite(value);
+}
+
+/**
  * Shortens a Solana address for display: "AbCd...WxYz"
  */
 export function shortenAddress(address: string, chars = 4): string {
@@ -8,10 +15,12 @@ export function shortenAddress(address: string, chars = 4): string {
 }
 
 /**
- * Formats a SOL amount to a user-friendly string with appropriate decimal places.
+ * Formats a SOL amount (not lamports) to a user-friendly string.
+ * Use for displaying SOL values returned from APIs or user input.
+ * For lamports, divide by 1e9 first.
  */
-export function formatSOL(lamports: number): string {
-    const sol = lamports / 1e9;
+export function formatSOL(sol: number): string {
+    if (!isValidNumber(sol)) return '0 SOL';
     if (sol === 0) return '0 SOL';
     if (sol < 0.001) return `${sol.toFixed(6)} SOL`;
     if (sol < 1) return `${sol.toFixed(4)} SOL`;
@@ -22,6 +31,7 @@ export function formatSOL(lamports: number): string {
  * Formats SOL from a SOL value (not lamports).
  */
 export function formatSOLValue(sol: number): string {
+    if (!isValidNumber(sol)) return '0 SOL';
     if (sol === 0) return '0 SOL';
     if (sol < 0.001) return `${sol.toFixed(6)} SOL`;
     if (sol < 1) return `${sol.toFixed(4)} SOL`;

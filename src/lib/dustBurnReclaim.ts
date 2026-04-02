@@ -1,6 +1,6 @@
 import { Connection, PublicKey, Transaction } from '@solana/web3.js';
 import { createBurnInstruction, createCloseAccountInstruction } from '@solana/spl-token';
-import type { DustBurnEstimate, DustToken, TokenProgramId } from '@/types';
+import type { DustBurnEstimate, DustToken } from '@/types';
 import {
     DUST_BURN_RECLAIM_FEE_PERCENT,
     DUST_MAX_BURN_CLOSE_PER_TX,
@@ -10,22 +10,13 @@ import {
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { createAppError } from '@/lib/errors';
 import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
+import { toTokenProgramPublicKey } from '@/lib/tokenProgram';
+import { chunk } from '@/lib/arrayUtils';
+import { getLatestBlockhashWithRetry } from '@/lib/rpcRetry';
 
 export interface DustBurnBatch {
     transaction: Transaction;
     tokens: DustToken[];
-}
-
-function getTokenProgramPublicKey(programId: TokenProgramId): PublicKey {
-    return new PublicKey(programId);
-}
-
-function chunk<T>(items: T[], size: number): T[][] {
-    const batches: T[][] = [];
-    for (let index = 0; index < items.length; index += size) {
-        batches.push(items.slice(index, index + size));
-    }
-    return batches;
 }
 
 export function getBurnableDustTokens(dustTokens: DustToken[]): DustToken[] {
@@ -59,7 +50,7 @@ export async function buildDustBurnReclaimTransactions(
         throw createAppError('DUST_BURN_FAILED', 'No unswappable dust tokens available for burn/close.');
     }
 
-    const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    const { blockhash } = await getLatestBlockhashWithRetry(connection, 'confirmed');
     const priorityFee = await getOptimalPriorityFee(connection);
     const tokenBatches = chunk(tokens, DUST_MAX_BURN_CLOSE_PER_TX);
     const txBatches: DustBurnBatch[] = [];
@@ -86,7 +77,7 @@ export async function buildDustBurnReclaimTransactions(
 
             const tokenAccount = new PublicKey(token.tokenAccountAddress);
             const mint = new PublicKey(token.mint);
-            const programId = getTokenProgramPublicKey(token.programId);
+            const programId = toTokenProgramPublicKey(token.programId);
 
             tx.add(
                 createBurnInstruction(
