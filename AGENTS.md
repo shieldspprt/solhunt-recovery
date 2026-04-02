@@ -17,6 +17,7 @@
 |-------------|--------|-----------|
 | ✅ Wallet connect/disconnect reliability | **FIXED** | `src/components/wallet/WalletStatusManager.tsx` |
 | ✅ Transaction error handling + RPC retry logic | **FIXED** | `src/lib/rpcRetry.ts` + applied to all tx builders |
+| ✅ Mobile wallet deep links + TWA config | **FIXED** | `app/src/main/AndroidManifest.xml` — added `solana:` and `phantom:` intent filters |
 
 ### Hourly Work Schedule
 
