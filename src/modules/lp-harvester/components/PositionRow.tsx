@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { CircleAlert, CircleCheck, Dot } from 'lucide-react';
 import type { LPPosition } from '../types';
 import {
@@ -44,7 +45,7 @@ function getStatusBadge(status: LPPosition['status']) {
     };
 }
 
-export function PositionRow({ position, selected, onToggle }: PositionRowProps) {
+export const PositionRow = memo(function PositionRow({ position, selected, onToggle }: PositionRowProps) {
     const statusBadge = getStatusBadge(position.status);
     const StatusIcon = statusBadge.icon;
 
@@ -121,4 +122,4 @@ export function PositionRow({ position, selected, onToggle }: PositionRowProps) 
             </div>
         </div>
     );
-}
+});

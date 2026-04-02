@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { ProtocolBadge } from '@/components/tickets/ProtocolBadge';
 import { estimateUSD, formatSOLValue, shortenAddress } from '@/lib/formatting';
@@ -8,7 +9,7 @@ interface TicketRowProps {
     ticket: StakingTicket;
 }
 
-export function TicketRow({ ticket }: TicketRowProps) {
+export const TicketRow = memo(function TicketRow({ ticket }: TicketRowProps) {
     return (
         <div className="rounded-xl border border-shield-border bg-shield-bg/40 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -45,4 +46,4 @@ export function TicketRow({ ticket }: TicketRowProps) {
             </div>
         </div>
     );
-}
+});

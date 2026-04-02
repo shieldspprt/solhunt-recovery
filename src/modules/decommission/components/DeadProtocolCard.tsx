@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { DecommissionPositionItem } from '../types';
 
 interface Props {
@@ -6,7 +7,7 @@ interface Props {
     onToggle?: (id: string) => void;
 }
 
-export function DeadProtocolCard({ item, isSelected, onToggle }: Props) {
+export const DeadProtocolCard = memo(function DeadProtocolCard({ item, isSelected, onToggle }: Props) {
     const { protocol, tokenDef, estimatedValueUSD, uiBalance, urgency, recoveryMethod } = item;
 
     const isWindingDown = urgency === 'critical';
@@ -121,4 +122,4 @@ export function DeadProtocolCard({ item, isSelected, onToggle }: Props) {
             </div>
         </div>
     );
-}
+});
