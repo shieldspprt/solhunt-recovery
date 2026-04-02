@@ -18,8 +18,7 @@
 | ✅ Wallet connect/disconnect reliability | **FIXED** | `src/components/wallet/WalletStatusManager.tsx` |
 | ✅ Transaction error handling + RPC retry logic | **FIXED** | `src/lib/rpcRetry.ts` + applied to all tx builders |
 | ✅ Mobile wallet deep links + TWA config | **FIXED** | `app/src/main/AndroidManifest.xml` — added `solana:` and `phantom:` intent filters |
-| 🔄 Fee disclosure verification + user consent flows | **IN PROGRESS** | `src/components/revoke/RevokeConfirmModal.tsx` ✅ — consent checkbox added |
-| | | `src/components/reclaim/ReclaimConfirmModal.tsx` ✅ — consent checkbox added |
+| 🔄 Fee disclosure verification + user consent flows | **COMPLETE** ✅ | `RevokeConfirmModal`, `ReclaimConfirmModal`, `DustConfirmModal`, `DustBurnConfirmModal`, `ClaimConfirmModal`, `MEVClaimConfirmModal` |
 
 ### Hourly Work Schedule
 
