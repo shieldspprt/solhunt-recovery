@@ -2,6 +2,20 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { PositionTokenDefinition, DeadProtocol } from '../types';
 import { logger } from '@/lib/logger';
 
+/**
+ * Typed shape of a parsed SPL Token Mint account from getParsedAccountInfo.
+ * This avoids unsafe `as any` casts when accessing mint metadata.
+ */
+interface MintAccountData {
+    parsed: {
+        info: {
+            supply: string;
+            decimals: number;
+        };
+        type: string;
+    };
+}
+
 export interface ValueEstimate {
     estimatedUnderlyingA: number | null;
     estimatedUnderlyingB: number | null;
@@ -58,8 +72,11 @@ async function estimateLPTokenValue(
             return { estimatedUnderlyingA: null, estimatedUnderlyingB: null, estimatedValueUSD: null };
         }
 
-        const mintData = (mintInfo.value.data as any).parsed?.info;
-        const supplyNum = Number(mintData?.supply ?? 0);
+        const mintData = (mintInfo.value.data as MintAccountData).parsed?.info;
+        if (!mintData) {
+            return { estimatedUnderlyingA: null, estimatedUnderlyingB: null, estimatedValueUSD: null };
+        }
+        const supplyNum = Number(mintData.supply ?? 0);
         const totalSupply = supplyNum / Math.pow(10, tokenDef.decimals);
 
         if (totalSupply === 0) {
