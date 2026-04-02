@@ -21,12 +21,18 @@ export function LoadingSpinner({
     };
 
     const content = (
-        <div className={clsx('flex flex-col items-center justify-center gap-3', className)}>
+        <div 
+            className={clsx('flex flex-col items-center justify-center gap-3', className)}
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+        >
             <Loader2
                 className={clsx(
                     'animate-spin text-shield-accent',
                     sizeClasses[size]
                 )}
+                aria-hidden="true"
             />
             {message && (
                 <p className="text-sm text-shield-muted animate-pulse">{message}</p>
