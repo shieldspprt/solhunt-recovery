@@ -20,6 +20,7 @@ import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { logger } from './logger';
 import { verifyTransactionSecurity } from './transactionVerifier';
 import { chunk } from '@/lib/arrayUtils';
+import { getLatestBlockhashWithRetry } from '@/lib/rpcRetry';
 
 /**
  * Build batched claim transactions for selected MEV rewards.
@@ -37,7 +38,7 @@ export async function buildMEVClaimTransactions(
 ): Promise<Transaction[]> {
     const transactions: Transaction[] = [];
     const batches = chunk(items, MEV_MAX_CLAIMS_PER_TX);
-    const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    const { blockhash } = await getLatestBlockhashWithRetry(connection, 'confirmed');
     const priorityFee = await getOptimalPriorityFee(connection);
 
     // Calculate total service fee

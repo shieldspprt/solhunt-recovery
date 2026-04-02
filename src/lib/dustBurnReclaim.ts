@@ -12,6 +12,7 @@ import { createAppError } from '@/lib/errors';
 import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 import { toTokenProgramPublicKey } from '@/lib/tokenProgram';
 import { chunk } from '@/lib/arrayUtils';
+import { getLatestBlockhashWithRetry } from '@/lib/rpcRetry';
 
 export interface DustBurnBatch {
     transaction: Transaction;
@@ -49,7 +50,7 @@ export async function buildDustBurnReclaimTransactions(
         throw createAppError('DUST_BURN_FAILED', 'No unswappable dust tokens available for burn/close.');
     }
 
-    const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    const { blockhash } = await getLatestBlockhashWithRetry(connection, 'confirmed');
     const priorityFee = await getOptimalPriorityFee(connection);
     const tokenBatches = chunk(tokens, DUST_MAX_BURN_CLOSE_PER_TX);
     const txBatches: DustBurnBatch[] = [];
