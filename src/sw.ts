@@ -72,9 +72,7 @@ registerRoute(
 // 5. Lifecycle: skip waiting + claim clients for fast updates
 //    Note: self.* methods resolve at runtime in the SW context
 // ──────────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const sw = self as any;
-sw.skipWaiting();
-sw.addEventListener('activate', (event: ExtendableEvent) => {
-  event.waitUntil(sw.clients.claim());
+self.skipWaiting();
+self.addEventListener('activate', (event: ExtendableEvent) => {
+  event.waitUntil(self.clients.claim());
 });
