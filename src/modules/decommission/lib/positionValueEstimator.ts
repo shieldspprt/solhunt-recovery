@@ -1,6 +1,7 @@
 import { Connection, PublicKey } from '@solana/web3.js';
 import { PositionTokenDefinition, DeadProtocol } from '../types';
 import { logger } from '@/lib/logger';
+import { withRetry } from '@/lib/rpcRetry';
 
 /**
  * Typed shape of a parsed SPL Token Mint account from getParsedAccountInfo.
@@ -31,8 +32,8 @@ async function getTokenPrice(mint: string): Promise<number> {
             return parseFloat(data[0].priceUsd);
         }
         return 0;
-    } catch (err) {
-        logger.warn('Failed to fetch token price from DexScreener', mint, err);
+    } catch (err: unknown) {
+        logger.warn('Failed to fetch token price from DexScreener', mint, err instanceof Error ? err.message : String(err));
         return 0;
     }
 }
@@ -51,8 +52,8 @@ export async function estimatePositionValue(
             return await estimateLendingReceiptValue(tokenDef, balance);
         }
         return await estimateVaultShareValue(tokenDef, balance);
-    } catch (err) {
-        logger.warn('estimatePositionValue failed', tokenDef.mint, err);
+    } catch (err: unknown) {
+        logger.warn('estimatePositionValue failed', tokenDef.mint, err instanceof Error ? err.message : String(err));
         return { estimatedUnderlyingA: null, estimatedUnderlyingB: null, estimatedValueUSD: null };
     }
 }
@@ -67,7 +68,7 @@ async function estimateLPTokenValue(
     }
 
     try {
-        const mintInfo = await connection.getParsedAccountInfo(new PublicKey(tokenDef.mint));
+        const mintInfo = await withRetry(() => connection.getParsedAccountInfo(new PublicKey(tokenDef.mint)));
         if (!mintInfo.value) {
             return { estimatedUnderlyingA: null, estimatedUnderlyingB: null, estimatedValueUSD: null };
         }
@@ -83,7 +84,9 @@ async function estimateLPTokenValue(
             return { estimatedUnderlyingA: 0, estimatedUnderlyingB: 0, estimatedValueUSD: 0 };
         }
 
-        const poolReserveA = await connection.getTokenAccountBalance(new PublicKey(tokenDef.poolOrVaultAddress));
+        const poolReserveA = await withRetry(() =>
+            connection.getTokenAccountBalance(new PublicKey(tokenDef.poolOrVaultAddress!))
+        );
         const reserveAAmount = Number(poolReserveA.value.uiAmount ?? 0);
 
         const userShare = balance / totalSupply;
