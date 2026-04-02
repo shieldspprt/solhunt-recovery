@@ -11,6 +11,7 @@ import {
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { createAppError } from '@/lib/errors';
 import { toTokenProgramPublicKey } from '@/lib/tokenProgram';
+import { getLatestBlockhashWithRetry } from '@/lib/rpcRetry';
 
 /**
  * Filters ScanResult to find truly empty accounts eligible for closure.
@@ -94,10 +95,10 @@ export async function buildReclaimTransactions(
         batches.push(accounts.slice(i, i + MAX_CLOSE_PER_TX));
     }
 
-    // Step 3: Fetch latest blockhash
+    // Step 3: Fetch latest blockhash with retry for RPC compliance
     let recentBlockhash: string;
     try {
-        const { blockhash } = await connection.getLatestBlockhash('confirmed');
+        const { blockhash } = await getLatestBlockhashWithRetry(connection, 'confirmed');
         recentBlockhash = blockhash;
     } catch (err: unknown) {
         throw createAppError(

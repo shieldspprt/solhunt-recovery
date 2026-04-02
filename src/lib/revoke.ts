@@ -16,6 +16,7 @@ import {
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { createAppError } from '@/lib/errors';
 import { toTokenProgramPublicKey } from '@/lib/tokenProgram';
+import { getLatestBlockhashWithRetry } from '@/lib/rpcRetry';
 
 /**
  * A revoke transaction paired with the number of revoke instructions it contains.
@@ -55,10 +56,10 @@ export async function buildRevokeTransaction(
         batches.push(delegations.slice(i, i + MAX_REVOKES_PER_TX));
     }
 
-    // Step 6: Fetch recent blockhash (do this once for all transactions)
+    // Step 6: Fetch recent blockhash with retry for RPC compliance
     let recentBlockhash: string;
     try {
-        const { blockhash } = await connection.getLatestBlockhash('confirmed');
+        const { blockhash } = await getLatestBlockhashWithRetry(connection, 'confirmed');
         recentBlockhash = blockhash;
     } catch (err: unknown) {
         throw createAppError(
