@@ -45,7 +45,7 @@ The agent will work **every hour** to achieve full compliance:
 ## Priority Improvement Areas
 
 ### 1. Security (HIGHEST)
-- Add input sanitization to all wallet address inputs
+- Add input sanitization to all wallet address inputs — **bufferCloser.ts now validates via `toValidPublicKey`**; remaining: orcaScanner, raydiumScanner, meteoraHarvester, orcaHarvester, ticketScanner, revoke, reclaimRent, mevClaimBuilder, withdrawalBuilder
 - Add rate limiting to prevent RPC spam
 - Add transaction size limits (128 accounts max per Solana tx)
 - Add slippage protection for swap routes
