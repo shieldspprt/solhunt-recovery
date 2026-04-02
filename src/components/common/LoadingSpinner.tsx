@@ -5,12 +5,14 @@ interface LoadingSpinnerProps {
     size?: 'sm' | 'md' | 'lg';
     message?: string;
     className?: string;
+    fullpage?: boolean;
 }
 
 export function LoadingSpinner({
     size = 'md',
     message,
     className,
+    fullpage = false,
 }: LoadingSpinnerProps) {
     const sizeClasses = {
         sm: 'h-4 w-4',
@@ -18,7 +20,7 @@ export function LoadingSpinner({
         lg: 'h-12 w-12',
     };
 
-    return (
+    const content = (
         <div className={clsx('flex flex-col items-center justify-center gap-3', className)}>
             <Loader2
                 className={clsx(
@@ -31,4 +33,14 @@ export function LoadingSpinner({
             )}
         </div>
     );
+
+    if (fullpage) {
+        return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-shield-bg/80 backdrop-blur-sm">
+                {content}
+            </div>
+        );
+    }
+
+    return content;
 }
