@@ -18,14 +18,15 @@
 | ✅ Wallet connect/disconnect reliability | **FIXED** | `src/components/wallet/WalletStatusManager.tsx` |
 | ✅ Transaction error handling + RPC retry logic | **FIXED** | `src/lib/rpcRetry.ts` + applied to all tx builders |
 | ✅ Mobile wallet deep links + TWA config | **FIXED** | `app/src/main/AndroidManifest.xml` — added `solana:` and `phantom:` intent filters |
+| 🔄 Fee disclosure verification + user consent flows | **IN PROGRESS** | `src/components/revoke/RevokeConfirmModal.tsx` — consent checkbox added |
 
 ### Hourly Work Schedule
 
 The agent will work **every hour** to achieve full compliance:
 1. **Hour 1**: ✅ Wallet reliability (COMPLETE)
-2. **Hour 2**: Transaction error handling + RPC retry logic
-3. **Hour 3**: Mobile wallet deep links + TWA config
-4. **Hour 4**: Fee disclosure verification + user consent flows
+2. **Hour 2**: ✅ Transaction error handling + RPC retry logic (COMPLETE)
+3. **Hour 3**: ✅ Mobile wallet deep links + TWA config (COMPLETE)
+4. **Hour 4**: Fee disclosure verification + user consent flows (IN PROGRESS — RevokeConfirmModal done)
 5. **Hour 5**: Final compliance audit + testing
 
 ---
@@ -125,12 +126,13 @@ const sig = await sendWithJito(signedTx, connection);
 
 ## Known Issues (From Code Review)
 
-| File | Line | Issue | Priority |
-|------|------|-------|----------|
-| `useDecommissionScanner.ts` | 11 | `any[]` typed log | Low |
-| `useDecommissionScanner.ts` | 46, 143, 177 | `err: any` in catch | Medium |
-| `sw.ts` | 78 | `event: any` in ServiceWorker | Low |
-| Transaction sender | - | No max retry limit | Medium |
+| File | Line | Issue | Priority | Status |
+|------|------|-------|----------|--------|
+| `positionValueEstimator.ts` | 61 | `as any` for mint data | Medium | FIXED |
+| `useDecommissionScanner.ts` | 11 | `any[]` typed log | Low | Open |
+| `useDecommissionScanner.ts` | 46, 143, 177 | `err: any` in catch | Medium | Open |
+| `sw.ts` | 78 | `event: any` in ServiceWorker | Low | Open |
+| Transaction sender | - | No max retry limit | Medium | Open |
 
 ---
 
