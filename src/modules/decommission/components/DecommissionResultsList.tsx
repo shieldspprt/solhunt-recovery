@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { DecommissionPositionItem } from '../types';
 import { DeadProtocolCard } from './DeadProtocolCard';
 
@@ -7,7 +8,7 @@ interface Props {
     toggleItem: (id: string) => void;
 }
 
-export function DecommissionResultsList({ items, selectedItems, toggleItem }: Props) {
+export const DecommissionResultsList = memo(function DecommissionResultsList({ items, selectedItems, toggleItem }: Props) {
     if (items.length === 0) return null;
 
     return (
@@ -22,4 +23,4 @@ export function DecommissionResultsList({ items, selectedItems, toggleItem }: Pr
             ))}
         </div>
     );
-}
+});

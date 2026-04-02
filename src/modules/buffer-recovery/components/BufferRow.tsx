@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { BufferAccount } from '../types';
 import { RECENT_BUFFER_THRESHOLD_MS } from '../constants';
 import { shortenAddress } from '@/lib/formatting';
@@ -9,7 +10,7 @@ interface BufferRowProps {
     onToggle: (address: string) => void;
 }
 
-export function BufferRow({ buffer, isSelected, onToggle }: BufferRowProps) {
+export const BufferRow = memo(function BufferRow({ buffer, isSelected, onToggle }: BufferRowProps) {
     const isRecent = Date.now() - buffer.createdAt < RECENT_BUFFER_THRESHOLD_MS;
 
     return (
@@ -64,4 +65,4 @@ export function BufferRow({ buffer, isSelected, onToggle }: BufferRowProps) {
             </div>
         </div>
     );
-}
+});

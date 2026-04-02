@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { LPPosition, LPProtocol } from '../types';
 import { LP_PROTOCOL_INFO } from '../constants';
@@ -12,7 +12,7 @@ interface ProtocolSectionProps {
     onTogglePosition: (id: string) => void;
 }
 
-export function ProtocolSection({
+export const ProtocolSection = memo(function ProtocolSection({
     protocol,
     positions,
     selectedIds,
@@ -65,4 +65,4 @@ export function ProtocolSection({
             )}
         </div>
     );
-}
+});
