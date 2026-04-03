@@ -25,7 +25,9 @@ export interface ValueEstimate {
 
 async function getTokenPrice(mint: string): Promise<number> {
     try {
-        const response = await fetch(`https://api.dexscreener.com/tokens/v1/solana/${mint}`);
+        const response = await fetch(`https://api.dexscreener.com/tokens/v1/solana/${mint}`, {
+            signal: AbortSignal.timeout(5000)
+        });
         if (!response.ok) return 0;
         const data = await response.json();
         if (data && data.length > 0 && data[0].priceUsd) {

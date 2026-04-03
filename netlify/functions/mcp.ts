@@ -428,6 +428,30 @@ async function executeTool(
   }
 }
 
+// ── Rate Limiting ─────────────────────────────────────────────────────────────────
+// Simple in-memory rate limiter per IP (resets every hour)
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 100; // requests per hour
+const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetAt: number } {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  
+  if (!entry || now > entry.resetAt) {
+    // New window
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
+    return { allowed: true, remaining: RATE_LIMIT - 1, resetAt: now + RATE_WINDOW_MS };
+  }
+  
+  if (entry.count >= RATE_LIMIT) {
+    return { allowed: false, remaining: 0, resetAt: entry.resetAt };
+  }
+  
+  entry.count++;
+  return { allowed: true, remaining: RATE_LIMIT - entry.count, resetAt: entry.resetAt };
+}
+
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 export const handler: Handler = async (event) => {
@@ -453,12 +477,36 @@ export const handler: Handler = async (event) => {
     event.headers?.['authorization']?.replace('Bearer ', '') ||
     undefined;
 
+  const clientIp = event.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
+                   event.headers['client-ip'] || 
+                   'unknown';
+  
+  const rateLimit = checkRateLimit(clientIp);
+  
+  // If rate limited, return early with 429
+  if (!rateLimit.allowed) {
+    return {
+      statusCode: 429,
+      headers: {
+        ...headers,
+        'X-RateLimit-Remaining': '0',
+        'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString(),
+        'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000))
+      },
+      body: JSON.stringify(createMCPError('RATE_LIMITED', `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}`))
+    };
+  }
+
   // ── GET: Server Card (/.well-known/mcp/server-card.json) ───────────────────
   // Smithery.ai and other MCP clients check this well-known path for discovery
   if (event.httpMethod === 'GET' && (path === '/.well-known/mcp/server-card.json' || path.includes('server-card'))) {
     return {
       statusCode: 200,
-      headers,
+      headers: {
+        ...headers,
+        'X-RateLimit-Remaining': String(rateLimit.remaining),
+        'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
+      },
       body: JSON.stringify(SERVER_METADATA, null, 2)
     };
   }
@@ -468,7 +516,11 @@ export const handler: Handler = async (event) => {
   if (event.httpMethod === 'GET') {
     return {
       statusCode: 200,
-      headers,
+      headers: {
+        ...headers,
+        'X-RateLimit-Remaining': String(rateLimit.remaining),
+        'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
+      },
       body: JSON.stringify(SERVER_METADATA, null, 2)
     };
   }
@@ -503,7 +555,11 @@ export const handler: Handler = async (event) => {
       // Tool list request in JSON-RPC format
       return {
         statusCode: 200,
-        headers,
+        headers: {
+          ...headers,
+          'X-RateLimit-Remaining': String(rateLimit.remaining),
+          'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
+        },
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: body.id,
@@ -515,7 +571,11 @@ export const handler: Handler = async (event) => {
       const initParams = body.params as Record<string, unknown> || {};
       return {
         statusCode: 200,
-        headers,
+        headers: {
+          ...headers,
+          'X-RateLimit-Remaining': String(rateLimit.remaining),
+          'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
+        },
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: body.id,
@@ -536,7 +596,11 @@ export const handler: Handler = async (event) => {
       // Just acknowledge
       return {
         statusCode: 200,
-        headers,
+        headers: {
+          ...headers,
+          'X-RateLimit-Remaining': String(rateLimit.remaining),
+          'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
+        },
         body: JSON.stringify({ jsonrpc: "2.0", result: null })
       };
     } else {
@@ -561,7 +625,11 @@ export const handler: Handler = async (event) => {
     if (body.method) {
       return {
         statusCode: 200,
-        headers,
+        headers: {
+          ...headers,
+          'X-RateLimit-Remaining': String(rateLimit.remaining),
+          'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
+        },
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: body.id || null,
@@ -578,7 +646,11 @@ export const handler: Handler = async (event) => {
     // Direct format response
     return {
       statusCode: 200,
-      headers,
+      headers: {
+        ...headers,
+        'X-RateLimit-Remaining': String(rateLimit.remaining),
+        'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
+      },
       body: JSON.stringify(result)
     };
   }
