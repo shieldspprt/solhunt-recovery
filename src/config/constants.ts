@@ -68,13 +68,13 @@ export const ERROR_CODES = {
 
 export const ERROR_MESSAGES: Record<keyof typeof ERROR_CODES, string> = {
     INVALID_ADDRESS: "That doesn't look like a valid Solana wallet address.",
-    RPC_ERROR: 'Could not connect to the Solana network. Please try again in a moment.',
-    RPC_TIMEOUT: 'The Solana network is taking too long to respond. Please try again.',
+    RPC_ERROR: 'Could not connect to the Solana network. Try again in 30 seconds or switch to a different network.',
+    RPC_TIMEOUT: 'The Solana network is taking too long to respond. Check your internet connection or try again when network congestion is lower.',
     WALLET_NOT_CONNECTED: 'Please connect your wallet first.',
     INSUFFICIENT_SOL: 'You need at least 0.015 SOL to cover the service fee and network fees.',
     TX_BUILD_FAILED: 'Could not build the transaction. Please try again.',
     TX_REJECTED: 'Transaction was cancelled. Your wallet was not changed.',
-    TX_FAILED: 'The transaction failed on-chain. No fees were charged. Please try again.',
+    TX_FAILED: 'The transaction failed on-chain. Your funds are safe — try again or contact support if the issue persists.',
     TX_TIMEOUT: 'Transaction sent but confirmation timed out. Check Solscan to see if it went through.',
     SCAN_FAILED: 'Could not complete the scan. Please try again.',
     UNKNOWN: 'Something unexpected happened. Please refresh the page and try again.',
