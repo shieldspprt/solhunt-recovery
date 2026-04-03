@@ -46,6 +46,14 @@ interface BuildRecoveryTransactionArgs {
   batch_number?: number;
 }
 
+/** Union type for all tool arguments - ensures type safety */
+type ToolArgs = 
+  | GetWalletReportArgs 
+  | ScanTokenApprovalsArgs 
+  | BuildRevokeTransactionsArgs 
+  | BuildRecoveryTransactionArgs 
+  | DiscoverPlatformFeaturesArgs;
+
 /** Standard MCP error codes */
 type MCPErrorCode = 
   | 'INVALID_PARAMS'
@@ -305,7 +313,7 @@ function createMCPError(code: MCPErrorCode, message: string, tool?: string, deta
 
 async function executeTool(
   name: ToolName,
-  args: GetWalletReportArgs | ScanTokenApprovalsArgs | BuildRevokeTransactionsArgs | BuildRecoveryTransactionArgs | DiscoverPlatformFeaturesArgs,
+  args: ToolArgs,
   apiKey?: string
 ): Promise<unknown> {
   // Log the tool call for analytics
