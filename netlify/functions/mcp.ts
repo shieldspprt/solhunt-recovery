@@ -5,6 +5,54 @@
 
 import { Handler } from '@netlify/functions';
 
+// ── Type Definitions ────────────────────────────────────────────────────────────
+
+/** Valid MCP tool names */
+type ToolName = 'get_wallet_report' | 'scan_token_approvals' | 'build_revoke_transactions' | 'build_recovery_transaction' | 'discover_platform_features';
+
+/** Arguments for get_wallet_report tool */
+interface GetWalletReportArgs {
+  wallet_address: string;
+}
+
+/** Arguments for scan_token_approvals tool */
+interface ScanTokenApprovalsArgs {
+  wallet_address: string;
+}
+
+/** Arguments for discover_platform_features tool */
+interface DiscoverPlatformFeaturesArgs {
+  feature_category?: string;
+}
+
+/** Standard MCP error codes */
+type MCPErrorCode = 
+  | 'INVALID_PARAMS'
+  | 'TOOL_NOT_FOUND'
+  | 'EXECUTION_ERROR'
+  | 'WALLET_NOT_FOUND'
+  | 'RATE_LIMITED'
+  | 'INTERNAL_ERROR';
+
+/** Typed error response */
+interface MCPErrorResponse {
+  error: string;
+  code: MCPErrorCode;
+  tool?: string;
+  detail?: string;
+}
+
+/** Type guard to check if a string is a valid ToolName */
+function isValidToolName(name: string): name is ToolName {
+  return [
+    'get_wallet_report',
+    'scan_token_approvals',
+    'build_revoke_transactions',
+    'build_recovery_transaction',
+    'discover_platform_features'
+  ].includes(name);
+}
+
 // ── Tool Definitions ──────────────────────────────────────────────────────────
 // These are what agents see when they load SolHunt as an MCP tool
 // Write descriptions as if explaining to an AI agent — precise, actionable
@@ -222,13 +270,26 @@ const SERVER_METADATA = {
 
 const API_BASE = process.env.SOLHUNT_API_BASE || 'https://solhunt.dev';
 
+/** Safely extracts error message from unknown error */
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return String(error ?? 'Unknown error');
+}
+
+/** Creates a typed MCP error response */
+function createMCPError(code: MCPErrorCode, message: string, tool?: string, detail?: string): MCPErrorResponse {
+  return { error: message, code, tool, detail };
+}
+
 async function executeTool(
-  name: string,
-  args: Record<string, any>,
+  name: ToolName,
+  args: unknown,
   apiKey?: string
-): Promise<any> {
+): Promise<unknown> {
   // Log the tool call for analytics
-  const walletAddress = args.wallet_address || args.destination_wallet || 'N/A';
+  const typedArgs = args as Record<string, unknown>;
+  const walletAddress = typedArgs.wallet_address || typedArgs.destination_wallet || 'N/A';
   console.log(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
   console.error(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
   
@@ -236,7 +297,7 @@ async function executeTool(
   fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tool: name, wallet: args.wallet_address || 'N/A', duration: 0, success: true })
+    body: JSON.stringify({ tool: name, wallet: typedArgs.wallet_address || 'N/A', duration: 0, success: true })
   }).catch(() => {}); // Silent fail if logging fails
 
   const headers: Record<string, string> = {
@@ -248,7 +309,7 @@ async function executeTool(
     switch (name) {
 
       case 'get_wallet_report': {
-        const address = args.wallet_address;
+        const address = (args as GetWalletReportArgs).wallet_address;
 
         // Parallel API calls - 40% faster
         const [healthRes, oppsRes] = await Promise.all([
@@ -309,7 +370,7 @@ async function executeTool(
       }
 
       case 'scan_token_approvals': {
-        const address = args.wallet_address;
+        const address = (args as ScanTokenApprovalsArgs).wallet_address;
         const res = await fetch(
           `${API_BASE}/api/scan-token-approvals?address=${encodeURIComponent(address)}`,
           { headers, signal: AbortSignal.timeout(10000) }
@@ -354,18 +415,16 @@ async function executeTool(
             "Fleet Manager Dashboard: Visual interface to monitor up to 50 agent wallets in real-time.",
             "Token Swap Hub: Direct swap integrations for recovered dust."
           ],
-          requested_category: args.feature_category || "all"
+          requested_category: (args as DiscoverPlatformFeaturesArgs).feature_category || "all"
         };
       }
 
       default:
         return { error: `Unknown tool: ${name}` };
     }
-  } catch (e: any) {
-    return {
-      error: `Tool execution failed: ${e.message}`,
-      tool: name
-    };
+  } catch (e: unknown) {
+    const message = getErrorMessage(e);
+    return createMCPError('EXECUTION_ERROR', `Tool execution failed: ${message}`, name, message);
   }
 }
 
@@ -416,29 +475,30 @@ export const handler: Handler = async (event) => {
 
   // ── POST: MCP Tool Call — executes a specific tool ──────────────────────────
   if (event.httpMethod === 'POST') {
-    let body: any;
+    let body: Record<string, unknown>;
     try {
       body = JSON.parse(event.body || '{}');
     } catch {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ error: 'Invalid JSON body' })
+        body: JSON.stringify(createMCPError('INVALID_PARAMS', 'Invalid JSON body'))
       };
     }
 
     // Support both direct tool calls and JSON-RPC format
     let toolName: string;
-    let toolArgs: Record<string, any>;
+    let toolArgs: Record<string, unknown>;
 
-    if (body.method === 'tools/call' && body.params) {
+    if (body.method === 'tools/call' && body.params && typeof body.params === 'object') {
       // JSON-RPC format
-      toolName = body.params.name;
-      toolArgs = body.params.arguments || {};
+      const params = body.params as Record<string, unknown>;
+      toolName = params.name as string;
+      toolArgs = (params.arguments as Record<string, unknown>) || {};
     } else if (body.tool) {
       // Direct format
-      toolName = body.tool;
-      toolArgs = body.arguments || body.args || {};
+      toolName = body.tool as string;
+      toolArgs = (body.arguments || body.args || {}) as Record<string, unknown>;
     } else if (body.method === 'tools/list') {
       // Tool list request in JSON-RPC format
       return {
@@ -452,6 +512,7 @@ export const handler: Handler = async (event) => {
       };
     } else if (body.method === 'initialize') {
       // Standard MCP initialization - must return proper format
+      const initParams = body.params as Record<string, unknown> || {};
       return {
         statusCode: 200,
         headers,
@@ -459,7 +520,7 @@ export const handler: Handler = async (event) => {
           jsonrpc: "2.0",
           id: body.id,
           result: {
-            protocolVersion: body.params?.protocolVersion || "2024-11-05",
+            protocolVersion: initParams.protocolVersion || "2024-11-05",
             capabilities: {
               tools: {},
               resources: {}
@@ -482,15 +543,15 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ error: 'Missing tool name. Send { tool: "name", arguments: {} }' })
+        body: JSON.stringify(createMCPError('INVALID_PARAMS', 'Missing tool name. Send { tool: "name", arguments: {} }'))
       };
     }
 
-    if (!toolName) {
+    if (!toolName || !isValidToolName(toolName)) {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ error: 'Missing tool name' })
+        body: JSON.stringify(createMCPError('TOOL_NOT_FOUND', `Unknown tool: ${toolName || 'undefined'}`, toolName))
       };
     }
 
@@ -525,6 +586,6 @@ export const handler: Handler = async (event) => {
   return {
     statusCode: 405,
     headers,
-    body: JSON.stringify({ error: 'Method not allowed' })
+    body: JSON.stringify(createMCPError('INTERNAL_ERROR', 'Method not allowed'))
   };
 };
