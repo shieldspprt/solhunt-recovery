@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useMemo } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { scanWalletForDelegations } from '@/lib/scanner';
@@ -90,6 +90,11 @@ export function useWalletScanner() {
         return Date.now() - lastScanTimeRef.current < SCAN_COOLDOWN_MS;
     };
 
+    // Memoize derived boolean states to prevent unnecessary re-renders
+    const isScanning = useMemo(() => scanStatus === 'scanning', [scanStatus]);
+    const hasResults = useMemo(() => scanStatus === 'scan_complete', [scanStatus]);
+    const hasError = useMemo(() => scanStatus === 'error', [scanStatus]);
+
     return {
         scan,
         scanStatus,
@@ -97,8 +102,8 @@ export function useWalletScanner() {
         scanError,
         clearScan,
         isOnCooldown,
-        isScanning: scanStatus === 'scanning',
-        hasResults: scanStatus === 'scan_complete',
-        hasError: scanStatus === 'error',
+        isScanning,
+        hasResults,
+        hasError,
     };
 }

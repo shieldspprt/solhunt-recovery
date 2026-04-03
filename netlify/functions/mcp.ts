@@ -483,6 +483,16 @@ export const handler: Handler = async (event) => {
   
   const rateLimit = checkRateLimit(clientIp);
   
+  // Helper to build headers with rate limit info
+  const buildHeaders = (includeRateLimit = true): Record<string, string> => {
+    if (!includeRateLimit) return headers;
+    return {
+      ...headers,
+      'X-RateLimit-Remaining': String(rateLimit.remaining),
+      'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
+    };
+  };
+  
   // If rate limited, return early with 429
   if (!rateLimit.allowed) {
     return {
@@ -502,30 +512,21 @@ export const handler: Handler = async (event) => {
   if (event.httpMethod === 'GET' && (path === '/.well-known/mcp/server-card.json' || path.includes('server-card'))) {
     return {
       statusCode: 200,
-      headers: {
-        ...headers,
-        'X-RateLimit-Remaining': String(rateLimit.remaining),
-        'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
-      },
+      headers: buildHeaders(),
       body: JSON.stringify(SERVER_METADATA, null, 2)
     };
   }
 
-  // ── GET: MCP Discovery — returns server metadata and tool list ──────────────
-  // This is what MCP clients call to discover what tools are available
+  // ── GET: MCP Discovery ─────────────────────────────────────────────────────
   if (event.httpMethod === 'GET') {
     return {
       statusCode: 200,
-      headers: {
-        ...headers,
-        'X-RateLimit-Remaining': String(rateLimit.remaining),
-        'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
-      },
+      headers: buildHeaders(),
       body: JSON.stringify(SERVER_METADATA, null, 2)
     };
   }
 
-  // ── POST: MCP Tool Call — executes a specific tool ──────────────────────────
+  // ── POST: MCP Tool Call ────────────────────────────────────────────────────
   if (event.httpMethod === 'POST') {
     let body: Record<string, unknown>;
     try {
@@ -533,7 +534,7 @@ export const handler: Handler = async (event) => {
     } catch {
       return {
         statusCode: 400,
-        headers,
+        headers: buildHeaders(),
         body: JSON.stringify(createMCPError('INVALID_PARAMS', 'Invalid JSON body'))
       };
     }
@@ -555,11 +556,7 @@ export const handler: Handler = async (event) => {
       // Tool list request in JSON-RPC format
       return {
         statusCode: 200,
-        headers: {
-          ...headers,
-          'X-RateLimit-Remaining': String(rateLimit.remaining),
-          'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
-        },
+        headers: buildHeaders(),
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: body.id,
@@ -567,15 +564,11 @@ export const handler: Handler = async (event) => {
         })
       };
     } else if (body.method === 'initialize') {
-      // Standard MCP initialization - must return proper format
+      // Standard MCP initialization
       const initParams = body.params as Record<string, unknown> || {};
       return {
         statusCode: 200,
-        headers: {
-          ...headers,
-          'X-RateLimit-Remaining': String(rateLimit.remaining),
-          'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
-        },
+        headers: buildHeaders(),
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: body.id,
@@ -596,17 +589,13 @@ export const handler: Handler = async (event) => {
       // Just acknowledge
       return {
         statusCode: 200,
-        headers: {
-          ...headers,
-          'X-RateLimit-Remaining': String(rateLimit.remaining),
-          'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
-        },
+        headers: buildHeaders(),
         body: JSON.stringify({ jsonrpc: "2.0", result: null })
       };
     } else {
       return {
         statusCode: 400,
-        headers,
+        headers: buildHeaders(),
         body: JSON.stringify(createMCPError('INVALID_PARAMS', 'Missing tool name. Send { tool: "name", arguments: {} }'))
       };
     }
@@ -614,7 +603,7 @@ export const handler: Handler = async (event) => {
     if (!toolName || !isValidToolName(toolName)) {
       return {
         statusCode: 400,
-        headers,
+        headers: buildHeaders(),
         body: JSON.stringify(createMCPError('TOOL_NOT_FOUND', `Unknown tool: ${toolName || 'undefined'}`, toolName))
       };
     }
@@ -625,11 +614,7 @@ export const handler: Handler = async (event) => {
     if (body.method) {
       return {
         statusCode: 200,
-        headers: {
-          ...headers,
-          'X-RateLimit-Remaining': String(rateLimit.remaining),
-          'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
-        },
+        headers: buildHeaders(),
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: body.id || null,
@@ -646,18 +631,14 @@ export const handler: Handler = async (event) => {
     // Direct format response
     return {
       statusCode: 200,
-      headers: {
-        ...headers,
-        'X-RateLimit-Remaining': String(rateLimit.remaining),
-        'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
-      },
+      headers: buildHeaders(),
       body: JSON.stringify(result)
     };
   }
 
   return {
     statusCode: 405,
-    headers,
+    headers: buildHeaders(),
     body: JSON.stringify(createMCPError('INTERNAL_ERROR', 'Method not allowed'))
   };
 };
