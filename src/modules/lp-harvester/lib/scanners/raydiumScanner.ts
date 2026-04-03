@@ -9,6 +9,7 @@ import {
 } from '../../constants';
 import type { LPPosition } from '../../types';
 import { KNOWN_TOKEN_DECIMALS, KNOWN_TOKEN_SYMBOLS } from '../../utils/addresses';
+import { toValidPublicKey } from '@/lib/validation';
 
 interface ParsedTokenAmount {
     amount?: string;
@@ -369,6 +370,9 @@ export async function scanRaydiumPositions(
     walletAddress: string,
     connection: Connection
 ): Promise<LPPosition[]> {
+    // Validate wallet address before processing
+    toValidPublicKey(walletAddress);
+
     const [clmmResult, ammResult] = await Promise.allSettled([
         scanRaydiumClmmPositions(walletAddress, connection),
         scanRaydiumAmmPositions(walletAddress, connection),

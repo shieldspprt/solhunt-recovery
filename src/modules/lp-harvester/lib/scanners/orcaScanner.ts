@@ -15,6 +15,7 @@ import {
 import type { LPPosition } from '../../types';
 import { KNOWN_TOKEN_SYMBOLS } from '../../utils/addresses';
 import { createReadonlyWallet, toBase58, toUiAmount } from '../../utils/readonlyWallet';
+import { toValidPublicKey } from '@/lib/validation';
 
 interface ParsedTokenAccountInfo {
     mint: string;
@@ -42,6 +43,9 @@ export async function scanOrcaPositions(
     walletAddress: string,
     connection: Connection
 ): Promise<LPPosition[]> {
+    // Validate wallet address before processing
+    toValidPublicKey(walletAddress);
+
     const walletPublicKey = new PublicKey(walletAddress);
     const programId = new PublicKey(ORCA_WHIRLPOOL_PROGRAM_ID);
     const readonlyWallet = createReadonlyWallet(walletPublicKey);
