@@ -4,6 +4,12 @@ import { NetworkFirst, NetworkOnly } from 'workbox-strategies';
 
 declare let self: ServiceWorkerGlobalScope;
 
+// ExtendableEvent is defined in lib.dom.d.ts as part of Service Worker spec
+// It extends Event and is used for install/activate events
+type ExtendableEvent = Event & {
+  waitUntil(f: Promise<unknown>): void;
+};
+
 // ──────────────────────────────────────────────────────
 // 1. Precache static build assets (injected by vite-plugin-pwa)
 // ──────────────────────────────────────────────────────
