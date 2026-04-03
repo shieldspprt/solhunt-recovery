@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Wallet, CheckCircle2 } from 'lucide-react';
 import { formatSOLValue } from '@/lib/formatting';
 import type { EmptyTokenAccount } from '@/types';
@@ -7,7 +8,7 @@ interface EmptyAccountsInfoProps {
     estimatedRecoverableSOL: number;
 }
 
-export function EmptyAccountsInfo({
+export const EmptyAccountsInfo = memo(function EmptyAccountsInfo({
     emptyAccounts,
     estimatedRecoverableSOL,
 }: EmptyAccountsInfoProps) {
@@ -39,4 +40,4 @@ export function EmptyAccountsInfo({
             </div>
         </div>
     );
-}
+});

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { PROTOCOL_INFO } from '@/config/constants';
 import type { StakingProtocol } from '@/types';
 
@@ -7,7 +7,7 @@ interface ProtocolBadgeProps {
     size?: 'sm' | 'md';
 }
 
-export function ProtocolBadge({ protocol, size = 'sm' }: ProtocolBadgeProps) {
+export const ProtocolBadge = memo(function ProtocolBadge({ protocol, size = 'sm' }: ProtocolBadgeProps) {
     const [logoFailed, setLogoFailed] = useState(false);
     const info = PROTOCOL_INFO[protocol] || PROTOCOL_INFO.unknown;
 
@@ -32,6 +32,7 @@ export function ProtocolBadge({ protocol, size = 'sm' }: ProtocolBadgeProps) {
                 'inline-flex items-center gap-1.5 border border-shield-border bg-shield-bg/70 text-shield-text',
                 styles.container,
             ].join(' ')}
+            aria-label={`${info.displayName} protocol`}
         >
             {info.logoUri && !logoFailed ? (
                 <img
@@ -48,4 +49,4 @@ export function ProtocolBadge({ protocol, size = 'sm' }: ProtocolBadgeProps) {
             <span className="font-medium">{info.displayName}</span>
         </span>
     );
-}
+});
