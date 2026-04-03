@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { ReactNode } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
@@ -8,7 +9,7 @@ interface PageWrapperProps {
     children: ReactNode;
 }
 
-export function PageWrapper({ children }: PageWrapperProps) {
+export const PageWrapper = memo(function PageWrapper({ children }: PageWrapperProps) {
     const location = useLocation();
     const isHome = location.pathname === '/';
 
@@ -21,8 +22,9 @@ export function PageWrapper({ children }: PageWrapperProps) {
                         <Link
                             to="/"
                             className="inline-flex items-center gap-1.5 text-sm font-medium text-shield-muted hover:text-shield-text transition-colors group"
+                            aria-label="Back to Home"
                         >
-                            <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" />
+                            <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" aria-hidden="true" />
                             Back to Home
                         </Link>
                     </div>
@@ -32,4 +34,4 @@ export function PageWrapper({ children }: PageWrapperProps) {
             <Footer />
         </div>
     );
-}
+});
