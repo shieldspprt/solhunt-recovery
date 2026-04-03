@@ -1,4 +1,5 @@
 import { Sparkles, ArrowRightLeft } from 'lucide-react';
+import { useMemo } from 'react';
 import { useDustConsolidator } from '@/hooks/useDustConsolidator';
 import { useDustBurnReclaim } from '@/hooks/useDustBurnReclaim';
 import { DUST_BURN_RECLAIM_FEE_PERCENT, DUST_SWAP_FEE_PERCENT } from '@/config/constants';
@@ -65,8 +66,14 @@ export function DustCard() {
         );
     }
 
-    const serviceFeeSOL = estimatedSelectionSOL * (DUST_SWAP_FEE_PERCENT / 100);
-    const receiveSOL = Math.max(estimatedSelectionSOL - serviceFeeSOL, 0);
+    const serviceFeeSOL = useMemo(
+        () => estimatedSelectionSOL * (DUST_SWAP_FEE_PERCENT / 100),
+        [estimatedSelectionSOL]
+    );
+    const receiveSOL = useMemo(
+        () => Math.max(estimatedSelectionSOL - serviceFeeSOL, 0),
+        [estimatedSelectionSOL, serviceFeeSOL]
+    );
 
     return (
         <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full animate-in fade-in slide-in-from-bottom-4 duration-700">

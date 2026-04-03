@@ -67,8 +67,14 @@ export function LPHarvesterCard() {
         [selectedPositions]
     );
 
-    const feePercent = willCompound ? HARVEST_COMPOUND_FEE_PERCENT : HARVEST_FEE_PERCENT;
-    const serviceFeeUSD = selectedUSD * (feePercent / 100);
+    const feePercent = useMemo(
+        () => (willCompound ? HARVEST_COMPOUND_FEE_PERCENT : HARVEST_FEE_PERCENT),
+        [willCompound]
+    );
+    const serviceFeeUSD = useMemo(
+        () => selectedUSD * (feePercent / 100),
+        [selectedUSD, feePercent]
+    );
 
     if (scanStatus === 'idle') {
         return (
