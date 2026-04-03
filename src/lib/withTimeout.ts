@@ -8,6 +8,7 @@
  */
 import { Connection } from '@solana/web3.js';
 import { ERROR_MESSAGES } from '@/config/constants';
+import { createAppError } from '@/lib/errors';
 import type { AppError } from '@/types';
 
 /**
@@ -70,11 +71,10 @@ export async function confirmTransactionRobust(
             }
 
             if (status.err) {
-                throw {
-                    code: 'TX_FAILED',
-                    message: ERROR_MESSAGES.TX_FAILED,
-                    technicalDetail: JSON.stringify(status.err),
-                } satisfies AppError;
+                throw createAppError(
+                    'TX_FAILED',
+                    JSON.stringify(status.err)
+                );
             }
 
             if (
@@ -86,14 +86,14 @@ export async function confirmTransactionRobust(
 
             await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
         } catch (err: unknown) {
+            // Re-throw if already an AppError, otherwise wrap it
             if (err && typeof err === 'object' && 'code' in err) throw err;
             await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
         }
     }
 
-    throw {
-        code: 'TX_TIMEOUT',
-        message: ERROR_MESSAGES.TX_TIMEOUT,
-        technicalDetail: `Confirmation timed out after ${maxTimeoutMs}ms for signature: ${signature}`,
-    } satisfies AppError;
+    throw createAppError(
+        'TX_TIMEOUT',
+        `Confirmation timed out after ${maxTimeoutMs}ms for signature: ${signature}`
+    );
 }

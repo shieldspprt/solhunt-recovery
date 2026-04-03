@@ -1,14 +1,8 @@
 import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, PrecacheEntry } from 'workbox-precaching';
 import { registerRoute, NavigationRoute } from 'workbox-routing';
-import { NetworkFirst, NetworkOnly } from 'workbox-strategies';
+import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
 
 declare let self: ServiceWorkerGlobalScope;
-
-// ExtendableEvent is defined in lib.dom.d.ts as part of Service Worker spec
-// It extends Event and is used for install/activate events
-type ExtendableEvent = Event & {
-  waitUntil(f: Promise<unknown>): void;
-};
 
 // ──────────────────────────────────────────────────────
 // 1. Precache static build assets (injected by vite-plugin-pwa)
@@ -75,8 +69,17 @@ registerRoute(
 );
 
 // ──────────────────────────────────────────────────────
-// 5. Lifecycle: skip waiting + claim clients for fast updates
-//    Note: self.* methods resolve at runtime in the SW context
+// 5. App shell: Stale-while-revalidate for faster loads
+//    Show cached version immediately, update in background
+// ──────────────────────────────────────────────────────
+registerRoute(
+  /\.(?:js|css)$/,
+  new StaleWhileRevalidate({ cacheName: 'static-assets' })
+);
+
+// ──────────────────────────────────────────────────────
+// 6. Lifecycle: skip waiting + claim clients for fast updates
+//    Uses built-in ExtendableEvent from Service Worker spec
 // ──────────────────────────────────────────────────────
 self.skipWaiting();
 self.addEventListener('activate', (event: ExtendableEvent) => {

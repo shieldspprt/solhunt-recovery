@@ -25,6 +25,9 @@ declare module 'workbox-strategies' {
     export class NetworkOnly {
         constructor(options?: { cacheName?: string }): void;
     }
+    export class StaleWhileRevalidate {
+        constructor(options?: { cacheName?: string }): void;
+    }
 }
 
 declare module 'virtual:pwa-register' {
