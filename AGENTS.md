@@ -1,166 +1,189 @@
-# SolHunt Recovery — codebase Audit & Agent Guide
+# SolHunt Recovery — Multi-Dimension Agent Guide
 
-## 🚨 Solana dApp Store Compliance (CRITICAL PRIORITY)
+## Four Dimensions
 
-**Status**: On Hold — Addressing non-compliance issues
-
-**Non-Compliance Detail Received**:
-> "Wallet connect and disconnect must work reliably"
-
-**Links**:
-- [Solana dApp Store Developer Agreement](https://dappstore.solanamobile.com/developer-agreement)
-- [Solana dApp Store Policies](https://dappstore.solanamobile.com/policies)
-
-### Compliance Checklist
-
-| Requirement | Status | File/Area |
-|-------------|--------|-----------|
-| ✅ Wallet connect/disconnect reliability | **FIXED** | `src/components/wallet/WalletStatusManager.tsx` |
-| ✅ Transaction error handling + RPC retry logic | **FIXED** | `src/lib/rpcRetry.ts` + applied to all tx builders |
-| ✅ Mobile wallet deep links + TWA config | **FIXED** | `app/src/main/AndroidManifest.xml` — added `solana:` and `phantom:` intent filters |
-| ✅ Fee disclosure verification + user consent flows | **COMPLETE** ✅ | `RevokeConfirmModal`, `ReclaimConfirmModal`, `DustConfirmModal`, `DustBurnConfirmModal`, `ClaimConfirmModal`, `MEVClaimConfirmModal` |
-| ✅ RPC retry hardening — scanner RPC calls | **COMPLETE** ✅ | `rpcRetry.ts` applied to meteoraScanner (IN PROGRESS) |
-
-### Hourly Work Schedule
-
-The agent will work **every hour** to achieve full compliance:
-1. **Hour 1**: ✅ Wallet reliability (COMPLETE)
-2. **Hour 2**: ✅ Transaction error handling + RPC retry logic (COMPLETE)
-3. **Hour 3**: ✅ Mobile wallet deep links + TWA config (COMPLETE)
-4. **Hour 4**: ✅ Fee disclosure + RPC retry hardening (COMPLETE) — decommission scanner now uses withRetry
-5. **Hour 5**: ✅ RPC retry audit — buffer-recovery scanner wrapped; remaining: lp-harvester, ticketScanner (COMPLETE)
+SolHunt operates across 4 distinct product surfaces. Each has its own stack, priorities, and improvement cadence. Every hourly run should cover at least 2 dimensions.
 
 ---
 
-## Architecture Overview
+## Dimension 1: SolHunt PWA (React Web App)
 
-**9 Recovery Engines**: Revoke, Reclaim Rent, Dust Consolidator, Staking Ticket Finder, LP Fee Harvester, Buffer Account Recovery, Decommission Scanner, cNFT Cleaner, MEV/Priority Fee Claims.
+**Path**: `/home/workspace/solhunt-recovery/`
+**Stack**: React 19 + Vite + TypeScript 5.9 strict + Tailwind CSS + Zustand + `@solana/web3.js`
+**Repo**: `shieldspprt/solhunt-recovery`
 
-**Stack**: React 19 + Vite + TypeScript 5.9 (strict mode) + `@solana/web3.js` + Tailwind CSS + Zustand state management.
+### 9 Recovery Engines
+Revoke, Reclaim Rent, Dust Consolidator, Staking Ticket Finder, LP Fee Harvester, Buffer Account Recovery, Decommission Scanner, cNFT Cleaner, MEV/Priority Fee Claims.
 
-**Key Directories**: `src/lib/` (core logic), `src/modules/` (engine-specific), `src/hooks/` (React hooks), `src/components/` (UI), `src/pages/` (routes).
+### Priority Areas (PWA)
 
----
+| Priority | Area | Status |
+|----------|------|--------|
+| HIGH | Input validation — remaining scanners | Open |
+| HIGH | Type safety — remove `any` from catch blocks | Open |
+| MEDIUM | Performance — memoization + virtualisation | In progress |
+| MEDIUM | Error handling — circuit breakers for external APIs | Open |
+| LOW | Code quality — JSDoc, naming consistency | Open |
 
-## Priority Improvement Areas
+### Key Files (PWA)
 
-### 1. Security (HIGHEST)
-- Add input sanitization to all wallet address inputs — **bufferCloser.ts now validates via `toValidPublicKey`**; remaining: orcaScanner, raydiumScanner, meteoraHarvester, orcaHarvester, ticketScanner, revoke, reclaimRent, mevClaimBuilder, withdrawalBuilder
-- Add rate limiting to prevent RPC spam
-- Add transaction size limits (128 accounts max per Solana tx)
-- Add slippage protection for swap routes
-- Add signature verification before broadcasting
+| Category | Files |
+|----------|-------|
+| Critical security | `src/lib/transactionSender.ts`, `src/lib/validation.ts`, `src/lib/transactionVerifier.ts` |
+| Core RPC | `src/lib/rpcRetry.ts`, `src/lib/scanner.ts` |
+| Engines | `src/modules/*/lib/*.ts` (orca, raydium, meteora, ticket, buffer, decommission) |
+| Hooks | `src/modules/*/hooks/use*Scanner.ts` |
+| UI components | `src/components/`, `src/pages/` |
+| PWA config | `vite.config.ts`, `src/sw.ts`, `app/` (Android TWA) |
 
-### 2. Type Safety (HIGH)
-- Replace `: any` in:
-  - `useDecommissionScanner.ts` lines 11, 46, 143, 177
-  - `sw.ts` line 78
-- Add strict typing for API responses (DexScreener, Jito, Jupiter)
-- Add branded types for `PublicKey` vs `string` address
+### Compliance Archive ✅
 
-### 3. Error Handling (HIGH)
-- Add exponential backoff for RPC retries
-- Add circuit breaker pattern for failing external APIs
-- Add user-friendly error recovery suggestions
-- Standardize error codes across all engines
-
-### 4. Performance (MEDIUM)
-- Memoize heavy components (scanner results, tables)
-- Debounce input validation in forms
-- Use React.memo for list items (PositionRow, TicketRow)
-- Virtualize long lists with `@tanstack/react-virtual`
-
-### 5. Code Quality (MEDIUM)
-- Extract duplicated RPC connection logic
-- Add missing JSDoc to `lib/` functions
-- Fix unused imports and variables (TypeScript strict catches these)
-- Standardize naming: `handleX` vs `onX` vs `doX`
+| Requirement | Status | File |
+|-------------|--------|------|
+| Wallet connect/disconnect | ✅ FIXED | `WalletStatusManager.tsx` |
+| TX error handling + RPC retry | ✅ FIXED | `rpcRetry.ts` |
+| Mobile deep links + TWA | ✅ FIXED | `AndroidManifest.xml` |
+| Fee disclosure + consent flows | ✅ FIXED | All `*ConfirmModal` components |
+| RPC retry hardening | ✅ FIXED | All scanner modules |
 
 ---
 
-## File Index by Category
+## Dimension 2: SolHunt MCP Server (AI Agent Interface)
 
-### Critical Security Files (Review First)
-- `src/lib/transactionSender.ts` — Jito + fallback RPC
-- `src/lib/validation.ts` — Address validation
-- `src/lib/transactionVerifier.ts` — TX verification before signing
-- `src/config/solana.ts` — RPC endpoints, cluster config
+**Path**: `/home/workspace/solhunt-recovery/netlify/functions/mcp.ts`
+**Deployed**: `https://solhunt.dev/.netlify/functions/mcp`
+**Discovery**: `https://solhunt.dev/.well-known/mcp/server-card.json`
 
-### Type-Heavy Files (Needs Strict Types)
-- `src/types/index.ts` — 500+ lines, well-structured but could use branded types
-- `src/modules/*/types.ts` — Engine-specific types
-- API response types: `DexScreenerPair`, `JupiterQuoteResponse`, `RaydiumQuoteResponse`
+### 5 MCP Tools
 
-### Error-Prone Areas
-- `src/modules/*/hooks/use*Scanner.ts` — All scanner hooks have try/catch but could use better typed errors
-- `src/lib/*Scanner.ts` — RPC calls that can fail
-- `src/lib/dustSwapper.ts` — Swap quote fetching
+| Tool | Purpose |
+|------|---------|
+| `get_wallet_report` | Full wallet analysis in one call (health score, recoverable SOL, fee preview) |
+| `scan_token_approvals` | Find all dApp spending approvals, rated by risk |
+| `build_revoke_transactions` | Build unsigned tx to revoke token approvals |
+| `build_recovery_transaction` | Build unsigned tx to recover SOL from zero-balance accounts |
+| `discover_platform_features` | Cross-sell web platform capabilities |
 
-### Performance Hotspots
-- `src/modules/lp-harvester/components/PositionRow.tsx` — Rendered many times
-- `src/modules/decommission/components/DecommissionResultsList.tsx` — Large lists
-- `src/components/scanner/ScanResults.tsx` — Dynamic content
+### Priority Areas (MCP)
 
----
+| Priority | Area | Status |
+|----------|------|--------|
+| HIGH | Add `preview_recovery` tool — explicit fee preview before building | Open |
+| HIGH | Parallelize `get_wallet_report` internal calls (already 40% faster) | Open |
+| MEDIUM | Add rate limiting headers (`X-RateLimit-Remaining`, `X-RateLimit-Reset`) | Open |
+| MEDIUM | Typed error responses — all error cases return `{ error, code, detail }` | Open |
+| LOW | Configurable fee percentage via `SOLHUNT_FEE_PERCENT` env var | Open |
 
-## Patterns to Follow
+### Key Patterns (MCP)
 
-### Error Handling Pattern (from `errors.ts`)
 ```typescript
-import { createAppError } from '@/lib/errors';
-throw createAppError('RPC_ERROR', `Details: ${err.message}`);
+// JSON-RPC format support
+if (body.method === 'tools/call') {
+  toolName = body.params.name;
+  toolArgs = body.params.arguments || {};
+}
+
+// Return in request format
+return { jsonrpc: "2.0", id, result: { content: [{ type: "text", text: JSON.stringify(result) }] } };
 ```
 
-### Validation Pattern (from `validation.ts`)
 ```typescript
-import { toValidPublicKey } from '@/lib/validation';
-const pubkey = toValidPublicKey(address); // throws on invalid
-```
-
-### Transaction Pattern (from `transactionSender.ts`)
-```typescript
-import { sendWithJito } from '@/lib/transactionSender';
-const sig = await sendWithJito(signedTx, connection);
+// Smithery server card at /.well-known/mcp/server-card.json
+const SERVER_METADATA = { schema_version: "1.0", name: "solhunt", endpoints: { mcp: { url: "..." } } };
 ```
 
 ---
 
-## Known Issues (From Code Review)
+## Dimension 3: SolHunt Skill (Zo / AI Agent Onboarding)
 
-| File | Line | Issue | Priority | Status |
-|------|------|-------|----------|--------|
-| `positionValueEstimator.ts` | 61 | `as any` for mint data | Medium | FIXED |
-| `useDecommissionScanner.ts` | 11 | `any[]` typed log | Low | Open |
-| `useDecommissionScanner.ts` | 46, 143, 177 | `err: any` in catch | Medium | Open |
-| `sw.ts` | 78 | `event: any` in ServiceWorker | Low | Open |
-| Transaction sender | - | No max retry limit | Medium | Open |
+**Path**: `/home/workspace/Skills/solhunt-mcp/SKILL.md`
+**Purpose**: Guide for AI agents to discover, configure, and use SolHunt MCP
 
----
+### Priority Areas (Skill)
 
-## Success Criteria
-
-A "blockchain-grade" Solana dApp should have:
-- ✅ Strict TypeScript (no `any` except where truly necessary)
-- ✅ Input validation at all entry points
-- ✅ Retry logic with exponential backoff for RPC
-- ✅ Transaction simulation before sending
-- ✅ Graceful degradation when services are down
-- ✅ Clear user feedback for all error states
-- ✅ No hardcoded values in business logic
+| Priority | Area | Status |
+|----------|------|--------|
+| HIGH | Keep SKILL.md in sync with MCP tool schema changes | Open |
+| MEDIUM | Add usage examples for each tool | Open |
+| MEDIUM | Add safety notes and custody model explanation | Open |
+| LOW | Add troubleshooting section | Open |
 
 ---
 
-## Agent Workflow
+## Dimension 4: SolHunt TWA / Mobile (Android PWA)
 
-1. **Pick ONE improvement area** from Priority list above
-2. **Pick ONE file** from the File Index
-3. Make a focused change
-4. Run `npm run typecheck` — must pass
-5. Commit with conventional message: `security:`, `types:`, `refactor:`, `perf:`, `fix:`
+**Path**: `/home/workspace/solhunt-recovery/app/`
+**Stack**: AndroidManifest.xml, Trusted Web Activity, PWA manifest
 
-**Tool Budget**: Stay under 30 tool calls per run to avoid 50-call limit.
+### Priority Areas (TWA/Mobile)
+
+| Priority | Area | Status |
+|----------|------|--------|
+| HIGH | Verify `solana://` and `phantom://` deep links in AndroidManifest | ✅ FIXED |
+| MEDIUM | Add `android:shortcuts` for quick wallet scan | Open |
+| MEDIUM | Push notification token registration for scan completion | Open |
 
 ---
 
-Last Updated: 2026-03-31
-Total Files: 139 `.ts/.tsx` source files
+## Unified Agent Workflow
+
+Each hourly run should span **at least 2 dimensions**. Suggested pairing:
+
+| Run | Primary | Secondary |
+|-----|---------|-----------|
+| Hourly | PWA perf/type fixes | MCP error typing |
+| Hourly | PWA security (validation) | Skill sync |
+| Hourly | MCP tool additions | TWA deep link verification |
+
+### Workflow Steps
+
+1. **Pick 1 improvement** from any dimension's Priority Areas
+2. **Pick 1 file** from the corresponding File Index
+3. **Make a focused change** (one concern per commit)
+4. **Type check + build**:
+   ```bash
+   cd /home/workspace/solhunt-recovery && bun install && bun run tsc --noEmit && bun run build
+   ```
+5. **Commit** with conventional message: `perf(pwa):`, `fix(mcp):`, `types(skill):`, `fix(twa):`
+6. **Push**: `git push origin master`
+7. **Send email report** with build status, files changed, impact metrics, and 3 tweet drafts
+
+---
+
+## Type Safety (Cross-Dimension)
+
+### Remaining `any` to fix
+
+| File | Line(s) | Severity |
+|------|---------|----------|
+| `useDecommissionScanner.ts` | 46, 143, 177 (catch blocks) | Medium |
+| `sw.ts` | 78 (ExtendableEvent) | Low |
+| `netlify/functions/mcp.ts` | `args: Record<string, any>` | Medium |
+
+### Error typing pattern
+
+```typescript
+// Good
+catch (err: unknown) {
+  const appError = createAppError('SCAN_FAILED', err instanceof Error ? err.message : String(err));
+}
+
+// MCP errors should use codes
+return { error: `Tool execution failed: ${e.message}`, code: 'EXECUTION_ERROR', tool: name };
+```
+
+---
+
+## Success Criteria (All Dimensions)
+
+| Dimension | Criteria |
+|-----------|----------|
+| PWA | Strict TypeScript (no `any`), input validation at all entry points, retry logic, simulation before send |
+| MCP | All 5 tools implemented, JSON-RPC + direct format, typed errors, rate limit headers |
+| Skill | Synced with MCP schema, 3+ examples per tool, safety notes |
+| TWA | Deep links verified, shortcuts configured, offline-capable |
+
+---
+
+Last Updated: 2026-04-03
+Total Files: 139 `.ts/.tsx` source files (PWA) + 1 MCP server + 1 Skill doc
