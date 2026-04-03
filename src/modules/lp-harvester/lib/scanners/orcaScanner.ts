@@ -16,6 +16,7 @@ import type { LPPosition } from '../../types';
 import { KNOWN_TOKEN_SYMBOLS } from '../../utils/addresses';
 import { createReadonlyWallet, toBase58, toUiAmount } from '../../utils/readonlyWallet';
 import { toValidPublicKey } from '@/lib/validation';
+import { withRetry } from '@/lib/rpcRetry';
 
 interface ParsedTokenAccountInfo {
     mint: string;
@@ -57,10 +58,14 @@ export async function scanOrcaPositions(
     );
     const client = buildWhirlpoolClient(ctx);
 
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
-        walletPublicKey,
-        { programId: TOKEN_PROGRAM_ID },
-        'confirmed'
+    // Wrap RPC call with retry for dApp Store compliance - handles transient failures
+    const tokenAccounts = await withRetry(
+        () => connection.getParsedTokenAccountsByOwner(
+            walletPublicKey,
+            { programId: TOKEN_PROGRAM_ID },
+            'confirmed'
+        ),
+        { operationName: 'getParsedTokenAccountsByOwner' }
     );
 
     const nftMints = tokenAccounts.value
