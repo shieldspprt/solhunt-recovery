@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
@@ -13,22 +13,26 @@ import { Toaster } from 'react-hot-toast';
 
 import { primaryConnection } from '@/config/solana';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
-import { HomePage } from '@/pages/HomePage';
-import { ScanPage } from '@/pages/ScanPage';
-import { TicketFinderPage } from '@/pages/TicketFinderPage';
-import { LpFeeHarvesterPage } from '@/pages/LpFeeHarvesterPage';
-import { BufferRecoveryPage } from '@/pages/BufferRecoveryPage';
-import { NotFoundPage } from '@/pages/NotFoundPage';
-import { HowItWorksPage } from '@/pages/HowItWorksPage';
-import { EngineHowItWorksPage } from '@/pages/EngineHowItWorksPage';
-import { LearnPage } from '@/pages/LearnPage';
-import { DecommissionPage } from '@/modules/decommission/components/DecommissionPage';
-import { PrivacyPage } from '@/pages/PrivacyPage';
-import { TermsPage } from '@/pages/TermsPage';
-import { LicensePage } from '@/pages/LicensePage';
-import { CopyrightPage } from '@/pages/CopyrightPage';
+import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useAppStore } from '@/hooks/useAppStore';
 import { WalletStatusManager } from '@/components/wallet/WalletStatusManager';
+
+// Lazy-loaded pages for code splitting — reduces initial bundle size
+// Named exports are wrapped to provide default export for React.lazy
+const HomePage = lazy(() => import('@/pages/HomePage').then(m => ({ default: m.HomePage })));
+const ScanPage = lazy(() => import('@/pages/ScanPage').then(m => ({ default: m.ScanPage })));
+const TicketFinderPage = lazy(() => import('@/pages/TicketFinderPage').then(m => ({ default: m.TicketFinderPage })));
+const LpFeeHarvesterPage = lazy(() => import('@/pages/LpFeeHarvesterPage').then(m => ({ default: m.LpFeeHarvesterPage })));
+const BufferRecoveryPage = lazy(() => import('@/pages/BufferRecoveryPage').then(m => ({ default: m.BufferRecoveryPage })));
+const NotFoundPage = lazy(() => import('@/pages/NotFoundPage').then(m => ({ default: m.NotFoundPage })));
+const HowItWorksPage = lazy(() => import('@/pages/HowItWorksPage').then(m => ({ default: m.HowItWorksPage })));
+const EngineHowItWorksPage = lazy(() => import('@/pages/EngineHowItWorksPage').then(m => ({ default: m.EngineHowItWorksPage })));
+const LearnPage = lazy(() => import('@/pages/LearnPage').then(m => ({ default: m.LearnPage })));
+const DecommissionPage = lazy(() => import('@/modules/decommission/components/DecommissionPage').then(m => ({ default: m.DecommissionPage })));
+const PrivacyPage = lazy(() => import('@/pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
+const TermsPage = lazy(() => import('@/pages/TermsPage').then(m => ({ default: m.TermsPage })));
+const LicensePage = lazy(() => import('@/pages/LicensePage').then(m => ({ default: m.LicensePage })));
+const CopyrightPage = lazy(() => import('@/pages/CopyrightPage').then(m => ({ default: m.CopyrightPage })));
 
 // Default styles that can be overridden by your app
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -96,24 +100,26 @@ function App() {
                         <WalletStatusManager />
                         <BrowserRouter>
                             <AgentUrlParser />
-                            <Routes>
-                                <Route path="/" element={<HomePage />} />
-                                <Route path="/scan" element={<ScanPage />} />
-                                <Route path="/tickets" element={<TicketFinderPage />} />
-                                <Route path="/lp-fees" element={<LpFeeHarvesterPage />} />
-                                <Route path="/buffers" element={<BufferRecoveryPage />} />
-                                <Route path="/how-it-works" element={<HowItWorksPage />} />
-                                <Route path="/how-it-works/engine/:id" element={<EngineHowItWorksPage />} />
-                                <Route path="/learn" element={<LearnPage />} />
-                                <Route path="/learn/:id" element={<LearnPage />} />
-                                <Route path="/decommission" element={<DecommissionPage />} />
-                                <Route path="/privacy" element={<PrivacyPage />} />
-                                <Route path="/terms" element={<TermsPage />} />
-                                <Route path="/license" element={<LicensePage />} />
-                                <Route path="/copyright" element={<CopyrightPage />} />
-                                <Route path="/404" element={<NotFoundPage />} />
-                                <Route path="*" element={<Navigate to="/404" replace />} />
-                            </Routes>
+                            <Suspense fallback={<LoadingSpinner fullpage message="Loading..." />}>
+                                <Routes>
+                                    <Route path="/" element={<HomePage />} />
+                                    <Route path="/scan" element={<ScanPage />} />
+                                    <Route path="/tickets" element={<TicketFinderPage />} />
+                                    <Route path="/lp-fees" element={<LpFeeHarvesterPage />} />
+                                    <Route path="/buffers" element={<BufferRecoveryPage />} />
+                                    <Route path="/how-it-works" element={<HowItWorksPage />} />
+                                    <Route path="/how-it-works/engine/:id" element={<EngineHowItWorksPage />} />
+                                    <Route path="/learn" element={<LearnPage />} />
+                                    <Route path="/learn/:id" element={<LearnPage />} />
+                                    <Route path="/decommission" element={<DecommissionPage />} />
+                                    <Route path="/privacy" element={<PrivacyPage />} />
+                                    <Route path="/terms" element={<TermsPage />} />
+                                    <Route path="/license" element={<LicensePage />} />
+                                    <Route path="/copyright" element={<CopyrightPage />} />
+                                    <Route path="/404" element={<NotFoundPage />} />
+                                    <Route path="*" element={<Navigate to="/404" replace />} />
+                                </Routes>
+                            </Suspense>
                         </BrowserRouter>
 
                         <Toaster
