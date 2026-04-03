@@ -4,7 +4,7 @@ import { useAppStore } from '@/hooks/useAppStore';
 import { scanWalletForDelegations } from '@/lib/scanner';
 import { logScanStarted, logScanComplete, logScanError } from '@/lib/analytics';
 import { SCAN_COOLDOWN_MS, ERROR_CODES, ERROR_MESSAGES } from '@/config/constants';
-import type { AppError } from '@/types';
+import { isAppError, toAppError } from '@/lib/errors';
 
 /**
  * Hook that wraps the scanner logic with wallet adapter integration,
@@ -74,24 +74,21 @@ export function useWalletScanner() {
                 scanDurationMs: result.scanDurationMs,
             });
         } catch (error) {
-            const appError: AppError =
-                error && typeof error === 'object' && 'code' in error
-                    ? (error as AppError)
-                    : {
-                        code: ERROR_CODES.UNKNOWN,
-                        message: ERROR_MESSAGES.UNKNOWN,
-                        technicalDetail:
-                            error instanceof Error ? error.message : String(error),
-                    };
+            // Use type guard for safer, cleaner error handling
+            const appError = isAppError(error) 
+                ? error 
+                : toAppError(error, 'SCAN_FAILED');
 
             setScanError(appError);
             logScanError(appError.code);
         }
     }, [publicKey, agentWallet, connection, setScanStatus, setScanResult, setScanError]);
 
-    const isOnCooldown = useCallback(() => {
+    // isOnCooldown is a simple function - no need for useCallback
+    // since it only accesses the ref, not React state
+    const isOnCooldown = () => {
         return Date.now() - lastScanTimeRef.current < SCAN_COOLDOWN_MS;
-    }, []);
+    };
 
     return {
         scan,

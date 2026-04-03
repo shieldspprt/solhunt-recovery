@@ -16,3 +16,41 @@ export function createAppError(
         technicalDetail,
     };
 }
+
+/**
+ * Type guard to check if an error is an AppError.
+ * Use this to safely narrow `unknown` or `Error` types to AppError.
+ *
+ * @example
+ * if (isAppError(error)) {
+ *   // error is now typed as AppError
+ *   console.log(error.code, error.message);
+ * }
+ */
+export function isAppError(error: unknown): error is AppError {
+    return (
+        error !== null &&
+        typeof error === 'object' &&
+        'code' in error &&
+        typeof (error as Record<string, unknown>).code === 'string' &&
+        'message' in error &&
+        typeof (error as Record<string, unknown>).message === 'string' &&
+        'technicalDetail' in error &&
+        typeof (error as Record<string, unknown>).technicalDetail === 'string'
+    );
+}
+
+/**
+ * Safely extracts an AppError from an unknown error value.
+ * Falls back to creating a new AppError if the error is not already an AppError.
+ */
+export function toAppError(error: unknown, fallbackCode: keyof typeof ERROR_CODES = 'UNKNOWN'): AppError {
+    if (isAppError(error)) {
+        return error;
+    }
+    
+    return createAppError(
+        fallbackCode,
+        error instanceof Error ? error.message : String(error ?? 'Unknown error')
+    );
+}
