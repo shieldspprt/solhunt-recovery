@@ -6,6 +6,7 @@ import {
 import type { LPPosition } from '../../types';
 import { KNOWN_TOKEN_DECIMALS, KNOWN_TOKEN_SYMBOLS } from '../../utils/addresses';
 import { withRetry } from '@/lib/rpcRetry';
+import { toValidPublicKey } from '@/lib/validation';
 
 interface MeteoraApiPosition {
     position?: string;
@@ -296,6 +297,9 @@ export async function scanMeteoraPositions(
     walletAddress: string,
     connection: Connection
 ): Promise<LPPosition[]> {
+    // SECURITY: Validate wallet address before any RPC calls
+    toValidPublicKey(walletAddress);
+
     try {
         return await parseSdkPositions(walletAddress, connection);
     } catch {
