@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { ProtocolBadge } from '@/components/tickets/ProtocolBadge';
 import { estimateUSD, formatSOLValue, shortenAddress } from '@/lib/formatting';
@@ -22,9 +23,12 @@ function getPendingLabel(ticket: StakingTicket): string {
     return 'Still in unstaking period';
 }
 
-export function PendingTicketRow({ ticket }: PendingTicketRowProps) {
+export const PendingTicketRow = memo(function PendingTicketRow({ ticket }: PendingTicketRowProps) {
     return (
-        <div className="rounded-xl border border-shield-warning/30 bg-shield-warning/5 p-3 opacity-90">
+        <div 
+            className="rounded-xl border border-shield-warning/30 bg-shield-warning/5 p-3 opacity-90"
+            aria-label={`Pending staking ticket for ${formatSOLValue(ticket.valueSOL)} from ${ticket.protocol}`}
+        >
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <ProtocolBadge protocol={ticket.protocol} />
                 <span className="rounded-md border border-shield-warning/40 bg-shield-warning/15 px-2 py-1 text-[11px] font-semibold text-shield-warning">
@@ -38,9 +42,10 @@ export function PendingTicketRow({ ticket }: PendingTicketRowProps) {
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex items-center gap-1 hover:text-shield-text transition-colors"
+                    aria-label={`View ticket account on Solscan: ${ticket.ticketAccountAddress}`}
                 >
                     {shortenAddress(ticket.ticketAccountAddress, 5)}
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-3 w-3" aria-hidden="true" />
                 </a>
             </div>
 
@@ -55,4 +60,4 @@ export function PendingTicketRow({ ticket }: PendingTicketRowProps) {
             </div>
         </div>
     );
-}
+});
