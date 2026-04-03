@@ -25,6 +25,27 @@ interface DiscoverPlatformFeaturesArgs {
   feature_category?: string;
 }
 
+/** Token account item for revocation */
+interface TokenAccountItem {
+  address: string;
+  mint: string;
+  programId?: string;
+}
+
+/** Arguments for build_revoke_transactions tool */
+interface BuildRevokeTransactionsArgs {
+  wallet_address: string;
+  token_accounts: TokenAccountItem[];
+  batch_number?: number;
+}
+
+/** Arguments for build_recovery_transaction tool */
+interface BuildRecoveryTransactionArgs {
+  wallet_address: string;
+  destination_wallet: string;
+  batch_number?: number;
+}
+
 /** Standard MCP error codes */
 type MCPErrorCode = 
   | 'INVALID_PARAMS'
@@ -284,12 +305,14 @@ function createMCPError(code: MCPErrorCode, message: string, tool?: string, deta
 
 async function executeTool(
   name: ToolName,
-  args: unknown,
+  args: GetWalletReportArgs | ScanTokenApprovalsArgs | BuildRevokeTransactionsArgs | BuildRecoveryTransactionArgs | DiscoverPlatformFeaturesArgs,
   apiKey?: string
 ): Promise<unknown> {
   // Log the tool call for analytics
-  const typedArgs = args as Record<string, unknown>;
-  const walletAddress = typedArgs.wallet_address || typedArgs.destination_wallet || 'N/A';
+  const typedArgs = args;
+  const walletAddress = ('wallet_address' in typedArgs && typedArgs.wallet_address) || 
+                        ('destination_wallet' in typedArgs && typedArgs.destination_wallet) || 
+                        'N/A';
   console.log(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
   console.error(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
   
@@ -297,7 +320,7 @@ async function executeTool(
   fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tool: name, wallet: typedArgs.wallet_address || 'N/A', duration: 0, success: true })
+    body: JSON.stringify({ tool: name, wallet: walletAddress, duration: 0, success: true })
   }).catch(() => {}); // Silent fail if logging fails
 
   const headers: Record<string, string> = {
