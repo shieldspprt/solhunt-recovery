@@ -1,5 +1,5 @@
 import { Sparkles, ArrowRightLeft } from 'lucide-react';
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { useDustConsolidator } from '@/hooks/useDustConsolidator';
 import { useDustBurnReclaim } from '@/hooks/useDustBurnReclaim';
 import { DUST_BURN_RECLAIM_FEE_PERCENT, DUST_SWAP_FEE_PERCENT } from '@/config/constants';
@@ -7,7 +7,7 @@ import { estimateUSD, formatCurrency, formatSOLValue } from '@/lib/formatting';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { DustTokenRow } from '@/components/dust/DustTokenRow';
 
-export function DustCard() {
+export const DustCard = memo(function DustCard() {
     const {
         dustScanResult,
         swapQuotes,
@@ -194,4 +194,4 @@ export function DustCard() {
             )}
         </div>
     );
-}
+});

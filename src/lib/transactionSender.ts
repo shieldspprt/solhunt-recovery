@@ -186,14 +186,14 @@ export async function sendWithJito(
 
     try {
         signature = await submitToJitoWithRetry(serialized as Uint8Array);
-    } catch (jitoError) {
+    } catch (jitoError: unknown) {
         // Jito failed — fall back to standard RPC with timeout
         try {
             signature = await connection.sendRawTransaction(serialized as Buffer, {
                 skipPreflight: true,
                 maxRetries: 3,
             });
-        } catch (rpcError) {
+        } catch (rpcError: unknown) {
             const appError: AppError = {
                 code: ERROR_CODES.RPC_ERROR,
                 message: ERROR_MESSAGES.RPC_ERROR,
