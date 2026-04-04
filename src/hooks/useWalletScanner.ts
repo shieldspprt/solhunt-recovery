@@ -5,6 +5,7 @@ import { scanWalletForDelegations } from '@/lib/scanner';
 import { logScanStarted, logScanComplete, logScanError } from '@/lib/analytics';
 import { SCAN_COOLDOWN_MS, ERROR_CODES, ERROR_MESSAGES } from '@/config/constants';
 import { isAppError, toAppError } from '@/lib/errors';
+import { isValidSolanaPublicKey } from '@/lib/validation';
 
 /**
  * Hook that wraps the scanner logic with wallet adapter integration,
@@ -35,6 +36,16 @@ export function useWalletScanner() {
                 code: ERROR_CODES.WALLET_NOT_CONNECTED,
                 message: ERROR_MESSAGES.WALLET_NOT_CONNECTED,
                 technicalDetail: 'publicKey and agentWallet are both null',
+            });
+            return;
+        }
+
+        // Validate wallet address format before making any RPC calls
+        if (!isValidSolanaPublicKey(targetWallet)) {
+            setScanError({
+                code: ERROR_CODES.INVALID_ADDRESS,
+                message: ERROR_MESSAGES.INVALID_ADDRESS,
+                technicalDetail: `Invalid address format: ${targetWallet.substring(0, 10)}...`,
             });
             return;
         }

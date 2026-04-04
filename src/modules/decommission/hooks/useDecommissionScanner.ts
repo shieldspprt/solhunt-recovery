@@ -179,8 +179,11 @@ export function useDecommissionScanner() {
             });
 
         } catch (err: unknown) {
+            // Properly handle and log the error for debugging
+            const appError = createAppError('DECOMMISSION_RECOVERY_FAILED', err instanceof Error ? err.message : String(err));
             store.setRecoveryStatus('error');
-            store.setRecoveryError('Recovery failed. Please try again.');
+            store.setRecoveryError(`${appError.message}${appError.technicalDetail ? `: ${appError.technicalDetail}` : ''}`);
+            logEvent('decommission_recovery_failed', { error: appError.technicalDetail });
         }
     }, [publicKey, signTransaction, sendTransaction, selectedItems, connection, store]);
 

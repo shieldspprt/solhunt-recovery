@@ -65,6 +65,10 @@ export const ERROR_CODES = {
     MEV_ALREADY_CLAIMED: 'MEV_ALREADY_CLAIMED',
     MEV_PROOF_INVALID: 'MEV_PROOF_INVALID',
     MEV_API_UNAVAILABLE: 'MEV_API_UNAVAILABLE',
+
+    // Engine 9: Decommission Scanner
+    DECOMMISSION_SCAN_FAILED: 'DECOMMISSION_SCAN_FAILED',
+    DECOMMISSION_RECOVERY_FAILED: 'DECOMMISSION_RECOVERY_FAILED',
 } as const;
 
 export const ERROR_MESSAGES: Record<keyof typeof ERROR_CODES, string> = {
@@ -109,6 +113,10 @@ export const ERROR_MESSAGES: Record<keyof typeof ERROR_CODES, string> = {
     MEV_ALREADY_CLAIMED: 'These rewards have already been claimed.',
     MEV_PROOF_INVALID: 'Reward proof is invalid or expired. This epoch may have been recalculated.',
     MEV_API_UNAVAILABLE: 'Jito rewards API is temporarily unavailable. Try again later.',
+
+    // Engine 9
+    DECOMMISSION_SCAN_FAILED: 'Could not scan for dead protocol positions. Please try again.',
+    DECOMMISSION_RECOVERY_FAILED: 'Recovery from dead protocol failed. No changes were made.',
 };
 
 // ─── Known Safe Delegate Addresses ──────────────────────────────
