@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useCallback } from 'react';
 import { formatBalance, formatCurrency, formatSOLValue, shortenAddress } from '@/lib/formatting';
 import type { DustSwapQuote, DustToken } from '@/types';
 
@@ -14,13 +14,28 @@ export const DustTokenRow = memo(function DustTokenRow({ token, quote, selected,
     const estimatedSolOut = quote?.outAmountSOL ?? 0;
     const isHighValueWarning = token.estimatedValueUSD > 5;
 
+    // Keyboard accessibility handler for the row
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (token.isSwappable) {
+                onToggle(token.mint);
+            }
+        }
+    }, [token.isSwappable, token.mint, onToggle]);
+
     return (
         <div
+            role="button"
+            tabIndex={token.isSwappable ? 0 : -1}
+            aria-label={`${token.tokenSymbol} token account. Balance: ${formatBalance(token.uiBalance)}. ${token.isSwappable ? 'Swappable' : 'Burnable'}. Press Enter or Space to toggle selection.`}
+            onKeyDown={handleKeyDown}
+            onClick={() => token.isSwappable && onToggle(token.mint)}
             className={[
                 'grid grid-cols-[auto,1fr] gap-3 rounded-xl border p-3 transition-colors',
                 token.isSwappable
-                    ? 'border-shield-border bg-shield-bg/40 hover:bg-shield-bg/70'
-                    : 'border-shield-border/50 bg-shield-bg/20 opacity-70',
+                    ? 'border-shield-border bg-shield-bg/40 hover:bg-shield-bg/70 cursor-pointer focus:outline-none focus:ring-2 focus:ring-shield-accent/50'
+                    : 'border-shield-border/50 bg-shield-bg/20 opacity-70 cursor-default',
             ].join(' ')}
         >
             <input
@@ -28,6 +43,8 @@ export const DustTokenRow = memo(function DustTokenRow({ token, quote, selected,
                 checked={selected}
                 disabled={!token.isSwappable}
                 onChange={() => onToggle(token.mint)}
+                onClick={(e) => e.stopPropagation()}
+                aria-label={`Select ${token.tokenSymbol} for swapping`}
                 className="mt-1 h-4 w-4 rounded border-shield-border bg-shield-bg text-shield-accent focus:ring-shield-accent disabled:cursor-not-allowed"
             />
 
@@ -54,8 +71,12 @@ export const DustTokenRow = memo(function DustTokenRow({ token, quote, selected,
                         {!token.isSwappable && onBurn && (
                             <button
                                 type="button"
-                                onClick={() => onBurn([token.mint])}
-                                className="rounded-md border border-shield-warning/40 bg-shield-warning/20 px-2 py-1 text-[11px] font-semibold text-shield-warning hover:bg-shield-warning/30 transition-colors"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onBurn([token.mint]);
+                                }}
+                                aria-label={`Burn ${token.tokenSymbol} token account and reclaim SOL rent`}
+                                className="rounded-md border border-shield-warning/40 bg-shield-warning/20 px-2 py-1 text-[11px] font-semibold text-shield-warning hover:bg-shield-warning/30 transition-colors focus:outline-none focus:ring-2 focus:ring-shield-warning/50"
                             >
                                 Burn
                             </button>
@@ -82,7 +103,7 @@ export const DustTokenRow = memo(function DustTokenRow({ token, quote, selected,
                 )}
 
                 {isHighValueWarning && (
-                    <p className="mt-1 text-xs text-shield-danger">
+                    <p className="mt-1 text-xs text-shield-danger" role="alert">
                         Warning: this token is worth more than $5.
                     </p>
                 )}
