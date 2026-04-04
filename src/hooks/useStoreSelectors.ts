@@ -123,9 +123,10 @@ export const useBufferState = () =>
 /**
  * Returns all action setters only (for components that need to dispatch actions).
  * These are stable references that never change.
+ * Uses useShallow to prevent unnecessary re-renders when store state changes.
  */
 export const useStoreActions = () =>
-    useAppStore((state) => ({
+    useAppStore(useShallow((state) => ({
         setAgentWallet: state.setAgentWallet,
         setScanStatus: state.setScanStatus,
         setScanResult: state.setScanResult,
@@ -189,4 +190,4 @@ export const useStoreActions = () =>
         setBufferCloseError: state.setBufferCloseError,
         clearBuffers: state.clearBuffers,
         resetAll: state.resetAll,
-    }));
+    })));

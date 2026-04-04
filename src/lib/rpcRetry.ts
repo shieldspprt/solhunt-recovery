@@ -14,6 +14,7 @@ import { getConnection, getBackupConnection } from '@/config/solana';
 /** Default retry configuration */
 const DEFAULT_MAX_RETRIES = 3;
 const BASE_DELAY_MS = 200;
+const MAX_DELAY_MS = 5000; // Cap at 5 seconds
 
 /** Circuit breaker configuration */
 const CIRCUIT_FAILURE_THRESHOLD = 5;
@@ -21,6 +22,18 @@ const CIRCUIT_RESET_TIMEOUT_MS = 30000; // 30 seconds
 
 function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Calculate delay with full jitter to prevent thundering herd.
+ * Returns a random value between 0 and the calculated exponential delay.
+ * 
+ * @see https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
+ */
+function getJitteredDelay(attempt: number): number {
+    const exponentialDelay = Math.min(BASE_DELAY_MS * Math.pow(2, attempt), MAX_DELAY_MS);
+    // Full jitter: random value between 0 and exponential delay
+    return Math.floor(Math.random() * exponentialDelay);
 }
 
 /**
@@ -105,8 +118,17 @@ class CircuitBreaker {
 export const rpcCircuitBreaker = new CircuitBreaker();
 
 /**
+ * Check if the circuit breaker is currently open (failing fast).
+ * Use this to show UI warnings or skip non-essential RPC calls.
+ */
+export function isCircuitOpen(): boolean {
+    return rpcCircuitBreaker.getState().state === 'OPEN';
+}
+
+/**
  * Executes an RPC call with circuit breaker protection and exponential backoff retry.
  * Falls back to the backup RPC if the primary fails after all retries.
+ * Uses jitter to prevent thundering herd when services are under load.
  * 
  * @param rpcCall - Function that performs the RPC call
  * @param options - Retry and circuit breaker options
@@ -139,7 +161,7 @@ export async function withRetry<T>(
                 } catch (err) {
                     lastError = err instanceof Error ? err : new Error(String(err));
                     if (attempt < maxRetries) {
-                        const delayMs = BASE_DELAY_MS * Math.pow(2, attempt);
+                        const delayMs = getJitteredDelay(attempt);
                         await sleep(delayMs);
                     }
                 }
