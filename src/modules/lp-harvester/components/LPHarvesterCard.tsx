@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { Layers3, Loader2 } from 'lucide-react';
 import { useLPScanner } from '../hooks/useLPScanner';
 import { useLPHarvester } from '../hooks/useLPHarvester';
@@ -31,7 +31,13 @@ function buildProtocolGroups(positions: LPPosition[]): Array<{ protocol: LPProto
         .filter((entry) => entry.positions.length > 0);
 }
 
-export function LPHarvesterCard() {
+/**
+ * LP Fee Harvester Card Component
+ * 
+ * Displays LP positions across Orca, Raydium, and Meteora with fee harvesting capabilities.
+ * Memoized to prevent unnecessary re-renders when parent updates.
+ */
+export const LPHarvesterCard = memo(function LPHarvesterCard() {
     const {
         scanStatus,
         scanResult,
@@ -269,4 +275,4 @@ export function LPHarvesterCard() {
             />
         </>
     );
-}
+});

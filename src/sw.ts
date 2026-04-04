@@ -5,6 +5,18 @@ import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strateg
 declare let self: ServiceWorkerGlobalScope;
 
 // ──────────────────────────────────────────────────────
+// Type Definitions
+// ──────────────────────────────────────────────────────
+
+/**
+ * ExtendableEvent interface for Service Worker lifecycle events.
+ * Allows events to extend their lifetime beyond the synchronous execution.
+ */
+interface ExtendableEvent extends Event {
+  waitUntil(fn: Promise<unknown>): void;
+}
+
+// ──────────────────────────────────────────────────────
 // 1. Precache static build assets (injected by vite-plugin-pwa)
 // ──────────────────────────────────────────────────────
 precacheAndRoute(self.__WB_MANIFEST as unknown as Array<PrecacheEntry>);
