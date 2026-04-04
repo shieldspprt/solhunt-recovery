@@ -12,6 +12,7 @@ import { DustBurnConfirmModal } from '@/components/dust/DustBurnConfirmModal';
 import { DustBurnProgressModal } from '@/components/dust/DustBurnProgressModal';
 import { formatDuration } from '@/lib/formatting';
 import type { ScanResult } from '@/types';
+import { EngineErrorBoundary } from '@/components/common/EngineErrorBoundary';
 
 interface ScanResultsProps {
     result: ScanResult;
@@ -95,33 +96,35 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
                         </div>
                     </div>
 
-                    {/* Results table */}
-                    <div className="rounded-2xl border border-shield-border bg-shield-card overflow-hidden">
-                        <table className="w-full">
-                            <thead className="hidden sm:table-header-group">
-                                <tr className="border-b border-shield-border bg-shield-bg/50">
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Risk</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Token</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Your Balance</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Delegate</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Permission</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {delegations.map((delegation) => (
-                                    <DelegationRow
-                                        key={delegation.tokenAccountAddress}
-                                        delegation={delegation}
-                                    />
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    {/* Results table — wrapped in per-engine error boundary */}
+                    <EngineErrorBoundary engineId="1">
+                        <div className="rounded-2xl border border-shield-border bg-shield-card overflow-hidden">
+                            <table className="w-full">
+                                <thead className="hidden sm:table-header-group">
+                                    <tr className="border-b border-shield-border bg-shield-bg/50">
+                                        <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Risk</th>
+                                        <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Token</th>
+                                        <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Your Balance</th>
+                                        <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Delegate</th>
+                                        <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Permission</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {delegations.map((delegation) => (
+                                        <DelegationRow
+                                            key={delegation.tokenAccountAddress}
+                                            delegation={delegation}
+                                        />
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
 
-                    {/* Sticky revoke bar */}
-                    <div className="sticky bottom-0 z-40 -mx-4 sm:mx-0 px-4 sm:px-0 py-4 bg-gradient-to-t from-shield-bg via-shield-bg to-transparent">
-                        <RevokeButton delegations={delegations} />
-                    </div>
+                        {/* Sticky revoke bar */}
+                        <div className="sticky bottom-0 z-40 -mx-4 sm:mx-0 px-4 sm:px-0 py-4 bg-gradient-to-t from-shield-bg via-shield-bg to-transparent">
+                            <RevokeButton delegations={delegations} />
+                        </div>
+                    </EngineErrorBoundary>
                 </>
             )}
 
