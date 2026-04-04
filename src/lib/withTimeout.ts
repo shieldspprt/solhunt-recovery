@@ -8,7 +8,7 @@
  */
 import { Connection } from '@solana/web3.js';
 import { ERROR_MESSAGES } from '@/config/constants';
-import { createAppError } from '@/lib/errors';
+import { createAppError, isAppError } from '@/lib/errors';
 import type { AppError } from '@/types';
 
 /**
@@ -87,7 +87,7 @@ export async function confirmTransactionRobust(
             await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
         } catch (err: unknown) {
             // Re-throw if already an AppError, otherwise wrap it
-            if (err && typeof err === 'object' && 'code' in err) throw err;
+            if (isAppError(err)) throw err;
             await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
         }
     }

@@ -15,11 +15,10 @@ import {
     TICKET_CLAIM_FEE_PERCENT,
 } from '@/config/constants';
 import type {
-    AppError,
     TicketClaimEstimate,
     TicketClaimProgressItem,
 } from '@/types';
-import { createAppError } from '@/lib/errors';
+import { createAppError, isAppError } from '@/lib/errors';
 
 export function useTicketFinder() {
     const { connection } = useConnection();
@@ -121,8 +120,8 @@ export function useTicketFinder() {
                 console.error('MEV scan failed silently', err);
             });
         } catch (error) {
-            const appError = error && typeof error === 'object' && 'code' in error
-                ? (error as AppError)
+            const appError = isAppError(error)
+                ? error
                 : createAppError(
                     'TICKET_SCAN_FAILED',
                     error instanceof Error ? error.message : String(error)
@@ -213,8 +212,8 @@ export function useTicketFinder() {
                 feeSOL: result.claimedSOL * (TICKET_CLAIM_FEE_PERCENT / 100),
             });
         } catch (error) {
-            const appError = error && typeof error === 'object' && 'code' in error
-                ? (error as AppError)
+            const appError = isAppError(error)
+                ? error
                 : createAppError(
                     'TICKET_CLAIM_FAILED',
                     error instanceof Error ? error.message : String(error)
