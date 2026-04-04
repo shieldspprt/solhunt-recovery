@@ -31,6 +31,16 @@ export const DustCard = memo(function DustCard() {
         startBurnForMints,
     } = useDustBurnReclaim();
 
+    // Hooks must be called before any early returns
+    const serviceFeeSOL = useMemo(
+        () => estimatedSelectionSOL * (DUST_SWAP_FEE_PERCENT / 100),
+        [estimatedSelectionSOL]
+    );
+    const receiveSOL = useMemo(
+        () => Math.max(estimatedSelectionSOL - serviceFeeSOL, 0),
+        [estimatedSelectionSOL, serviceFeeSOL]
+    );
+
     if (isFetchingDust) {
         return (
             <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full">
@@ -65,15 +75,6 @@ export const DustCard = memo(function DustCard() {
             </div>
         );
     }
-
-    const serviceFeeSOL = useMemo(
-        () => estimatedSelectionSOL * (DUST_SWAP_FEE_PERCENT / 100),
-        [estimatedSelectionSOL]
-    );
-    const receiveSOL = useMemo(
-        () => Math.max(estimatedSelectionSOL - serviceFeeSOL, 0),
-        [estimatedSelectionSOL, serviceFeeSOL]
-    );
 
     return (
         <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
