@@ -3,12 +3,14 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletScanner } from '@/hooks/useWalletScanner';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { shortenAddress, copyToClipboard } from '@/lib/formatting';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import toast from 'react-hot-toast';
 import { Copy, Check } from 'lucide-react';
 import { useAppStore } from '@/hooks/useAppStore';
 
-export function ScannerCard() {
+// Memoized to prevent unnecessary re-renders when parent components update
+// This component only depends on internal state and global stores
+export const ScannerCard = memo(function ScannerCard() {
     const { publicKey } = useWallet();
     const agentWallet = useAppStore(s => s.agentWallet);
     const { scan, isScanning, isOnCooldown } = useWalletScanner();
@@ -113,4 +115,6 @@ export function ScannerCard() {
             </div>
         </div>
     );
-}
+});
+
+export default ScannerCard;

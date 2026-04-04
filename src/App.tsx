@@ -16,6 +16,7 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { useAppStore } from '@/hooks/useAppStore';
 import { WalletStatusManager } from '@/components/wallet/WalletStatusManager';
+import { isValidSolanaAddress } from '@/lib/validation';
 
 // Lazy-loaded pages for code splitting — reduces initial bundle size
 // Named exports are wrapped to provide default export for React.lazy
@@ -41,6 +42,9 @@ import '@solana/wallet-adapter-react-ui/styles.css';
  * Headless Agent Parser
  * Intercepts ?wallet=XYZ and saves it to global store, enabling AI models
  * to perform read-only scans without connecting an extension via Phantom.
+ * 
+ * SECURITY: Validates wallet address format before setting to prevent
+ * injection attacks via URL parameters.
  */
 function AgentUrlParser() {
     const [searchParams] = useSearchParams();
@@ -48,7 +52,7 @@ function AgentUrlParser() {
 
     useEffect(() => {
         const walletParam = searchParams.get('wallet');
-        if (walletParam) {
+        if (walletParam && isValidSolanaAddress(walletParam)) {
             setAgentWallet(walletParam);
         }
     }, [searchParams, setAgentWallet]);
