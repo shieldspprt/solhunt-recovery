@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { useBufferRecovery } from '../hooks/useBufferRecovery';
 import { BufferRow } from './BufferRow';
 import { ConfirmCloseModal } from './ConfirmCloseModal';
@@ -6,7 +6,7 @@ import { Search, Code2, TrendingUp, Info } from 'lucide-react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { estimateBufferClose } from '../lib/bufferCloser';
 
-export function BufferRecoveryCard() {
+export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
     const {
         isScanning,
         isClosing,
@@ -201,4 +201,7 @@ export function BufferRecoveryCard() {
             )}
         </div>
     );
-}
+});
+
+// Add display name for better debugging
+BufferRecoveryCard.displayName = 'BufferRecoveryCard';
