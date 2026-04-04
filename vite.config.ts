@@ -52,8 +52,14 @@ export default defineConfig({
           'lp-orca': ['@orca-so/whirlpools-sdk'],
           'lp-raydium': ['@raydium-io/raydium-sdk-v2'],
           'lp-meteora': ['@meteora-ag/dlmm'],
-        }
-      }
+        },
+        // Improved tree-shaking and module optimization
+        interop: 'esModule',
+      },
+      treeshake: {
+        moduleSideEffects: false,
+        propertyReadSideEffects: false,
+      },
     }
   }
 })

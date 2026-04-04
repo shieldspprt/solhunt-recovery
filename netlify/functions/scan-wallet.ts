@@ -161,9 +161,11 @@ export const handler: Handler = async (event) => {
         }
       })
     };
-  } catch (error: any) {
-    // Check for known RPC errors
-    if (error.message?.includes('Invalid public key')) {
+  } catch (error: unknown) {
+    // Check for known RPC errors with type-safe access
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    
+    if (errorMessage.includes('Invalid public key')) {
       return {
         statusCode: 400,
         headers,
@@ -171,7 +173,7 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    console.error('scan-wallet error:', error.message);
+    console.error('scan-wallet error:', errorMessage);
     return {
       statusCode: 500,
       headers,
