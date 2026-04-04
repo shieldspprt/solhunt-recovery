@@ -6,11 +6,11 @@ import { ScannerCard } from '@/components/scanner/ScannerCard';
 import { ScanResults } from '@/components/scanner/ScanResults';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { useWalletScanner } from '@/hooks/useWalletScanner';
-import { useAppStore } from '@/hooks/useAppStore';
+import { useWalletStatus } from '@/hooks/useStoreSelectors';
 
 export function ScanPage() {
     const { connected } = useWallet();
-    const agentWallet = useAppStore(s => s.agentWallet);
+    const { agentWallet } = useWalletStatus();
     const location = useLocation();
     const {
         scanResult,

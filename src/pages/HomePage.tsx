@@ -7,7 +7,7 @@ import { PageWrapper } from '@/components/layout/PageWrapper';
 import { WalletScanner } from '@/components/WalletScanner';
 import { StatsDisplay } from '@/components/StatsDisplay';
 import { ENGINE_METADATA } from '@/config/constants';
-import { useAppStore } from '@/hooks/useAppStore';
+import { useWalletStatus } from '@/hooks/useStoreSelectors';
 import { useLocation } from 'react-router-dom';
 
 // Map engine IDs to icons with proper typing
@@ -26,7 +26,7 @@ const ENGINE_ICONS: Record<number, ComponentType<LucideProps>> = {
 export const HomePage = memo(function HomePage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const agentWallet = useAppStore(s => s.agentWallet);
+    const { agentWallet } = useWalletStatus();
     const isAdmin = new URLSearchParams(location.search).get('admin') === 'true';
 
     useEffect(() => {

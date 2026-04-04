@@ -6,13 +6,13 @@ import { shortenAddress, copyToClipboard } from '@/lib/formatting';
 import { useState, useEffect, memo } from 'react';
 import toast from 'react-hot-toast';
 import { Copy, Check } from 'lucide-react';
-import { useAppStore } from '@/hooks/useAppStore';
+import { useWalletStatus } from '@/hooks/useStoreSelectors';
 
 // Memoized to prevent unnecessary re-renders when parent components update
 // This component only depends on internal state and global stores
 export const ScannerCard = memo(function ScannerCard() {
     const { publicKey } = useWallet();
-    const agentWallet = useAppStore(s => s.agentWallet);
+    const { agentWallet } = useWalletStatus();
     const { scan, isScanning, isOnCooldown } = useWalletScanner();
     const [copied, setCopied] = useState(false);
     const [scanStatusText, setScanStatusText] = useState('');
