@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import {
@@ -44,10 +44,11 @@ export function useReclaimRent() {
     }, [scanResult, setCloseableAccounts]);
 
     // 2. Derive the estimate based on current closeable accounts
-    // We do this dynamically so the UI always has the latest math
-    const estimate = closeableAccounts.length > 0
-        ? calculateReclaimEstimate(closeableAccounts)
-        : null;
+    // Memoized to prevent re-calculation on every render when dependencies haven't changed
+    const estimate = useMemo(() => {
+        if (closeableAccounts.length === 0) return null;
+        return calculateReclaimEstimate(closeableAccounts);
+    }, [closeableAccounts]);
 
     /**
      * Opens the confirmation modal
