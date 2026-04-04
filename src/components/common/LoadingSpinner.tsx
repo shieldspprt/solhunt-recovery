@@ -53,3 +53,6 @@ export const LoadingSpinner = memo(function LoadingSpinner({
 
     return content;
 });
+
+// Display name for React DevTools debugging
+LoadingSpinner.displayName = 'LoadingSpinner';

@@ -41,3 +41,6 @@ export const RiskBadge = memo(function RiskBadge({ level, className }: RiskBadge
         </span>
     );
 });
+
+// Display name for React DevTools debugging
+RiskBadge.displayName = 'RiskBadge';
