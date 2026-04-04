@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { ExternalLink, CheckCircle2 } from 'lucide-react';
 import { RiskBadge } from '@/components/common/RiskBadge';
 import { shortenAddress, formatTokenAmount, formatBalance } from '@/lib/formatting';
@@ -10,7 +10,11 @@ interface DelegationRowProps {
 }
 
 export const DelegationRow = memo(function DelegationRow({ delegation }: DelegationRowProps) {
-    const knownName = getKnownDelegateName(delegation.delegate);
+    // Memoize the known delegate lookup to avoid repeated Map lookups on every render
+    const knownName = useMemo(
+        () => getKnownDelegateName(delegation.delegate),
+        [delegation.delegate]
+    );
     const formattedDelegatedAmount = formatTokenAmount(
         delegation.delegatedAmount,
         delegation.decimals

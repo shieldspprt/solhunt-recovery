@@ -7,54 +7,55 @@
  * @see https://github.com/pmndrs/zustand?tab=readme-ov-file#selecting-multiple-state-slices
  */
 import { useAppStore } from '@/hooks/useAppStore';
+import { useShallow } from 'zustand/react/shallow';
 
 /**
  * Returns only the wallet connection-related state.
  * Prevents re-renders when unrelated store slices change.
  */
 export const useWalletStatus = () =>
-    useAppStore((state) => ({
+    useAppStore(useShallow((state) => ({
         agentWallet: state.agentWallet,
-    }));
+    })));
 
 /**
  * Returns only the scan-related state.
  * Isolates scan state from other engine updates.
  */
 export const useScanState = () =>
-    useAppStore((state) => ({
+    useAppStore(useShallow((state) => ({
         scanStatus: state.scanStatus,
         scanResult: state.scanResult,
         scanError: state.scanError,
-    }));
+    })));
 
 /**
  * Returns only the revoke-related state.
  */
 export const useRevokeState = () =>
-    useAppStore((state) => ({
+    useAppStore(useShallow((state) => ({
         revokeStatus: state.revokeStatus,
         revokeResult: state.revokeResult,
         revokeError: state.revokeError,
-    }));
+    })));
 
 /**
  * Returns only the reclaim (rent) related state.
  */
 export const useReclaimState = () =>
-    useAppStore((state) => ({
+    useAppStore(useShallow((state) => ({
         reclaimStatus: state.reclaimStatus,
         closeableAccounts: state.closeableAccounts,
         reclaimEstimate: state.reclaimEstimate,
         reclaimResult: state.reclaimResult,
         reclaimError: state.reclaimError,
-    }));
+    })));
 
 /**
  * Returns dust consolidator state only.
  */
 export const useDustState = () =>
-    useAppStore((state) => ({
+    useAppStore(useShallow((state) => ({
         dustScanResult: state.dustScanResult,
         swapQuotes: state.swapQuotes,
         selectedDustMints: state.selectedDustMints,
@@ -62,25 +63,25 @@ export const useDustState = () =>
         dustResult: state.dustResult,
         dustProgress: state.dustProgress,
         dustError: state.dustError,
-    }));
+    })));
 
 /**
  * Returns dust burn + reclaim state only.
  */
 export const useDustBurnState = () =>
-    useAppStore((state) => ({
+    useAppStore(useShallow((state) => ({
         dustBurnStatus: state.dustBurnStatus,
         dustBurnResult: state.dustBurnResult,
         dustBurnProgress: state.dustBurnProgress,
         dustBurnError: state.dustBurnError,
         dustBurnSelectionMints: state.dustBurnSelectionMints,
-    }));
+    })));
 
 /**
  * Returns ticket finder state only.
  */
 export const useTicketState = () =>
-    useAppStore((state) => ({
+    useAppStore(useShallow((state) => ({
         ticketScanStatus: state.ticketScanStatus,
         ticketScanResult: state.ticketScanResult,
         ticketScanError: state.ticketScanError,
@@ -88,13 +89,13 @@ export const useTicketState = () =>
         ticketClaimResult: state.ticketClaimResult,
         ticketClaimProgress: state.ticketClaimProgress,
         ticketClaimError: state.ticketClaimError,
-    }));
+    })));
 
 /**
  * Returns MEV claims state only.
  */
 export const useMEVState = () =>
-    useAppStore((state) => ({
+    useAppStore(useShallow((state) => ({
         mevScanStatus: state.mevScanStatus,
         mevScanResult: state.mevScanResult,
         mevScanError: state.mevScanError,
@@ -103,13 +104,13 @@ export const useMEVState = () =>
         mevClaimError: state.mevClaimError,
         selectedMEVIds: state.selectedMEVIds,
         mevProgressText: state.mevProgressText,
-    }));
+    })));
 
 /**
  * Returns buffer recovery state only.
  */
 export const useBufferState = () =>
-    useAppStore((state) => ({
+    useAppStore(useShallow((state) => ({
         bufferScanStatus: state.bufferScanStatus,
         bufferScanResult: state.bufferScanResult,
         bufferScanError: state.bufferScanError,
@@ -117,7 +118,7 @@ export const useBufferState = () =>
         bufferCloseStatus: state.bufferCloseStatus,
         bufferCloseResult: state.bufferCloseResult,
         bufferCloseError: state.bufferCloseError,
-    }));
+    })));
 
 /**
  * Returns all action setters only (for components that need to dispatch actions).
