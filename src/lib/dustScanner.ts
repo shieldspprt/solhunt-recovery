@@ -231,12 +231,11 @@ async function fetchRaydiumQuote(
     });
 
     const url = `${RAYDIUM_QUOTE_API}?${params.toString()}`;
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
 
-    let response = await fetch(proxyUrl, { cache: 'no-store' });
+    let response = await fetch(url, { cache: 'no-store' });
     if (response.status === 429) {
         await delay(1000);
-        response = await fetch(proxyUrl, { cache: 'no-store' });
+        response = await fetch(url, { cache: 'no-store' });
     }
 
     if (!response.ok) {
@@ -284,16 +283,15 @@ async function fetchJupiterQuote(
 
     for (const source of getJupiterQuoteSources()) {
         const url = `${source.url}?${params.toString()}`;
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
 
-        let response = await fetch(proxyUrl, {
+        let response = await fetch(url, {
             headers: source.headers,
             cache: 'no-store',
         });
 
         if (response.status === 429) {
             await delay(1000);
-            response = await fetch(proxyUrl, {
+            response = await fetch(url, {
                 headers: source.headers,
                 cache: 'no-store',
             });
