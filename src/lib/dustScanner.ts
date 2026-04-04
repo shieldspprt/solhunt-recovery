@@ -41,6 +41,9 @@ const PROTECTED_MINTS = new Set<string>(
 const jupiterUnsupportedMints = new Set<string>();
 const raydiumUnsupportedMints = new Set<string>();
 
+// Minimum input amount to request a swap quote (below this, APIs return 400)
+const MIN_SWAP_INPUT_LAMPORTS = 10_000;
+
 interface ApiSource {
     url: string;
     headers?: Record<string, string>;
@@ -222,6 +225,11 @@ async function fetchRaydiumQuote(
         return null;
     }
 
+    // Skip tiny amounts that will cause 400 errors
+    if (Number(inAmountRaw) < MIN_SWAP_INPUT_LAMPORTS) {
+        return null;
+    }
+
     const params = new URLSearchParams({
         inputMint,
         outputMint: SOL_MINT,
@@ -239,7 +247,8 @@ async function fetchRaydiumQuote(
     }
 
     if (!response.ok) {
-        if (response.status === 400 || response.status === 404) {
+        // Only cache 404 as unsupported - 400 means "amount too small" or other param issue
+        if (response.status === 404) {
             raydiumUnsupportedMints.add(inputMint);
         }
         return null;
@@ -273,6 +282,11 @@ async function fetchJupiterQuote(
         return null;
     }
 
+    // Skip tiny amounts that will cause 400 errors
+    if (Number(inAmountRaw) < MIN_SWAP_INPUT_LAMPORTS) {
+        return null;
+    }
+
     const params = new URLSearchParams({
         inputMint,
         outputMint: SOL_MINT,
@@ -298,7 +312,8 @@ async function fetchJupiterQuote(
         }
 
         if (!response.ok) {
-            if (response.status === 400 || response.status === 404) {
+            // Only cache 404 as unsupported - 400 means "amount too small" or other param issue
+            if (response.status === 404) {
                 jupiterUnsupportedMints.add(inputMint);
             }
             continue;
@@ -337,6 +352,7 @@ export async function getSwapQuotes(dustTokens: DustToken[]): Promise<Map<string
 
     const candidates = dustTokens
         .filter((token) => token.uiBalance > 0)
+        .filter((token) => Number(token.rawBalance) >= MIN_SWAP_INPUT_LAMPORTS)
         .slice(0, DUST_MAX_TOKENS_PER_SESSION);
 
     const batches = chunk(candidates, 5);
