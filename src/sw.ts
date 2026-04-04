@@ -79,10 +79,10 @@ registerRoute(
 
 // ──────────────────────────────────────────────────────
 // 6. Lifecycle: skip waiting + claim clients for fast updates
-//    Uses built-in ExtendableEvent from Service Worker spec
+//    Uses native ExtendableEvent from Service Worker DOM spec
 // ──────────────────────────────────────────────────────
 self.skipWaiting();
-self.addEventListener('activate', (event: ExtendableEvent) => {
+self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 

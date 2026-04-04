@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { ProtocolBadge } from '@/components/tickets/ProtocolBadge';
 import { estimateUSD, formatSOLValue, shortenAddress } from '@/lib/formatting';
@@ -24,10 +24,18 @@ function getPendingLabel(ticket: StakingTicket): string {
 }
 
 export const PendingTicketRow = memo(function PendingTicketRow({ ticket }: PendingTicketRowProps) {
+    // Memoize formatted values and derived labels to prevent recalculation
+    const formattedValues = useMemo(() => ({
+        solValue: formatSOLValue(ticket.valueSOL),
+        usdEstimate: estimateUSD(ticket.valueSOL),
+        shortAddress: shortenAddress(ticket.ticketAccountAddress, 5),
+        pendingLabel: getPendingLabel(ticket),
+    }), [ticket.valueSOL, ticket.ticketAccountAddress, ticket.epochsRemaining, ticket.estimatedTimeRemainingHours]);
+
     return (
         <div 
             className="rounded-xl border border-shield-warning/30 bg-shield-warning/5 p-3 opacity-90"
-            aria-label={`Pending staking ticket for ${formatSOLValue(ticket.valueSOL)} from ${ticket.protocol}`}
+            aria-label={`Pending staking ticket for ${formattedValues.solValue} from ${ticket.protocol}`}
         >
             <div className="flex flex-wrap items-center justify-between gap-2">
                 <ProtocolBadge protocol={ticket.protocol} />
@@ -44,7 +52,7 @@ export const PendingTicketRow = memo(function PendingTicketRow({ ticket }: Pendi
                     className="inline-flex items-center gap-1 hover:text-shield-text transition-colors"
                     aria-label={`View ticket account on Solscan: ${ticket.ticketAccountAddress}`}
                 >
-                    {shortenAddress(ticket.ticketAccountAddress, 5)}
+                    {formattedValues.shortAddress}
                     <ExternalLink className="h-3 w-3" aria-hidden="true" />
                 </a>
             </div>
@@ -52,11 +60,11 @@ export const PendingTicketRow = memo(function PendingTicketRow({ ticket }: Pendi
             <div className="mt-2 flex items-end justify-between">
                 <div>
                     <p className="text-lg font-semibold text-shield-text">
-                        {formatSOLValue(ticket.valueSOL)}
+                        {formattedValues.solValue}
                     </p>
-                    <p className="text-xs text-shield-muted">{estimateUSD(ticket.valueSOL)}</p>
+                    <p className="text-xs text-shield-muted">{formattedValues.usdEstimate}</p>
                 </div>
-                <p className="text-[11px] text-shield-warning text-right">{getPendingLabel(ticket)}</p>
+                <p className="text-[11px] text-shield-warning text-right">{formattedValues.pendingLabel}</p>
             </div>
         </div>
     );

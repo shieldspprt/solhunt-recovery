@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { ProtocolBadge } from '@/components/tickets/ProtocolBadge';
 import { estimateUSD, formatSOLValue, shortenAddress } from '@/lib/formatting';
@@ -10,6 +10,16 @@ interface TicketRowProps {
 }
 
 export const TicketRow = memo(function TicketRow({ ticket }: TicketRowProps) {
+    // Memoize formatted values to prevent recalculation on parent re-renders
+    const formattedValues = useMemo(() => ({
+        solValue: formatSOLValue(ticket.valueSOL),
+        usdEstimate: estimateUSD(ticket.valueSOL),
+        shortAddress: shortenAddress(ticket.ticketAccountAddress, 5),
+        shortValidator: ticket.validatorVoteAccount 
+            ? shortenAddress(ticket.validatorVoteAccount, 4) 
+            : null,
+    }), [ticket.valueSOL, ticket.ticketAccountAddress, ticket.validatorVoteAccount]);
+
     return (
         <div className="rounded-xl border border-shield-border bg-shield-bg/40 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -26,7 +36,7 @@ export const TicketRow = memo(function TicketRow({ ticket }: TicketRowProps) {
                     rel="noreferrer"
                     className="inline-flex items-center gap-1 hover:text-shield-text transition-colors"
                 >
-                    {shortenAddress(ticket.ticketAccountAddress, 5)}
+                    {formattedValues.shortAddress}
                     <ExternalLink className="h-3 w-3" />
                 </a>
             </div>
@@ -34,13 +44,13 @@ export const TicketRow = memo(function TicketRow({ ticket }: TicketRowProps) {
             <div className="mt-2 flex items-end justify-between">
                 <div>
                     <p className="text-lg font-semibold text-shield-text">
-                        {formatSOLValue(ticket.valueSOL)}
+                        {formattedValues.solValue}
                     </p>
-                    <p className="text-xs text-shield-muted">{estimateUSD(ticket.valueSOL)}</p>
+                    <p className="text-xs text-shield-muted">{formattedValues.usdEstimate}</p>
                 </div>
-                {ticket.validatorVoteAccount && (
+                {formattedValues.shortValidator && (
                     <p className="text-[11px] text-shield-muted text-right">
-                        Validator: {shortenAddress(ticket.validatorVoteAccount, 4)}
+                        Validator: {formattedValues.shortValidator}
                     </p>
                 )}
             </div>
