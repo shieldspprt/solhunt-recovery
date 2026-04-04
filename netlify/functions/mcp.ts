@@ -71,6 +71,9 @@ interface MCPErrorResponse {
   detail?: string;
 }
 
+/** Raw tool arguments from request - validated before use */
+type RawToolArgs = Record<string, unknown>;
+
 /** Type guard to check if a string is a valid ToolName */
 function isValidToolName(name: string): name is ToolName {
   return [
@@ -80,6 +83,90 @@ function isValidToolName(name: string): name is ToolName {
     'build_recovery_transaction',
     'discover_platform_features'
   ].includes(name);
+}
+
+/** Validates that a value is a string */
+function isString(value: unknown): value is string {
+  return typeof value === 'string';
+}
+
+/** Validates that a value is an array */
+function isArray(value: unknown): value is unknown[] {
+  return Array.isArray(value);
+}
+
+/** Validates that a value is a valid number or undefined */
+function isOptionalNumber(value: unknown): value is number | undefined {
+  return value === undefined || (typeof value === 'number' && !isNaN(value));
+}
+
+/** Validates and narrows raw arguments to GetWalletReportArgs */
+function validateGetWalletReportArgs(args: RawToolArgs): GetWalletReportArgs | null {
+  if (!isString(args.wallet_address)) return null;
+  return { wallet_address: args.wallet_address };
+}
+
+/** Validates and narrows raw arguments to ScanTokenApprovalsArgs */
+function validateScanTokenApprovalsArgs(args: RawToolArgs): ScanTokenApprovalsArgs | null {
+  if (!isString(args.wallet_address)) return null;
+  return { wallet_address: args.wallet_address };
+}
+
+/** Validates a token account item */
+function isValidTokenAccountItem(item: unknown): item is TokenAccountItem {
+  if (typeof item !== 'object' || item === null) return false;
+  const obj = item as Record<string, unknown>;
+  return isString(obj.address) && isString(obj.mint);
+}
+
+/** Validates and narrows raw arguments to BuildRevokeTransactionsArgs */
+function validateBuildRevokeTransactionsArgs(args: RawToolArgs): BuildRevokeTransactionsArgs | null {
+  if (!isString(args.wallet_address)) return null;
+  if (!isArray(args.token_accounts)) return null;
+  if (!args.token_accounts.every(isValidTokenAccountItem)) return null;
+  
+  return {
+    wallet_address: args.wallet_address,
+    token_accounts: args.token_accounts as TokenAccountItem[],
+    batch_number: isOptionalNumber(args.batch_number) ? args.batch_number : undefined,
+  };
+}
+
+/** Validates and narrows raw arguments to BuildRecoveryTransactionArgs */
+function validateBuildRecoveryTransactionArgs(args: RawToolArgs): BuildRecoveryTransactionArgs | null {
+  if (!isString(args.wallet_address)) return null;
+  if (!isString(args.destination_wallet)) return null;
+  
+  return {
+    wallet_address: args.wallet_address,
+    destination_wallet: args.destination_wallet,
+    batch_number: isOptionalNumber(args.batch_number) ? args.batch_number : undefined,
+  };
+}
+
+/** Validates and narrows raw arguments to DiscoverPlatformFeaturesArgs */
+function validateDiscoverPlatformFeaturesArgs(args: RawToolArgs): DiscoverPlatformFeaturesArgs | null {
+  const feature_category = args.feature_category;
+  if (feature_category !== undefined && !isString(feature_category)) return null;
+  return { feature_category };
+}
+
+/** Validates raw arguments against the expected tool schema */
+function validateToolArgs(name: ToolName, args: RawToolArgs): ToolArgs | null {
+  switch (name) {
+    case 'get_wallet_report':
+      return validateGetWalletReportArgs(args);
+    case 'scan_token_approvals':
+      return validateScanTokenApprovalsArgs(args);
+    case 'build_revoke_transactions':
+      return validateBuildRevokeTransactionsArgs(args);
+    case 'build_recovery_transaction':
+      return validateBuildRecoveryTransactionArgs(args);
+    case 'discover_platform_features':
+      return validateDiscoverPlatformFeaturesArgs(args);
+    default:
+      return null;
+  }
 }
 
 // ── Tool Definitions ──────────────────────────────────────────────────────────
@@ -639,7 +726,16 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    const result = await executeTool(toolName, toolArgs, apiKey);
+    const validatedArgs = validateToolArgs(toolName, toolArgs);
+    if (!validatedArgs) {
+      return {
+        statusCode: 400,
+        headers: buildHeaders(),
+        body: JSON.stringify(createMCPError('INVALID_PARAMS', `Invalid arguments for ${toolName}`))
+      };
+    }
+
+    const result = await executeTool(toolName, validatedArgs, apiKey);
 
     // Return in JSON-RPC format if that was the request format
     if (body.method) {
