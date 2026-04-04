@@ -15,9 +15,11 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
         () => getKnownDelegateName(delegation.delegate),
         [delegation.delegate]
     );
-    const formattedDelegatedAmount = formatTokenAmount(
-        delegation.delegatedAmount,
-        delegation.decimals
+    
+    // Memoize formatted amount to prevent unnecessary string formatting on every render
+    const formattedDelegatedAmount = useMemo(
+        () => formatTokenAmount(delegation.delegatedAmount, delegation.decimals),
+        [delegation.delegatedAmount, delegation.decimals]
     );
 
     return (

@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { CheckCircle2, AlertTriangle, Search, RefreshCw } from 'lucide-react';
 import { DelegationRow } from '@/components/scanner/DelegationRow';
 import { RevokeButton } from '@/components/revoke/RevokeButton';
@@ -21,9 +21,13 @@ interface ScanResultsProps {
 
 export const ScanResults = memo(function ScanResults({ result, onScanAgain }: ScanResultsProps) {
     const { delegations, totalTokenAccounts, scanDurationMs } = result;
-    const highRiskCount = delegations.filter((d) => d.riskLevel === 'HIGH').length;
-    const mediumRiskCount = delegations.filter((d) => d.riskLevel === 'MEDIUM').length;
-    const hasDelegations = delegations.length > 0;
+    
+    // Memoize derived calculations to prevent unnecessary recomputation
+    const { highRiskCount, mediumRiskCount, hasDelegations } = useMemo(() => ({
+        highRiskCount: delegations.filter((d) => d.riskLevel === 'HIGH').length,
+        mediumRiskCount: delegations.filter((d) => d.riskLevel === 'MEDIUM').length,
+        hasDelegations: delegations.length > 0,
+    }), [delegations]);
 
     return (
         <div id="engine-1" className="w-full max-w-4xl mx-auto space-y-6">
