@@ -2,6 +2,21 @@ import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, Preca
 import { registerRoute, NavigationRoute } from 'workbox-routing';
 import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
 
+// ──────────────────────────────────────────────────────
+// Type Definitions for PWA Install Prompt
+// ──────────────────────────────────────────────────────
+
+/** 
+ * The BeforeInstallPromptEvent is fired when the PWA meets installability criteria.
+ * This interface is defined here because it's not available in all TypeScript lib versions.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/BeforeInstallPromptEvent
+ */
+interface BeforeInstallPromptEvent extends Event {
+    readonly platforms: string[];
+    readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+    prompt(): Promise<void>;
+}
+
 declare let self: ServiceWorkerGlobalScope;
 
 // ──────────────────────────────────────────────────────
@@ -90,9 +105,9 @@ self.addEventListener('activate', (event) => {
 // 7. PWA Install Prompt Capture
 //    Defer the native install prompt for better UX timing
 // ──────────────────────────────────────────────────────
-let deferredInstallPrompt: Event | null = null;
+let deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
 
-self.addEventListener('beforeinstallprompt', (event: Event) => {
+self.addEventListener('beforeinstallprompt', ((event: BeforeInstallPromptEvent) => {
     // Prevent the mini-infobar from appearing on mobile
     event.preventDefault();
     // Store the event for later use by the app
@@ -106,7 +121,7 @@ self.addEventListener('beforeinstallprompt', (event: Event) => {
             });
         });
     });
-});
+}) as EventListener);
 
 // Make the deferred prompt available globally for the app to trigger
 (self as unknown as Record<string, unknown>).deferredInstallPrompt = deferredInstallPrompt;

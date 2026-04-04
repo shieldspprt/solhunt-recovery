@@ -95,11 +95,11 @@ export function useWalletScanner() {
         }
     }, [publicKey, agentWallet, connection, setScanStatus, setScanResult, setScanError]);
 
-    // isOnCooldown is a simple function - no need for useCallback
-    // since it only accesses the ref, not React state
-    const isOnCooldown = () => {
+    // isOnCooldown is now wrapped in useCallback for consistency
+    // Returns whether the scan is currently on cooldown
+    const isOnCooldown = useCallback(() => {
         return Date.now() - lastScanTimeRef.current < SCAN_COOLDOWN_MS;
-    };
+    }, []);
 
     // Memoize derived boolean states to prevent unnecessary re-renders
     const isScanning = useMemo(() => scanStatus === 'scanning', [scanStatus]);
