@@ -150,7 +150,7 @@ const MiniChart = memo(function MiniChart({ history }: { history: DayStat[] }) {
   const maxSol = Math.max(...reversed.map(d => d.total_recoverable_sol));
 
   return (
-    <div className="mt-4">
+    <div className="mt-4" role="region" aria-label="7-day recoverable SOL chart">
       <p className="text-xs text-gray-500 mb-2">7-day recoverable SOL</p>
       <div className="flex items-end gap-1 h-12">
         {reversed.map((d) => (
@@ -161,6 +161,8 @@ const MiniChart = memo(function MiniChart({ history }: { history: DayStat[] }) {
           >
             <div
               className="w-full rounded-t bg-purple-500/60 hover:bg-purple-400/80 transition-colors"
+              role="img"
+              aria-label={`${d.date}: ${d.total_recoverable_sol} SOL recoverable`}
               style={{
                 height: maxSol > 0
                   ? `${Math.max(4, (d.total_recoverable_sol / maxSol) * 40)}px`

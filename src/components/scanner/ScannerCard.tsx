@@ -64,7 +64,7 @@ export const ScannerCard = memo(function ScannerCard() {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10">
-                            <Shield className="h-5 w-5 text-shield-accent" />
+                            <Shield className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                         </div>
                         <div>
                             <p className="text-xs text-shield-muted uppercase tracking-wider">Connected Wallet</p>
@@ -77,11 +77,12 @@ export const ScannerCard = memo(function ScannerCard() {
                         onClick={handleCopy}
                         className="p-2 rounded-lg hover:bg-shield-border/50 transition-colors text-shield-muted hover:text-shield-text"
                         title="Copy address"
+                        aria-label="Copy wallet address to clipboard"
                     >
                         {copied ? (
-                            <Check className="h-4 w-4 text-shield-success" />
+                            <Check className="h-4 w-4 text-shield-success" aria-hidden="true" />
                         ) : (
-                            <Copy className="h-4 w-4" />
+                            <Copy className="h-4 w-4" aria-hidden="true" />
                         )}
                     </button>
                 </div>
@@ -97,7 +98,7 @@ export const ScannerCard = memo(function ScannerCard() {
                             We&apos;ll scan your token accounts for active delegations
                         </p>
                         <div className="flex items-center justify-center gap-1 text-xs text-shield-muted mb-6">
-                            <Clock className="h-3 w-3" />
+                            <Clock className="h-3 w-3" aria-hidden="true" />
                             <span>Takes 5–15 seconds</span>
                         </div>
                         <button
@@ -107,7 +108,7 @@ export const ScannerCard = memo(function ScannerCard() {
                             disabled={isOnCooldown()}
                             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-shield-accent hover:bg-shield-accent/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-8 py-4 text-lg shadow-lg shadow-shield-accent/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                         >
-                            <Search className="h-5 w-5" />
+                            <Search className="h-5 w-5" aria-hidden="true" />
                             Start Scan
                         </button>
                     </div>
