@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -8,7 +9,8 @@ interface LoadingSpinnerProps {
     fullpage?: boolean;
 }
 
-export function LoadingSpinner({
+// Memoized to prevent re-renders when used as Suspense fallback across route changes
+export const LoadingSpinner = memo(function LoadingSpinner({
     size = 'md',
     message,
     className,
@@ -26,6 +28,7 @@ export function LoadingSpinner({
             role="status"
             aria-live="polite"
             aria-busy="true"
+            aria-atomic="true"
         >
             <Loader2
                 className={clsx(
@@ -49,4 +52,4 @@ export function LoadingSpinner({
     }
 
     return content;
-}
+});

@@ -189,8 +189,13 @@ export async function scanOrcaPositions(
                 lastHarvestedAt: null,
                 isSelected: true,
             });
-        } catch {
-            // Not an Orca position mint (or failed to fetch) — skip.
+        } catch (err: unknown) {
+            // Not an Orca position mint (or failed to fetch) — log and continue.
+            // Silently skip to avoid spamming users with non-critical parsing errors.
+            if (process.env.NODE_ENV === 'development') {
+                const msg = err instanceof Error ? err.message : String(err);
+                console.warn(`[OrcaScanner] Skipped mint ${mintAddress.slice(0, 8)}...: ${msg.slice(0, 100)}`);
+            }
         }
     }
 
