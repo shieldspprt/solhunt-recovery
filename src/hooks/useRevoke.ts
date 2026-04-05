@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { buildRevokeTransaction } from '@/lib/revoke';
@@ -196,6 +196,14 @@ export function useRevoke() {
         setRevokeStatus('awaiting_confirmation');
     }, [setRevokeStatus]);
 
+    // Memoize derived boolean states to prevent unnecessary re-renders
+    const isRevoking = useMemo(
+        () => revokeStatus === 'building_transaction' || revokeStatus === 'awaiting_signature' || revokeStatus === 'confirming',
+        [revokeStatus]
+    );
+    const isComplete = useMemo(() => revokeStatus === 'complete', [revokeStatus]);
+    const hasError = useMemo(() => revokeStatus === 'error', [revokeStatus]);
+
     return {
         revoke,
         requestConfirmation,
@@ -203,11 +211,8 @@ export function useRevoke() {
         revokeResult,
         revokeError,
         clearRevoke,
-        isRevoking:
-            revokeStatus === 'building_transaction' ||
-            revokeStatus === 'awaiting_signature' ||
-            revokeStatus === 'confirming',
-        isComplete: revokeStatus === 'complete',
-        hasError: revokeStatus === 'error',
+        isRevoking,
+        isComplete,
+        hasError,
     };
 }

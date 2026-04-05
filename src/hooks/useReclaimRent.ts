@@ -212,6 +212,14 @@ export function useReclaimRent() {
         clearReclaim();
     }, [clearReclaim]);
 
+    // Memoize derived boolean states to prevent unnecessary re-renders
+    const isReclaiming = useMemo(
+        () => reclaimStatus === 'building_transaction' || reclaimStatus === 'awaiting_signature' || reclaimStatus === 'confirming',
+        [reclaimStatus]
+    );
+    const isComplete = useMemo(() => reclaimStatus === 'complete', [reclaimStatus]);
+    const hasError = useMemo(() => reclaimStatus === 'error', [reclaimStatus]);
+
     return {
         closeableAccounts,
         reclaimEstimate: estimate,
@@ -224,11 +232,8 @@ export function useReclaimRent() {
         cancelReclaim,
         clearReclaim,
 
-        isReclaiming:
-            reclaimStatus === 'building_transaction' ||
-            reclaimStatus === 'awaiting_signature' ||
-            reclaimStatus === 'confirming',
-        isComplete: reclaimStatus === 'complete',
-        hasError: reclaimStatus === 'error',
+        isReclaiming,
+        isComplete,
+        hasError,
     };
 }
