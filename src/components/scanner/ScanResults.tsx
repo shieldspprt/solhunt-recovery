@@ -106,11 +106,11 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
                             <table className="w-full">
                                 <thead className="hidden sm:table-header-group">
                                     <tr className="border-b border-shield-border bg-shield-bg/50">
-                                        <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Risk</th>
-                                        <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Token</th>
-                                        <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Your Balance</th>
-                                        <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Delegate</th>
-                                        <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Permission</th>
+                                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Risk</th>
+                                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Token</th>
+                                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Your Balance</th>
+                                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Delegate</th>
+                                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Permission</th>
                                     </tr>
                                 </thead>
                                 <tbody>

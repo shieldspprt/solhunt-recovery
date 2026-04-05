@@ -28,6 +28,17 @@ const RISK_CONFIG: Record<RiskLevel, { label: string; bgClass: string; textClass
 export const RiskBadge = memo(function RiskBadge({ level, className }: RiskBadgeProps) {
     const config = RISK_CONFIG[level];
 
+    // Accessibility: High risk announcements should be immediate
+    const ariaLive = level === 'HIGH' ? 'polite' : undefined;
+    // Descriptive label for screen readers
+    const ariaLabel = `Risk level: ${config.label}. ${
+        level === 'HIGH' 
+            ? 'Warning: This approval allows full token access.' 
+            : level === 'MEDIUM' 
+                ? 'Caution: Review this approval periodically.' 
+                : 'Generally safe: Known protocol.'
+    }`;
+
     return (
         <span
             className={clsx(
@@ -36,6 +47,9 @@ export const RiskBadge = memo(function RiskBadge({ level, className }: RiskBadge
                 config.textClass,
                 className
             )}
+            role="status"
+            aria-label={ariaLabel}
+            aria-live={ariaLive}
         >
             {config.label}
         </span>
