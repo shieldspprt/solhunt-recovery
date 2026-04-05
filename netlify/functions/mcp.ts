@@ -552,22 +552,73 @@ const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT = 100; // requests per hour
 const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 
-function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetAt: number } {
+// Per-wallet rate limiting for fair resource distribution
+const walletRateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const WALLET_RATE_LIMIT = 50; // stricter limit per wallet (50/hour vs 100/hour per IP)
+
+interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;
+  resetAt: number;
+  source: 'ip' | 'wallet';
+}
+
+function checkRateLimit(ip: string, walletAddress?: string): RateLimitResult {
   const now = Date.now();
-  const entry = rateLimitMap.get(ip);
   
-  if (!entry || now > entry.resetAt) {
-    // New window
+  // Check IP-based rate limit
+  const ipEntry = rateLimitMap.get(ip);
+  let ipResult: { allowed: boolean; remaining: number; resetAt: number };
+  
+  if (!ipEntry || now > ipEntry.resetAt) {
+    // New window for IP
     rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return { allowed: true, remaining: RATE_LIMIT - 1, resetAt: now + RATE_WINDOW_MS };
+    ipResult = { allowed: true, remaining: RATE_LIMIT - 1, resetAt: now + RATE_WINDOW_MS };
+  } else if (ipEntry.count >= RATE_LIMIT) {
+    ipResult = { allowed: false, remaining: 0, resetAt: ipEntry.resetAt };
+  } else {
+    ipEntry.count++;
+    ipResult = { allowed: true, remaining: RATE_LIMIT - ipEntry.count, resetAt: ipEntry.resetAt };
   }
   
-  if (entry.count >= RATE_LIMIT) {
-    return { allowed: false, remaining: 0, resetAt: entry.resetAt };
+  // If wallet address provided, also check wallet-based rate limit (stricter)
+  if (walletAddress && walletAddress !== 'N/A') {
+    const walletEntry = walletRateLimitMap.get(walletAddress);
+    let walletResult: { allowed: boolean; remaining: number; resetAt: number };
+    
+    if (!walletEntry || now > walletEntry.resetAt) {
+      // New window for wallet
+      walletRateLimitMap.set(walletAddress, { count: 1, resetAt: now + RATE_WINDOW_MS });
+      walletResult = { allowed: true, remaining: WALLET_RATE_LIMIT - 1, resetAt: now + RATE_WINDOW_MS };
+    } else if (walletEntry.count >= WALLET_RATE_LIMIT) {
+      walletResult = { allowed: false, remaining: 0, resetAt: walletEntry.resetAt };
+    } else {
+      walletEntry.count++;
+      walletResult = { allowed: true, remaining: WALLET_RATE_LIMIT - walletEntry.count, resetAt: walletEntry.resetAt };
+    }
+    
+    // Return the most restrictive limit
+    if (!ipResult.allowed || !walletResult.allowed) {
+      // Both failed - return the one that resets later
+      if (!ipResult.allowed && !walletResult.allowed) {
+        return { 
+          ...walletResult, 
+          source: 'wallet' 
+        };
+      }
+      return { 
+        ...(ipResult.allowed ? walletResult : ipResult), 
+        source: ipResult.allowed ? 'wallet' : 'ip' 
+      };
+    }
+    
+    // Both allowed - return the one with fewer remaining
+    if (walletResult.remaining < ipResult.remaining) {
+      return { ...walletResult, source: 'wallet' };
+    }
   }
   
-  entry.count++;
-  return { allowed: true, remaining: RATE_LIMIT - entry.count, resetAt: entry.resetAt };
+  return { ...ipResult, source: 'ip' };
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
@@ -599,7 +650,19 @@ export const handler: Handler = async (event) => {
                    event.headers['client-ip'] || 
                    'unknown';
   
-  const rateLimit = checkRateLimit(clientIp);
+  // Extract wallet address early for rate limiting (if available in body)
+  let walletAddress: string | undefined;
+  if (event.httpMethod === 'POST' && event.body) {
+    try {
+      const body = JSON.parse(event.body);
+      const args = body.arguments || body.args || (body.params?.arguments) || {};
+      walletAddress = args.wallet_address || args.destination_wallet;
+    } catch {
+      // Ignore parse errors - will be caught later
+    }
+  }
+  
+  const rateLimit = checkRateLimit(clientIp, walletAddress);
   
   // Helper to build headers with rate limit info
   const buildHeaders = (includeRateLimit = true): Record<string, string> => {
@@ -607,7 +670,8 @@ export const handler: Handler = async (event) => {
     return {
       ...headers,
       'X-RateLimit-Remaining': String(rateLimit.remaining),
-      'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString()
+      'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString(),
+      'X-RateLimit-Source': rateLimit.source
     };
   };
   
@@ -619,9 +683,12 @@ export const handler: Handler = async (event) => {
         ...headers,
         'X-RateLimit-Remaining': '0',
         'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString(),
+        'X-RateLimit-Source': rateLimit.source,
         'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000))
       },
-      body: JSON.stringify(createMCPError('RATE_LIMITED', `Rate limit exceeded. Try again after ${new Date(rateLimit.resetAt).toISOString()}`))
+      body: JSON.stringify(createMCPError('RATE_LIMITED', 
+        `Rate limit exceeded (${rateLimit.source === 'wallet' ? 'per-wallet' : 'per-IP'}). ` +
+        `Try again after ${new Date(rateLimit.resetAt).toISOString()}`))
     };
   }
 

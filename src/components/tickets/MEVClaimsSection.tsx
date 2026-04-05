@@ -1,10 +1,11 @@
+import { memo, useMemo } from 'react';
 import { Loader2, Zap } from 'lucide-react';
 import { useMEVClaims } from '@/hooks/useMEVClaims';
 import { MEVClaimRow } from '@/components/tickets/MEVClaimRow';
 import { MEV_SERVICE_FEE_PERCENT } from '@/config/constants';
 import { estimateUSD, formatSOLValue } from '@/lib/formatting';
 
-export function MEVClaimsSection() {
+export const MEVClaimsSection = memo(function MEVClaimsSection() {
     const {
         mevScanStatus,
         mevScanResult,
@@ -15,6 +16,13 @@ export function MEVClaimsSection() {
         claimEstimate,
         initiateClaim,
     } = useMEVClaims();
+
+    // Memoize derived calculations to prevent re-computation on unrelated re-renders
+    const hasSelection = useMemo(() => selectedItems.length > 0, [selectedItems.length]);
+    const allSelected = useMemo(
+        () => mevScanResult ? selectedItems.length === mevScanResult.items.length : false,
+        [selectedItems.length, mevScanResult]
+    );
 
     if (mevScanStatus === 'idle' || mevScanStatus === 'no_rewards') {
         return null;
@@ -40,9 +48,6 @@ export function MEVClaimsSection() {
     }
 
     if (mevScanStatus === 'scan_complete' && mevScanResult && mevScanResult.items.length > 0) {
-        const hasSelection = selectedItems.length > 0;
-        const allSelected = selectedItems.length === mevScanResult.items.length;
-
         return (
             <div className="mt-8 border-t border-shield-border pt-6 space-y-4">
                 <div className="flex items-center justify-between">
@@ -54,6 +59,7 @@ export function MEVClaimsSection() {
                         <button
                             onClick={allSelected ? deselectAllMEV : selectAllMEV}
                             className="text-xs text-shield-accent hover:underline"
+                            aria-label={allSelected ? 'Deselect all MEV rewards' : 'Select all MEV rewards'}
                         >
                             {allSelected ? 'Deselect All' : 'Select All'}
                         </button>
@@ -79,7 +85,11 @@ export function MEVClaimsSection() {
 
                 {hasSelection && claimEstimate && (
                     <>
-                        <div className="rounded-xl border border-shield-border/60 bg-shield-bg/50 p-4">
+                        <div 
+                            className="rounded-xl border border-shield-border/60 bg-shield-bg/50 p-4"
+                            aria-live="polite"
+                            aria-atomic="true"
+                        >
                             <div className="space-y-2 text-sm">
                                 <div className="flex justify-between">
                                     <span className="text-shield-muted">Total claimable:</span>
@@ -102,6 +112,7 @@ export function MEVClaimsSection() {
                         <button
                             onClick={initiateClaim}
                             className="w-full rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
+                            aria-label={`Claim ${selectedItems.length} MEV reward${selectedItems.length === 1 ? '' : 's'}`}
                         >
                             Claim {selectedItems.length} MEV Reward{selectedItems.length === 1 ? '' : 's'}
                         </button>
@@ -112,4 +123,4 @@ export function MEVClaimsSection() {
     }
 
     return null;
-}
+});
