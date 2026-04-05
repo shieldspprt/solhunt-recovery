@@ -6,15 +6,19 @@ import './index.css'
 // Firebase is initialized proactively via this import if the env vars are set
 import '@/config/firebase'
 
+// Service worker update interval in milliseconds (60 seconds)
+const SW_UPDATE_INTERVAL_MS = 60_000;
+
 // Register service worker with auto-update (polls every 60s for new builds)
 if ('serviceWorker' in navigator) {
     registerSW({
         immediate: true,
-        onRegisteredSW(_swUrl: string, registration: ServiceWorkerRegistration | undefined) {
+        onRegisteredSW(swUrl: string, registration: ServiceWorkerRegistration | undefined) {
+            console.log('[SolHunt] Service Worker registered:', swUrl);
             if (registration) {
                 setInterval(() => {
                     registration.update();
-                }, 60_000);
+                }, SW_UPDATE_INTERVAL_MS);
             }
         },
         onOfflineReady() {

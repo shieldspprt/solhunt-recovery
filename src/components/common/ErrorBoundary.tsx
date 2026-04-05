@@ -20,6 +20,8 @@ interface ErrorBoundaryState {
  * Provides accessible error messaging with ARIA roles for screen readers.
  */
 export class ErrorBoundary extends PureComponent<ErrorBoundaryProps, ErrorBoundaryState> {
+    static displayName = 'ErrorBoundary';
+
     constructor(props: ErrorBoundaryProps) {
         super(props);
         this.state = { hasError: false, error: null };
