@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, memo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
@@ -8,7 +8,8 @@ import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { useWalletScanner } from '@/hooks/useWalletScanner';
 import { useWalletStatus } from '@/hooks/useStoreSelectors';
 
-export function ScanPage() {
+// Memoized to prevent unnecessary re-renders when parent state changes
+export const ScanPage = memo(function ScanPage() {
     const { connected } = useWallet();
     const { agentWallet } = useWalletStatus();
     const location = useLocation();
@@ -18,17 +19,22 @@ export function ScanPage() {
         clearScan
     } = useWalletScanner();
 
+    // Memoize the hash value to prevent unnecessary effect re-runs
+    // Extract just the hash to avoid triggering effect when other location properties change
+    const hash = useMemo(() => location.hash?.replace('#', '') || '', [location.hash]);
+
     useEffect(() => {
-        if (!hasResults || !location.hash) return;
-        const id = location.hash.replace('#', '');
+        if (!hasResults || !hash) return;
+        
         const timer = setTimeout(() => {
-            const target = document.getElementById(id);
+            const target = document.getElementById(hash);
             if (target) {
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }, 120);
+        
         return () => clearTimeout(timer);
-    }, [hasResults, location.hash]);
+    }, [hasResults, hash]);
 
     return (
         <PageWrapper>
@@ -60,4 +66,4 @@ export function ScanPage() {
             </div>
         </PageWrapper>
     );
-}
+});
