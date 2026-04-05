@@ -58,20 +58,23 @@ export const handler: Handler = async (event) => {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
-  let body: any;
+  let body: Record<string, unknown>;
   try {
-    body = JSON.parse(event.body || '{}');
+    body = JSON.parse(event.body || '{}') as Record<string, unknown>;
   } catch {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON body' }) };
   }
 
-  const { wallet_address, token_accounts, batch_number = 1 } = body;
+  const wallet_address = typeof body.wallet_address === 'string' ? body.wallet_address : '';
+  const batch_number = typeof body.batch_number === 'number' ? body.batch_number : 1;
+  const token_accounts_raw = body.token_accounts;
+  const token_accounts = Array.isArray(token_accounts_raw) ? token_accounts_raw : [];
 
   if (!wallet_address || !isValidSolanaAddress(wallet_address)) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid wallet_address' }) };
   }
 
-  if (!token_accounts || !Array.isArray(token_accounts) || token_accounts.length === 0) {
+  if (!token_accounts || token_accounts.length === 0) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'token_accounts array required' }) };
   }
 
@@ -177,8 +180,9 @@ export const handler: Handler = async (event) => {
       })
     };
 
-  } catch (error: any) {
-    console.error('build-revoke error:', error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('build-revoke error:', errorMessage);
     return {
       statusCode: 500,
       headers,

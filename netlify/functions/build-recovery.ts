@@ -45,14 +45,16 @@ export const handler: Handler = async (event) => {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
-  let body: any;
+  let body: Record<string, unknown>;
   try {
-    body = JSON.parse(event.body || '{}');
+    body = JSON.parse(event.body || '{}') as Record<string, unknown>;
   } catch {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON body' }) };
   }
 
-  const { wallet_address, destination_wallet, batch_number = 1 } = body;
+  const wallet_address = typeof body.wallet_address === 'string' ? body.wallet_address : '';
+  const destination_wallet = typeof body.destination_wallet === 'string' ? body.destination_wallet : '';
+  const batch_number = typeof body.batch_number === 'number' ? body.batch_number : 1;
 
   if (!wallet_address || !isValidSolanaAddress(wallet_address)) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid wallet_address' }) };
@@ -165,12 +167,13 @@ export const handler: Handler = async (event) => {
         sign_and_submit: "User signs this transaction with their wallet keypair and submits to Solana RPC"
       })
     };
-  } catch (error: any) {
-    console.error('build-recovery error:', error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.error('build-recovery error:', errorMessage);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: `Failed to build recovery transaction: ${error.message}` })
+      body: JSON.stringify({ error: `Failed to build recovery transaction: ${errorMessage}` })
     };
   }
 };
