@@ -7,15 +7,6 @@ import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strateg
 // ──────────────────────────────────────────────────────
 
 /** 
- * ExtendableEvent is the base interface for service worker events that
- * support the waitUntil() method for extending the event lifetime.
- * @see https://developer.mozilla.org/en-US/docs/Web/API/ExtendableEvent
- */
-interface ExtendableEvent extends Event {
-  waitUntil(promise: Promise<unknown>): void;
-}
-
-/** 
  * The BeforeInstallPromptEvent is fired when the PWA meets installability criteria.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/BeforeInstallPromptEvent
  */
@@ -26,6 +17,9 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 declare let self: ServiceWorkerGlobalScope;
+
+// Standard ExtendableEvent from DOM lib - no custom interface needed
+// ServiceWorkerGlobalScope provides proper types for activate events
 
 // ──────────────────────────────────────────────────────
 // 1. Precache static build assets (injected by vite-plugin-pwa)
@@ -104,7 +98,7 @@ registerRoute(
 // 6. Lifecycle: skip waiting + claim clients for fast updates
 // ──────────────────────────────────────────────────────
 self.skipWaiting();
-self.addEventListener('activate', (event: ExtendableEvent) => {
+self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim());
 });
 

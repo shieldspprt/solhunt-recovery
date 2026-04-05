@@ -1,5 +1,6 @@
 import { Sparkles, ArrowRightLeft } from 'lucide-react';
-import { memo, useMemo } from 'react';
+import { memo, useMemo, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { useDustConsolidator } from '@/hooks/useDustConsolidator';
 import { useDustBurnReclaim } from '@/hooks/useDustBurnReclaim';
 import { DUST_BURN_RECLAIM_FEE_PERCENT, DUST_SWAP_FEE_PERCENT } from '@/config/constants';
@@ -76,6 +77,13 @@ export const DustCard = memo(function DustCard() {
         );
     }
 
+    const parentRef = useRef(null);
+    const virtualizer = useVirtualizer({
+        count: dustScanResult.dustTokens.length,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => 48,
+    });
+
     return (
         <div 
             className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full animate-in fade-in slide-in-from-bottom-4 duration-700"
@@ -114,17 +122,42 @@ export const DustCard = memo(function DustCard() {
                 </div>
             </div>
 
-            <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                {dustScanResult.dustTokens.map((token) => (
-                    <DustTokenRow
-                        key={token.mint}
-                        token={token}
-                        quote={swapQuotes.get(token.mint)}
-                        selected={selectedDustMints.includes(token.mint)}
-                        onToggle={toggleTokenSelection}
-                        onBurn={!token.isSwappable ? startBurnForMints : undefined}
-                    />
-                ))}
+            <div 
+                ref={parentRef}
+                className="space-y-2 max-h-72 overflow-y-auto pr-1"
+            >
+                <div
+                    style={{
+                        height: `${virtualizer.getTotalSize()}px`,
+                        width: '100%',
+                        position: 'relative',
+                    }}
+                >
+                    {virtualizer.getVirtualItems().map((virtualItem) => {
+                        const token = dustScanResult.dustTokens[virtualItem.index];
+                        return (
+                            <div
+                                key={token.mint}
+                                style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: `${virtualItem.size}px`,
+                                    transform: `translateY(${virtualItem.start}px)`,
+                                }}
+                            >
+                                <DustTokenRow
+                                    token={token}
+                                    quote={swapQuotes.get(token.mint)}
+                                    selected={selectedDustMints.includes(token.mint)}
+                                    onToggle={toggleTokenSelection}
+                                    onBurn={!token.isSwappable ? startBurnForMints : undefined}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
 
             {dustStatus === 'error' && dustError && (
