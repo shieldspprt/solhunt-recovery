@@ -128,9 +128,12 @@ export function useLPHarvester() {
                 compoundSuccess: result.compoundResult?.success ?? false,
                 feeSOL: result.serviceFeeSOL,
             });
-        } catch {
+        } catch (err: unknown) {
             setHarvestStatus('error');
             setHarvestError(LP_ERROR_MESSAGES.LP_HARVEST_FAILED);
+
+            // Log the actual error for debugging
+            console.error('LP harvest failed:', err instanceof Error ? err.message : String(err));
 
             logLPHarvestComplete({
                 success: false,
