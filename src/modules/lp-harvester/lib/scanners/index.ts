@@ -6,6 +6,8 @@ import { fetchTokenPrices } from '../pricer';
 import { scanOrcaPositions } from './orcaScanner';
 import { scanRaydiumPositions } from './raydiumScanner';
 import { scanMeteoraPositions } from './meteoraScanner';
+import { isValidSolanaPublicKey } from '@/lib/validation';
+import { createAppError } from '@/lib/errors';
 import type { LPPosition, LPProtocol, LPScanResult } from '../../types';
 
 function extractUniqueMints(positions: LPPosition[]): string[] {
@@ -65,10 +67,24 @@ function buildProtocolBreakdown(positions: LPPosition[]): LPScanResult['protocol
     return Array.from(index.values()).sort((left, right) => right.feeValueUSD - left.feeValueUSD);
 }
 
+/**
+ * Scans all LP positions across Orca, Raydium, and Meteora.
+ * 
+ * SECURITY: Validates wallet address before making any RPC calls to prevent
+ * injection attacks and ensure consistent error handling.
+ */
 export async function scanAllLPPositions(
     walletAddress: string,
     connection: Connection
 ): Promise<LPScanResult> {
+    // Validate wallet address format before making any RPC calls
+    if (!isValidSolanaPublicKey(walletAddress)) {
+        throw createAppError(
+            'INVALID_ADDRESS',
+            `Invalid wallet address provided to LP scanner: ${walletAddress.substring(0, 10)}...`
+        );
+    }
+
     const protocolTasks = [
         {
             protocols: ['orca'] as LPProtocol[],

@@ -8,14 +8,27 @@ import {
     BUFFER_CLOSE_FEE_PERCENT
 } from '../constants';
 import { withRetry } from '@/lib/rpcRetry';
+import { isValidSolanaPublicKey } from '@/lib/validation';
+import { createAppError } from '@/lib/errors';
 
 /**
  * Scans for BPF Loader buffer accounts owned by the given wallet.
+ * 
+ * SECURITY: Validates wallet address before making any RPC calls to prevent
+ * injection attacks and ensure consistent error handling.
  */
 export async function scanForBuffers(
     walletAddress: string,
     _connection: Connection
 ): Promise<BufferAccount[]> {
+    // Validate wallet address format before making any RPC calls
+    if (!isValidSolanaPublicKey(walletAddress)) {
+        throw createAppError(
+            'INVALID_ADDRESS',
+            `Invalid wallet address provided to buffer scanner: ${walletAddress.substring(0, 10)}...`
+        );
+    }
+
     // 1. Scan BPFLoaderUpgradeable buffers with retry
     const upgradeableBuffers = await withRetry(
         (conn) => conn.getProgramAccounts(
