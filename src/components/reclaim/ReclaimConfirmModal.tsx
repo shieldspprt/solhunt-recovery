@@ -4,8 +4,9 @@ import { formatSOLValue, estimateUSD } from '@/lib/formatting';
 import { Coins, X, Zap } from 'lucide-react';
 import { MAX_CLOSE_PER_TX } from '@/config/constants';
 import { useState } from 'react';
+import { memo } from 'react';
 
-export function ReclaimConfirmModal() {
+export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
     const { reclaimStatus, clearReclaim } = useAppStore();
     const { closeableAccounts, reclaimEstimate, executeReclaim } = useReclaimRent();
     const [feeConsent, setFeeConsent] = useState(false);
@@ -140,4 +141,4 @@ export function ReclaimConfirmModal() {
             </div>
         </div>
     );
-}
+});

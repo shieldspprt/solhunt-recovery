@@ -5,8 +5,9 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { SOLSCAN_TX_URL } from '@/config/constants';
 import { formatSOLValue } from '@/lib/formatting';
 import { CheckCircle2, XCircle, ExternalLink, RefreshCw, X } from 'lucide-react';
+import { memo } from 'react';
 
-export function ReclaimProgressModal() {
+export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
     const { reclaimStatus, reclaimResult, reclaimError, clearReclaim } = useAppStore();
     const { closeableAccounts, executeReclaim } = useReclaimRent();
 
@@ -149,4 +150,4 @@ export function ReclaimProgressModal() {
             </div>
         </div>
     );
-}
+});

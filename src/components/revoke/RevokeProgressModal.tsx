@@ -5,12 +5,13 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { SOLSCAN_TX_URL } from '@/config/constants';
 import { CheckCircle2, XCircle, ExternalLink, RefreshCw, X } from 'lucide-react';
 import type { TokenDelegation } from '@/types';
+import { memo } from 'react';
 
 interface RevokeProgressModalProps {
     delegations: TokenDelegation[];
 }
 
-export function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
+export const RevokeProgressModal = memo(function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
     const { revokeStatus, revokeResult, revokeError, clearRevoke } = useAppStore();
     const { revoke } = useRevoke();
 
@@ -152,4 +153,4 @@ export function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
             </div>
         </div>
     );
-}
+});

@@ -5,12 +5,13 @@ import { formatSOLValue, estimateUSD } from '@/lib/formatting';
 import { ShieldAlert, X } from 'lucide-react';
 import type { TokenDelegation } from '@/types';
 import { useState, useEffect, useRef } from 'react';
+import { memo } from 'react';
 
 interface RevokeConfirmModalProps {
     delegations: TokenDelegation[];
 }
 
-export function RevokeConfirmModal({ delegations }: RevokeConfirmModalProps) {
+export const RevokeConfirmModal = memo(function RevokeConfirmModal({ delegations }: RevokeConfirmModalProps) {
     const { revokeStatus, clearRevoke } = useAppStore();
     const { revoke } = useRevoke();
     const [feeConsent, setFeeConsent] = useState(false);
@@ -199,4 +200,4 @@ export function RevokeConfirmModal({ delegations }: RevokeConfirmModalProps) {
             </div>
         </div>
     );
-}
+});
