@@ -39,6 +39,82 @@ export const JITO_TIP_LAMPORTS = 50_000;
 /** Maximum retry attempts for Jito submission before falling back to RPC */
 export const MAX_JITO_RETRIES = 3;
 
+// ─── Circuit Breaker Configuration ─────────────────────────────
+
+/** Number of consecutive failures before opening the circuit */
+const CIRCUIT_BREAKER_THRESHOLD = 5;
+
+/** Time before attempting to reset circuit (half-open) after being opened */
+const CIRCUIT_BREAKER_RESET_MS = 30000;
+
+/** Circuit breaker state */
+type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+
+interface CircuitBreakerState {
+    state: CircuitState;
+    failureCount: number;
+    lastFailureTime: number;
+}
+
+const circuitBreaker: CircuitBreakerState = {
+    state: 'CLOSED',
+    failureCount: 0,
+    lastFailureTime: 0,
+};
+
+/**
+ * Circuit breaker error - thrown when circuit is open to trigger immediate fallback
+ */
+class CircuitBreakerError extends Error {
+    constructor(public readonly nextRetryAt: Date) {
+        super(`Jito circuit breaker is OPEN until ${nextRetryAt.toISOString()}`);
+        this.name = 'CircuitBreakerError';
+    }
+}
+
+/**
+ * Check if the circuit breaker allows Jito calls.
+ * Returns true if circuit is CLOSED or HALF_OPEN (allowing the call).
+ * Throws CircuitBreakerError if circuit is OPEN.
+ */
+function checkCircuitBreaker(): boolean {
+    const now = Date.now();
+    
+    if (circuitBreaker.state === 'OPEN') {
+        // Check if we should transition to HALF_OPEN
+        if (now - circuitBreaker.lastFailureTime >= CIRCUIT_BREAKER_RESET_MS) {
+            circuitBreaker.state = 'HALF_OPEN';
+            return true;
+        }
+        // Circuit still open - throw error to trigger fallback
+        const nextRetryAt = new Date(circuitBreaker.lastFailureTime + CIRCUIT_BREAKER_RESET_MS);
+        throw new CircuitBreakerError(nextRetryAt);
+    }
+    
+    return true; // CLOSED or HALF_OPEN - allow the call
+}
+
+/**
+ * Record a Jito API failure. Opens circuit if threshold reached.
+ */
+function recordJitoFailure(): void {
+    circuitBreaker.failureCount++;
+    circuitBreaker.lastFailureTime = Date.now();
+    
+    if (circuitBreaker.failureCount >= CIRCUIT_BREAKER_THRESHOLD) {
+        circuitBreaker.state = 'OPEN';
+    }
+}
+
+/**
+ * Record a Jito API success. Resets failure count and closes circuit.
+ */
+function recordJitoSuccess(): void {
+    circuitBreaker.failureCount = 0;
+    circuitBreaker.lastFailureTime = 0;
+    circuitBreaker.state = 'CLOSED';
+}
+
 // ─── Helpers ──────────────────────────────────────────────
 
 /**
@@ -78,9 +154,18 @@ async function submitToJitoWithRetry(
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-            return await submitToJito(serializedTx);
+            checkCircuitBreaker();
+            const result = await submitToJito(serializedTx);
+            recordJitoSuccess(); // Reset circuit breaker on success
+            return result;
         } catch (err) {
             lastError = err instanceof Error ? err : new Error(String(err));
+            
+            // Don't record circuit breaker errors as Jito failures - they're intentional fallbacks
+            if (!(lastError instanceof CircuitBreakerError)) {
+                recordJitoFailure();
+            }
+            
             if (attempt < maxRetries) {
                 // Full jitter exponential backoff prevents thundering herd
                 // when Jito is under load, improving overall success rates
