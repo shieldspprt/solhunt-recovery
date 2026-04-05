@@ -85,7 +85,7 @@ export function useRevoke() {
 
                         // Accumulate the revoke count from the batch metadata
                         totalRevoked += revokeTx.revokeCount;
-                    } catch (txError) {
+                    } catch (txError: unknown) {
                         // Check if user rejected the transaction
                         const errorMessage =
                             txError instanceof Error ? txError.message : String(txError);

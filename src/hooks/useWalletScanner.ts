@@ -27,16 +27,19 @@ export function useWalletScanner() {
         clearScan,
     } = useAppStore();
 
+    // Memoize wallet validation errors to prevent unnecessary object creation
+    const walletNotConnectedError = useMemo(() => ({
+        code: ERROR_CODES.WALLET_NOT_CONNECTED,
+        message: ERROR_MESSAGES.WALLET_NOT_CONNECTED,
+        technicalDetail: 'publicKey and agentWallet are both null',
+    }), []);
+
     const scan = useCallback(async () => {
         const targetWallet = publicKey?.toBase58() || agentWallet;
 
         // Check wallet connection
         if (!targetWallet) {
-            setScanError({
-                code: ERROR_CODES.WALLET_NOT_CONNECTED,
-                message: ERROR_MESSAGES.WALLET_NOT_CONNECTED,
-                technicalDetail: 'publicKey and agentWallet are both null',
-            });
+            setScanError(walletNotConnectedError);
             return;
         }
 
@@ -93,7 +96,7 @@ export function useWalletScanner() {
             setScanError(appError);
             logScanError(appError.code);
         }
-    }, [publicKey, agentWallet, connection, setScanStatus, setScanResult, setScanError]);
+    }, [publicKey, agentWallet, connection, setScanStatus, setScanResult, setScanError, walletNotConnectedError]);
 
     // isOnCooldown is now wrapped in useCallback for consistency
     // Returns whether the scan is currently on cooldown
