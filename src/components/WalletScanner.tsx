@@ -5,6 +5,7 @@
 import { useState, useCallback, useEffect, memo } from 'react';
 import { isValidSolanaAddress } from '@/lib/validation';
 import { shortenAddress } from '@/lib/formatting';
+import { toAppError } from '@/lib/errors';
 import type { WalletScanResponse } from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -222,7 +223,8 @@ export function WalletScanner() {
       setState('success');
     } catch (e: unknown) {
       setState('error');
-      setError('Network error. Check your connection and try again.');
+      const appError = toAppError(e, 'NETWORK_ERROR');
+      setError(appError.message);
     }
   }, [address]);
 

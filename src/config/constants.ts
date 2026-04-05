@@ -36,6 +36,7 @@ export const ERROR_CODES = {
     TX_TIMEOUT: 'TX_TIMEOUT',
     SCAN_FAILED: 'SCAN_FAILED',
     UNKNOWN: 'UNKNOWN',
+    NETWORK_ERROR: 'NETWORK_ERROR',
 
     // Engine 2
     RECLAIM_NO_ACCOUNTS: 'RECLAIM_NO_ACCOUNTS',
@@ -84,6 +85,7 @@ export const ERROR_MESSAGES: Record<keyof typeof ERROR_CODES, string> = {
     TX_TIMEOUT: 'Transaction sent but confirmation timed out. Check Solscan to see if it went through.',
     SCAN_FAILED: 'Could not complete the scan. Please try again.',
     UNKNOWN: 'Something unexpected happened. Please refresh the page and try again.',
+    NETWORK_ERROR: 'Network error. Check your connection and try again.',
 
     // Engine 2
     RECLAIM_NO_ACCOUNTS: 'Not enough empty accounts to reclaim.',
