@@ -81,9 +81,12 @@ async function fetchTokenAccounts(
         try {
             return (await attemptFetch()).value;
         } catch (retryError: unknown) {
+            const programName = programId.equals(TOKEN_2022_PROGRAM_ID) ? 'Token-2022' : 'SPL Token';
             throw createAppError(
                 'RPC_ERROR',
-                `Failed to fetch token accounts after retry: ${retryError instanceof Error ? retryError.message : String(retryError)}`
+                `Failed to fetch ${programName} accounts after retry. ` +
+                `Error: ${retryError instanceof Error ? retryError.message : String(retryError)}. ` +
+                `Try again or check your network connection.`
             );
         }
     }

@@ -48,6 +48,23 @@ function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/** Base delay for exponential backoff (200ms) */
+const BASE_RETRY_DELAY_MS = 100;
+/** Maximum delay cap for retries (3 seconds) */
+const MAX_RETRY_DELAY_MS = 3000;
+
+/**
+ * Calculate delay with full jitter to prevent thundering herd.
+ * Returns a random value between 0 and the calculated exponential delay.
+ *
+ * @see https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
+ */
+function getJitteredDelay(attempt: number): number {
+    const exponentialDelay = Math.min(BASE_RETRY_DELAY_MS * Math.pow(2, attempt), MAX_RETRY_DELAY_MS);
+    // Full jitter: random value between 0 and exponential delay
+    return Math.floor(Math.random() * exponentialDelay);
+}
+
 /**
  * Submit a signed transaction via Jito Block Engine with exponential backoff retry.
  * Returns the signature string on success.
@@ -65,8 +82,9 @@ async function submitToJitoWithRetry(
         } catch (err) {
             lastError = err instanceof Error ? err : new Error(String(err));
             if (attempt < maxRetries) {
-                // Exponential backoff: 100ms, 200ms, 400ms, ...
-                const delayMs = 100 * Math.pow(2, attempt);
+                // Full jitter exponential backoff prevents thundering herd
+                // when Jito is under load, improving overall success rates
+                const delayMs = getJitteredDelay(attempt);
                 await sleep(delayMs);
             }
         }
