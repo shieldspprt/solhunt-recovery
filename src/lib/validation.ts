@@ -90,6 +90,14 @@ export function isValidSolanaAddress(address: string): boolean {
 
 /**
  * Validates and returns a PublicKey, or throws a user-friendly error.
+ * 
+ * SECURITY: This function validates that the address is a valid ed25519 public key
+ * (on the curve) which is required for wallet addresses. Program IDs will fail this check.
+ * Use toValidPublicKey if you need to accept program IDs.
+ * 
+ * @param address - The Solana address string to validate
+ * @returns PublicKey instance
+ * @throws Error with descriptive message if address is invalid
  */
 export function toValidPublicKey(address: string): PublicKey {
     if (!address || typeof address !== 'string') {
@@ -98,15 +106,16 @@ export function toValidPublicKey(address: string): PublicKey {
 
     const trimmed = address.trim();
 
-    if (trimmed.length < 32 || trimmed.length > 44) {
-        throw new Error(`Address must be 32–44 base58 characters, got ${trimmed.length}`);
+    // Use isValidSolanaPublicKey for comprehensive validation including curve check
+    if (!isValidSolanaPublicKey(trimmed)) {
+        throw new Error(
+            `Invalid Solana wallet address: ${trimmed.substring(0, 10)}${trimmed.length > 10 ? '...' : ''}. ` +
+            `Expected a valid base58-encoded ed25519 public key (32-44 characters).`
+        );
     }
 
-    try {
-        return new PublicKey(trimmed);
-    } catch {
-        throw new Error(`Invalid Solana address: ${trimmed.substring(0, 10)}...`);
-    }
+    // Safe to construct - validation passed
+    return new PublicKey(trimmed);
 }
 
 /**
