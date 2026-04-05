@@ -3,12 +3,20 @@ import { registerRoute, NavigationRoute } from 'workbox-routing';
 import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
 
 // ──────────────────────────────────────────────────────
-// Type Definitions for PWA Install Prompt
+// Type Definitions for Service Worker Events
 // ──────────────────────────────────────────────────────
 
 /** 
+ * ExtendableEvent is the base interface for service worker events that
+ * support the waitUntil() method for extending the event lifetime.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/ExtendableEvent
+ */
+interface ExtendableEvent extends Event {
+  waitUntil(promise: Promise<unknown>): void;
+}
+
+/** 
  * The BeforeInstallPromptEvent is fired when the PWA meets installability criteria.
- * This interface is defined here because it's not available in all TypeScript lib versions.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/BeforeInstallPromptEvent
  */
 interface BeforeInstallPromptEvent extends Event {
@@ -94,10 +102,9 @@ registerRoute(
 
 // ──────────────────────────────────────────────────────
 // 6. Lifecycle: skip waiting + claim clients for fast updates
-//    Uses native ExtendableEvent from Service Worker DOM spec
 // ──────────────────────────────────────────────────────
 self.skipWaiting();
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', (event: ExtendableEvent) => {
   event.waitUntil(self.clients.claim());
 });
 
