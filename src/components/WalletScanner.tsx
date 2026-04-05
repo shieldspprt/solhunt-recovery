@@ -2,7 +2,7 @@
 // Wallet scanner component for SolHunt homepage
 // Self-contained. Manages its own state. No props required.
 
-import { useState, useCallback, useEffect, memo } from 'react';
+import { useState, useCallback, useEffect, useRef, memo } from 'react';
 import { isValidSolanaAddress } from '@/lib/validation';
 import { shortenAddress } from '@/lib/formatting';
 import { toAppError } from '@/lib/errors';
@@ -11,6 +11,9 @@ import type { WalletScanResponse } from '@/types';
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 type ScanState = 'idle' | 'loading' | 'success' | 'error';
+
+/** Maximum scan duration before showing timeout warning (15 seconds) */
+const SCAN_TIMEOUT_MS = 15000;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -170,11 +173,40 @@ export function WalletScanner() {
   const [state, setState] = useState<ScanState>('idle');
   const [result, setResult] = useState<WalletScanResponse | null>(null);
   const [error, setError] = useState<string>('');
+  const [isSlow, setIsSlow] = useState(false);
   const [liveStats, setLiveStats] = useState<{scanned: number, sol: number} | null>(null);
+
+  // Refs for managing async operations and timeouts
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const slowScanTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Cleanup function to cancel in-flight requests and timers
+  const cleanupScan = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    if (slowScanTimeoutRef.current) {
+      clearTimeout(slowScanTimeoutRef.current);
+      slowScanTimeoutRef.current = null;
+    }
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => cleanupScan();
+  }, [cleanupScan]);
 
   // Fetch live network overview stats strictly for the public pill
   useEffect(() => {
-    fetch('/api/get-stats?days=1')
+    const controller = new AbortController();
+    
+    fetch('/api/get-stats?days=1', { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
         if (data?.success && data?.data?.today) {
@@ -185,10 +217,15 @@ export function WalletScanner() {
         }
       })
       .catch(() => {});
+    
+    return () => controller.abort();
   }, []);
 
   const handleScan = useCallback(async () => {
     const trimmed = address.trim();
+
+    // Cancel any in-flight scan before starting a new one
+    cleanupScan();
 
     // Client-side validation before hitting the API
     if (!trimmed) {
@@ -203,13 +240,31 @@ export function WalletScanner() {
 
     setError('');
     setState('loading');
+    setIsSlow(false);
     setResult(null);
+
+    // Set up slow scan warning timeout
+    slowScanTimeoutRef.current = setTimeout(() => {
+      setIsSlow(true);
+    }, SCAN_TIMEOUT_MS);
+
+    // Create new abort controller for this scan
+    abortControllerRef.current = new AbortController();
 
     try {
       const response = await fetch(
         `/api/scan-wallet?address=${encodeURIComponent(trimmed)}`,
-        { method: 'GET' }
+        { 
+          method: 'GET',
+          signal: abortControllerRef.current.signal 
+        }
       );
+
+      // Clear slow scan timeout since we got a response
+      if (slowScanTimeoutRef.current) {
+        clearTimeout(slowScanTimeoutRef.current);
+        slowScanTimeoutRef.current = null;
+      }
 
       const data = await response.json();
 
@@ -222,24 +277,46 @@ export function WalletScanner() {
       setResult(data.data);
       setState('success');
     } catch (e: unknown) {
+      // Don't report errors for aborted requests - they were intentionally cancelled
+      if (e instanceof Error && e.name === 'AbortError') {
+        setState('idle');
+        return;
+      }
+
       setState('error');
       const appError = toAppError(e, 'NETWORK_ERROR');
       setError(appError.message);
+    } finally {
+      // Clear slow scan timeout in case of error
+      if (slowScanTimeoutRef.current) {
+        clearTimeout(slowScanTimeoutRef.current);
+        slowScanTimeoutRef.current = null;
+      }
+      abortControllerRef.current = null;
     }
-  }, [address]);
+  }, [address, cleanupScan]);
 
   // Allow Enter key to trigger scan
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleScan();
   }, [handleScan]);
 
-  // Clear results when address changes
+  // Clear results when address changes - also cancels in-flight requests
   const handleAddressChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setAddress(e.target.value);
+    const newAddress = e.target.value;
+    setAddress(newAddress);
+    
+    // Cancel any in-flight request when user starts typing
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+    
     if (state !== 'idle') {
       setState('idle');
       setResult(null);
       setError('');
+      setIsSlow(false);
     }
   }, [state]);
 
@@ -322,12 +399,25 @@ export function WalletScanner() {
 
       {/* Loading state */}
       {state === 'loading' && (
-        <div className="mt-6 flex items-center gap-3 text-gray-400 text-sm">
-          <svg className="animate-spin h-4 w-4 text-purple-400" viewBox="0 0 24 24" fill="none">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-          </svg>
-          Scanning wallet on Solana mainnet...
+        <div className="mt-6 space-y-2">
+          <div className="flex items-center gap-3 text-gray-400 text-sm">
+            <svg className="animate-spin h-4 w-4 text-purple-400" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Scanning wallet on Solana mainnet...
+          </div>
+          {isSlow && (
+            <p className="text-yellow-400 text-xs pl-7">
+              Still scanning... Solana RPC may be experiencing high load. 
+              <button 
+                onClick={() => { cleanupScan(); setState('idle'); setIsSlow(false); }}
+                className="ml-2 underline hover:text-yellow-300"
+              >
+                Cancel
+              </button>
+            </p>
+          )}
         </div>
       )}
 
