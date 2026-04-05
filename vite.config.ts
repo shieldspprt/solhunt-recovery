@@ -46,10 +46,21 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'solana': ['@solana/web3.js', '@solana/spl-token'],
-          'wallet-adapter': ['@solana/wallet-adapter-react', '@solana/wallet-adapter-wallets'],
-          'firebase': ['firebase/app', 'firebase/analytics', 'firebase/firestore'],
-          'lp-orca': ['@orca-so/whirlpools-sdk'],
+          // Core Solana - minimal bundle for connection handling
+          'solana-core': ['@solana/web3.js'],
+          // SPL Token - separate from core for tree-shaking
+          'solana-spl': ['@solana/spl-token'],
+          // Wallet adapters - split to reduce initial bundle
+          'wallet-adapter-base': ['@solana/wallet-adapter-base'],
+          'wallet-adapter-react': ['@solana/wallet-adapter-react', '@solana/wallet-adapter-react-ui'],
+          'wallet-adapter-wallets': ['@solana/wallet-adapter-wallets'],
+          // Mobile wallet adapter - lazy loaded on mobile detection
+          'wallet-mobile': ['@solana-mobile/wallet-adapter-mobile'],
+          // Firebase - only used for analytics
+          'firebase': ['firebase/app', 'firebase/analytics'],
+          // LP SDKs - each isolated to prevent massive single chunks
+          'lp-orca-core': ['@orca-so/common-sdk'],
+          'lp-orca-pools': ['@orca-so/whirlpools-sdk'],
           'lp-raydium': ['@raydium-io/raydium-sdk-v2'],
           'lp-meteora': ['@meteora-ag/dlmm'],
         },
