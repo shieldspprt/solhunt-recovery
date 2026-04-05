@@ -24,18 +24,28 @@ export const DeadProtocolCard = memo(function DeadProtocolCard({ item, isSelecte
                 <div
                     className="absolute inset-0 z-0 cursor-pointer"
                     onClick={() => onToggle(item.tokenAccountAddress)}
+                    role="button"
+                    aria-label={`Select ${protocol.name} position for recovery`}
+                    aria-pressed={isSelected}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onToggle(item.tokenAccountAddress);
+                        }
+                    }}
                 />
             )}
 
             <div className="relative z-10 p-6">
                 <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                        {isWindingDown && <span className="text-xl animate-pulse">🚨</span>}
+                        {isWindingDown && <span className="text-xl animate-pulse" aria-hidden="true">🚨</span>}
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10">
                             {protocol.logoUri ? (
-                                <img src={protocol.logoUri} alt={protocol.name} className="h-6 w-6 object-cover" />
+                                <img src={protocol.logoUri} alt="" className="h-6 w-6 object-cover" />
                             ) : (
-                                <span className="text-xl">🪦</span>
+                                <span className="text-xl" aria-hidden="true">🪦</span>
                             )}
                         </div>
                         <div>
@@ -99,8 +109,9 @@ export const DeadProtocolCard = memo(function DeadProtocolCard({ item, isSelecte
                             target="_blank"
                             rel="noreferrer noopener"
                             className="relative z-20 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-400 hover:text-blue-300 bg-blue-400/10 hover:bg-blue-400/20 px-3 py-1.5 rounded-lg transition-colors"
+                            aria-label={`Open ${protocol.name} recovery site in new tab`}
                         >
-                            Open Recovery Site →
+                            Open Recovery Site <span aria-hidden="true">→</span>
                         </a>
                     )}
 
@@ -111,8 +122,10 @@ export const DeadProtocolCard = memo(function DeadProtocolCard({ item, isSelecte
                                     : 'border-shield-border/50 bg-shield-bg/50 text-shield-text hover:border-shield-accent/50 hover:bg-shield-accent/10 hover:text-shield-accent'
                                 }`}
                             onClick={() => onToggle(item.tokenAccountAddress)}
+                            aria-pressed={isSelected}
+                            aria-label={isSelected ? `Deselect ${protocol.name} position` : `Select ${protocol.name} position for recovery`}
                         >
-                            <div className={`flex h-4 w-4 items-center justify-center rounded text-[10px] ${isSelected ? 'bg-shield-bg/30 text-shield-bg' : 'border border-shield-muted/50 text-transparent'}`}>
+                            <div className={`flex h-4 w-4 items-center justify-center rounded text-[10px] ${isSelected ? 'bg-shield-bg/30 text-shield-bg' : 'border border-shield-muted/50 text-transparent'}`} aria-hidden="true">
                                 {isSelected && '✓'}
                             </div>
                             {isSelected ? 'Include in Recovery' : 'Select for Recovery'}

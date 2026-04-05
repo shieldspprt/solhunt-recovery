@@ -77,7 +77,11 @@ export const DustCard = memo(function DustCard() {
     }
 
     return (
-        <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div 
+            className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full animate-in fade-in slide-in-from-bottom-4 duration-700"
+            aria-live="polite"
+            aria-atomic="true"
+        >
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
@@ -96,12 +100,14 @@ export const DustCard = memo(function DustCard() {
                     <button
                         onClick={selectAll}
                         className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
+                        aria-label="Select all dust tokens"
                     >
                         Select All
                     </button>
                     <button
                         onClick={deselectAll}
                         className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
+                        aria-label="Deselect all dust tokens"
                     >
                         Deselect All
                     </button>
@@ -122,7 +128,11 @@ export const DustCard = memo(function DustCard() {
             </div>
 
             {dustStatus === 'error' && dustError && (
-                <div className="rounded-lg border border-shield-danger/30 bg-shield-danger/10 p-3 mt-4">
+                <div 
+                    className="rounded-lg border border-shield-danger/30 bg-shield-danger/10 p-3 mt-4"
+                    role="status"
+                    aria-live="polite"
+                >
                     <p className="text-sm text-shield-danger font-medium">{dustError.message}</p>
                 </div>
             )}
@@ -155,6 +165,7 @@ export const DustCard = memo(function DustCard() {
                 onClick={initiateDustSwap}
                 disabled={selectedTokens.length === 0 || isSwappingDust}
                 className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-shield-accent text-white font-semibold px-4 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-shield-accent/90 transition-colors"
+                aria-label={`Consolidate ${selectedTokens.length} token${selectedTokens.length === 1 ? '' : 's'} to SOL`}
             >
                 <ArrowRightLeft className="h-4 w-4" />
                 Consolidate {selectedTokens.length} Token{selectedTokens.length === 1 ? '' : 's'} to SOL
@@ -188,6 +199,7 @@ export const DustCard = memo(function DustCard() {
                         onClick={initiateBurnReclaim}
                         disabled={isBurning}
                         className="w-full rounded-xl bg-shield-warning text-shield-bg font-semibold px-4 py-3 hover:bg-shield-warning/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        aria-label={`Burn and reclaim ${unswappableTokens.length} account${unswappableTokens.length === 1 ? '' : 's'}`}
                     >
                         Burn & Reclaim {unswappableTokens.length} Account{unswappableTokens.length === 1 ? '' : 's'}
                     </button>
