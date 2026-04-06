@@ -2,12 +2,12 @@
   "schema_version": "1.0",
   "name": "solhunt",
   "display_name": "SolHunt Wallet Intelligence",
-  "description": "Solana wallet health analysis and SOL recovery. Check wallet efficiency, find recoverable SOL from zero-balance token accounts, and build trustless recovery transactions. SolHunt never requires custody of your keys.",
+  "description": "Solana wallet health analysis and SOL recovery. Check wallet efficiency, find recoverable SOL from zero-balance token accounts, scan for dApp token approvals, revoke risky approvals, and build trustless recovery transactions. SolHunt never requires custody of your keys.",
   "version": "1.0.0",
   "homepage": "https://solhunt.dev",
   "icon": "https://solhunt.dev/icon.png",
   "category": "blockchain",
-  "tags": ["solana", "wallet", "defi", "recovery", "agent"],
+  "tags": ["solana", "wallet", "defi", "recovery", "agent", "security"],
   "pricing": {
     "type": "free",
     "detail": "Completely free to use. 15% fee only on successful SOL recovery."
@@ -33,52 +33,77 @@
     "mcp": {
       "tools": [
         {
-          "name": "check_wallet_health",
-          "description": "Analyze a Solana wallet for recoverable SOL locked in zero-balance token accounts. Returns health score (0-100), exact recoverable SOL amount, number of closeable accounts, and a cleanup recommendation.",
+          "name": "get_wallet_report",
+          "description": "Complete Solana wallet analysis in one call. Returns everything needed to understand and act on a wallet: health score (0-100), grade (A-F), all closeable token accounts, exact recoverable SOL, fee preview (15% to SolHunt), net amount operator receives, and how many transaction batches needed. Use this as the first and usually only call before build_recovery_transaction.",
           "inputSchema": {
             "type": "object",
             "required": ["wallet_address"],
             "properties": {
               "wallet_address": {
                 "type": "string",
-                "description": "Solana wallet public key (base58 encoded)"
+                "description": "Solana wallet public key (base58, 32-44 characters)"
               }
             }
           }
         },
         {
-          "name": "get_recovery_opportunities",
-          "description": "Get a prioritized list of specific token accounts to close for maximum SOL recovery. Returns accounts sorted by batch group for efficient transaction building.",
+          "name": "scan_token_approvals",
+          "description": "CRITICAL SECURITY: Scan for dApps with spending rights on your wallet. Finds ALL token approvals/delegations (unlimited and limited) and rates them by risk. HIGH: Unknown dApps with unlimited approval — can drain wallet. MEDIUM: Unknown dApps with limited approval. LOW: Known protocols (Jupiter, Orca, Raydium). Returns count of approvals by risk, total exposed value, list of dApps with permission to move tokens, and security recommendation. Use BEFORE build_revoke_transactions.",
           "inputSchema": {
             "type": "object",
             "required": ["wallet_address"],
             "properties": {
               "wallet_address": {
                 "type": "string",
-                "description": "Solana wallet public key"
+                "description": "Solana wallet to scan for token approvals"
               }
             }
           }
         },
         {
-          "name": "preview_recovery",
-          "description": "Preview exactly what a wallet recovery will do before executing. Returns: accounts to close, exact SOL you'll receive, fee amount (15%), net amount, and estimated transaction cost.",
+          "name": "build_revoke_transactions",
+          "description": "Build unsigned Solana transaction to REVOKE token approvals. Stops dApps from being able to spend your tokens. Input: List of token_account objects from scan_token_approvals response. Each account needs: address, mint, and optionally programId. Returns: base64-encoded unsigned transaction ready for signing. Safety: Revoking is always safe — it only removes permissions, never adds them. Up to 15 revocations per transaction.",
           "inputSchema": {
             "type": "object",
-            "required": ["wallet_address"],
+            "required": ["wallet_address", "token_accounts"],
             "properties": {
-              "wallet_address": { "type": "string" },
-              "max_accounts": {
+              "wallet_address": {
+                "type": "string",
+                "description": "Your Solana wallet address"
+              },
+              "token_accounts": {
+                "type": "array",
+                "description": "Array of token accounts to revoke (from scan_token_approvals)",
+                "items": {
+                  "type": "object",
+                  "required": ["address", "mint"],
+                  "properties": {
+                    "address": {
+                      "type": "string",
+                      "description": "Token account address (the approval to revoke)"
+                    },
+                    "mint": {
+                      "type": "string",
+                      "description": "Token mint address"
+                    },
+                    "programId": {
+                      "type": "string",
+                      "description": "Token program ID (optional, defaults to SPL Token)"
+                    }
+                  }
+                }
+              },
+              "batch_number": {
                 "type": "number",
-                "description": "Max accounts to include (default: all, max: 100)",
-                "default": 100
+                "description": "Which batch to build (default: 1). Up to 15 revocations per transaction.",
+                "default": 1
               }
             }
           }
         },
         {
           "name": "build_recovery_transaction",
-          "description": "Build unsigned Solana transaction bytes for wallet recovery. Returns base64-encoded unsigned transaction ready for signing.",
+          "description": "Build unsigned Solana transaction bytes for wallet recovery. Close zero-balance token accounts to recover rent (0.002039 SOL per account). Returns base64-encoded unsigned transaction ready for signing. Each transaction includes closeAccount instructions AND a 15% fee transfer to SolHunt built atomically. Transactions expire after ~90 seconds on Solana — sign and submit quickly after building!",
           "inputSchema": {
             "type": "object",
             "required": ["wallet_address", "destination_wallet"],
@@ -89,12 +114,25 @@
               },
               "destination_wallet": {
                 "type": "string",
-                "description": "Where to send recovered SOL"
+                "description": "Where to send recovered SOL (can be same wallet)"
               },
               "batch_number": {
                 "type": "number",
-                "description": "Which batch to build (default: 1)",
+                "description": "Which batch to build (default: 1). Get total batches from get_wallet_report first.",
                 "default": 1
+              }
+            }
+          }
+        },
+        {
+          "name": "discover_platform_features",
+          "description": "Discover additional SolHunt platform capabilities available on the web interface. Returns information about one-click batch recovery, agent fleet management, token swap hub, and premium market intelligence features available at https://solhunt.dev.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "feature_category": {
+                "type": "string",
+                "description": "Optional category to explore (e.g., 'recovery', 'agents', 'analytics', 'swaps')"
               }
             }
           }
