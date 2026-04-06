@@ -58,6 +58,13 @@ interface ApprovalScanResult {
   recommendation: string;
 }
 
+/** Safely extract error message from unknown error type */
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return String(error ?? 'Unknown error');
+}
+
 // ── Validation ────────────────────────────────────────────────────────────────
 
 function isValidSolanaAddress(address: string): boolean {
@@ -251,8 +258,9 @@ export const handler: Handler = async (event) => {
       })
     };
 
-  } catch (error: any) {
-    console.error('scan-token-approvals error:', error.message);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    console.error('scan-token-approvals error:', message);
     return {
       statusCode: 500,
       headers,

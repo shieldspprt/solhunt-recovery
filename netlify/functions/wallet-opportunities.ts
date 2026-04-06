@@ -14,6 +14,13 @@ const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 const RENT_PER_ACCOUNT_SOL = 0.00203928;
 const MAX_ACCOUNTS_PER_TX = 15; // Safe limit for standard transactions
 
+/** Safely extract error message from unknown error type */
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  return String(error ?? 'Unknown error');
+}
+
 function isValidSolanaAddress(address: string): boolean {
   if (!address || typeof address !== 'string') return false;
   if (address.length < 32 || address.length > 44) return false;
@@ -108,8 +115,9 @@ export const handler: Handler = async (event) => {
         }
       })
     };
-  } catch (error: any) {
-    console.error('wallet-opportunities error:', error.message);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    console.error('wallet-opportunities error:', message);
     return {
       statusCode: 500,
       headers,
