@@ -83,8 +83,8 @@ async function getRecentActiveWallets(limit: number): Promise<ActiveWallet[]> {
             }
           }
         }
-      } catch (e: any) {
-        console.error(`Failed to fetch transactions for ${program}:`, e.message);
+      } catch (e: unknown) {
+        console.error(`Failed to fetch transactions for ${program}:`, e instanceof Error ? e.message : String(e));
       }
     })
   );
@@ -134,8 +134,8 @@ async function scanWallet(address: string, connection: Connection): Promise<{
       closeable: closeableCount,
       recoverable_sol: closeableCount * RENT_PER_ACCOUNT_SOL
     };
-  } catch (e: any) {
-    return { address, closeable: 0, recoverable_sol: 0, error: e.message };
+  } catch (e: unknown) {
+    return { address, closeable: 0, recoverable_sol: 0, error: e instanceof Error ? e.message : String(e) };
   }
 }
 
@@ -243,8 +243,8 @@ async function generateXDraft(stats: ReturnType<typeof computeStats>, date: stri
         solPrice = data.data.SOL.price;
       }
     }
-  } catch (e: any) {
-    console.warn('Failed to fetch SOL price from Jupiter:', e.message);
+  } catch (e: unknown) {
+    console.warn('Failed to fetch SOL price from Jupiter:', e instanceof Error ? e.message : String(e));
   }
 
   const totalUsd = (stats.total_recoverable_sol * solPrice).toFixed(0);
@@ -384,12 +384,12 @@ export const handler: Handler = async (event) => {
         x_draft: xDraft
       })
     };
-  } catch (e: any) {
-    console.error('Daily stats failed:', e.message);
+  } catch (e: unknown) {
+    console.error('Daily stats failed:', e instanceof Error ? e.message : String(e));
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ success: false, error: e.message })
+      body: JSON.stringify({ success: false, error: e instanceof Error ? e.message : String(e) })
     };
   }
 };

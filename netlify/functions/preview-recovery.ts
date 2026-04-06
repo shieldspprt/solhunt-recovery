@@ -104,8 +104,8 @@ export const handler: Handler = async (event) => {
         ready_to_execute: numAccounts > 0
       })
     };
-  } catch (error: any) {
-    console.error('preview-recovery error:', error.message);
+  } catch (error: unknown) {
+    console.error('preview-recovery error:', error instanceof Error ? error.message : String(error));
     return {
       statusCode: 500,
       headers,

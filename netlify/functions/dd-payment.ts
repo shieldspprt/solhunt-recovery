@@ -111,8 +111,8 @@ export const handler: Handler = async (event) => {
         }, { onConflict: 'wallet' });
         registered++;
       }
-    } catch (e: any) {
-      console.error('dd-payment error:', e.message);
+    } catch (e: unknown) {
+      console.error('dd-payment error:', e instanceof Error ? e.message : String(e));
     }
   }
 

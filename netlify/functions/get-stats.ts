@@ -74,11 +74,12 @@ export const handler: Handler = async (event) => {
         }
       })
     };
-  } catch (e: any) {
+  } catch (e: unknown) {
+    console.error('get-stats error:', e instanceof Error ? e.message : String(e));
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ success: false, error: e.message })
+      body: JSON.stringify({ success: false, error: e instanceof Error ? e.message : String(e) })
     };
   }
 };

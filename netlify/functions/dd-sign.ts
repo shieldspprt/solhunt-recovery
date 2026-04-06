@@ -177,12 +177,12 @@ export const handler: Handler = async (event) => {
       })
     };
 
-  } catch (e: any) {
-    console.error('dd-sign error:', e.message);
+  } catch (e: unknown) {
+    console.error('dd-sign error:', e instanceof Error ? e.message : String(e));
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Transaction failed: ' + e.message })
+      body: JSON.stringify({ error: 'Transaction failed: ' + (e instanceof Error ? e.message : String(e)) })
     };
   }
 };
