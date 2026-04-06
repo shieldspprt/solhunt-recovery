@@ -247,8 +247,8 @@ async function fetchRaydiumQuote(
     }
 
     if (!response.ok) {
-        // Only cache 404 as unsupported - 400 means "amount too small" or other param issue
-        if (response.status === 404) {
+        // Cache 400/404 as unsupported - 400 means "no route found", 404 means "token not found"
+        if (response.status === 404 || response.status === 400) {
             raydiumUnsupportedMints.add(inputMint);
         }
         return null;
@@ -312,8 +312,8 @@ async function fetchJupiterQuote(
         }
 
         if (!response.ok) {
-            // Only cache 404 as unsupported - 400 means "amount too small" or other param issue
-            if (response.status === 404) {
+            // Cache 400/404 as unsupported - 400 means "no route found", 404 means "token not found"
+            if (response.status === 404 || response.status === 400) {
                 jupiterUnsupportedMints.add(inputMint);
             }
             continue;
