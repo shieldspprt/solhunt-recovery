@@ -121,14 +121,14 @@ self.addEventListener('beforeinstallprompt', ((event: BeforeInstallPromptEvent) 
                     type: 'INSTALL_AVAILABLE',
                     data: { available: true }
                 });
-            } catch (e) {
+            } catch (e: unknown) {
                 // Client may have disconnected, ignore
-                console.warn('Failed to notify client of install availability:', e);
+                console.warn('Failed to notify client of install availability:', e instanceof Error ? e.message : String(e));
             }
         });
-    }).catch(err => {
+    }).catch((err: unknown) => {
         // Service worker clients API may not be available in all contexts
-        console.warn('Failed to match clients for install notification:', err);
+        console.warn('Failed to match clients for install notification:', err instanceof Error ? err.message : String(err));
     });
 }) as EventListener);
 

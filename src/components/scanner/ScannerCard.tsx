@@ -118,4 +118,7 @@ export const ScannerCard = memo(function ScannerCard() {
     );
 });
 
+// Display name for React DevTools debugging
+ScannerCard.displayName = 'ScannerCard';
+
 export default ScannerCard;
