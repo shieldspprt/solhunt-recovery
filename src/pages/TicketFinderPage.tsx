@@ -6,7 +6,7 @@ import { TicketFinderCard } from '@/components/tickets/TicketFinderCard';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { ENGINE_METADATA } from '@/config/constants';
 
-const ENGINE = ENGINE_METADATA[3]; // Claim Stakes
+const ENGINE = ENGINE_METADATA[5]; // Claim Stakes (Engine 4)
 
 export function TicketFinderPage() {
     const { connected } = useWallet();

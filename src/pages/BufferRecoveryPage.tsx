@@ -7,7 +7,7 @@ import { ENGINE_METADATA } from '@/config/constants';
 
 export function BufferRecoveryPage() {
     const { connected } = useWallet();
-    const config = ENGINE_METADATA.find(e => e.id === 9)!;
+    const config = ENGINE_METADATA.find(e => e.id === 10)!; // Recover Program Buffers
 
     return (
         <PageWrapper>
