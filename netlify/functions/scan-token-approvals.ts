@@ -143,7 +143,7 @@ export const handler: Handler = async (event) => {
       headers,
       body: JSON.stringify({
         success: false,
-        error: 'Invalid Solana wallet address'
+        error: 'Invalid Solana wallet address. Must be 32–44 characters, base58 encoded.'
       })
     };
   }
