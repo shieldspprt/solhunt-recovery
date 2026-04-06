@@ -116,11 +116,19 @@ self.addEventListener('beforeinstallprompt', ((event: BeforeInstallPromptEvent) 
     // Notify any listening clients that install is available
     self.clients.matchAll({ type: 'window' }).then(clients => {
         clients.forEach(client => {
-            client.postMessage({
-                type: 'INSTALL_AVAILABLE',
-                data: { available: true }
-            });
+            try {
+                client.postMessage({
+                    type: 'INSTALL_AVAILABLE',
+                    data: { available: true }
+                });
+            } catch (e) {
+                // Client may have disconnected, ignore
+                console.warn('Failed to notify client of install availability:', e);
+            }
         });
+    }).catch(err => {
+        // Service worker clients API may not be available in all contexts
+        console.warn('Failed to match clients for install notification:', err);
     });
 }) as EventListener);
 

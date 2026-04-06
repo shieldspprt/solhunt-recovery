@@ -832,7 +832,7 @@ export const handler: Handler = async (event) => {
 
   return {
     statusCode: 405,
-    headers: buildHeaders(),
+    headers: buildHeaders(false), // Rate limit not applicable for method errors
     body: JSON.stringify(createMCPError('INTERNAL_ERROR', 'Method not allowed'))
   };
 };
