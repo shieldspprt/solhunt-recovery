@@ -165,7 +165,7 @@ export function TermsPage() {
                         <h2 className="text-xl font-semibold text-shield-text mb-3">15. Contact</h2>
                         <p>
                             For questions about these Terms, please contact us at{' '}
-                            <a href="https://x.com/solhuntapp" className="text-shield-accent hover:underline" target="_blank" rel="noopener noreferrer">@solhuntapp</a>{' '}
+                            <a href="https://x.com/solhuntdev" className="text-shield-accent hover:underline" target="_blank" rel="noopener noreferrer">@solhuntdev</a>{' '}
                             on X (Twitter) or visit{' '}
                             <a href="https://solhunt.dev" className="text-shield-accent hover:underline">solhunt.dev</a>.
                         </p>

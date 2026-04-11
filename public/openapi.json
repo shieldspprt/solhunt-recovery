@@ -8,7 +8,7 @@
     "x-mcp-server": "https://solhunt.dev/mcp",
     "contact": {
       "url": "https://solhunt.dev",
-      "x-twitter": "https://x.com/solhuntapp"
+      "x-twitter": "https://x.com/solhuntdev"
     }
   },
   "servers": [

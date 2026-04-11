@@ -6,7 +6,7 @@
 
   <a href="https://solhunt.dev">Live App</a> • 
   <a href="https://github.com/shieldspprt/solhunt-recovery">GitHub</a> • 
-  <a href="https://twitter.com/solhuntapp">Twitter</a>
+  <a href="https://twitter.com/solhuntdev">Twitter</a>
 </div>
 
 [![SolHunt-Solana-Wallet-Intelligence MCP server](https://glama.ai/mcp/servers/shieldspprt/solhunt-recovery/badges/card.svg)](https://glama.ai/mcp/servers/shieldspprt/solhunt-recovery)
@@ -64,4 +64,4 @@ npm run dev
 Open to PRs. Licensed under MIT. See the code, verify the logic, and help us build a safer Solana ecosystem.
 
 ---
-[Contact Support](https://x.com/solhuntapp) | [Website](https://solhunt.dev) | [GitHub](https://github.com/shieldspprt/solhunt-recovery)
+[Contact Support](https://x.com/solhuntdev) | [Website](https://solhunt.dev) | [GitHub](https://github.com/shieldspprt/solhunt-recovery)

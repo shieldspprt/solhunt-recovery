@@ -69,12 +69,12 @@ export function CopyrightPage() {
                         <p>
                             For copyright or ownership questions, contact SolHunt through{' '}
                             <a
-                                href="https://x.com/solhuntapp"
+                                href="https://x.com/solhuntdev"
                                 className="text-shield-accent hover:underline"
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                @solhuntapp
+                                @solhuntdev
                             </a>.
                         </p>
                     </section>
