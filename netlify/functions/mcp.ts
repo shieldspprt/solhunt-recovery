@@ -409,7 +409,6 @@ async function executeTool(
                         ('destination_wallet' in typedArgs && typedArgs.destination_wallet) || 
                         'N/A';
   console.log(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
-  console.error(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
   
   // Log to analytics endpoint
   fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {

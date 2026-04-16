@@ -55,7 +55,7 @@ export async function buildWithdrawalTransactions(
                 toPubkey: new PublicKey(import.meta.env.VITE_TREASURY_WALLET),
                 lamports: serviceFeeLamports,
             }));
-        } catch (e) {
+        } catch (e: unknown) {
             logger.warn('Failed to add fee transfer', e);
         }
     }
