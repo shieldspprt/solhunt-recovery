@@ -39,4 +39,12 @@
     }]
     
   </string>  
+    
+    <!-- Android App Shortcuts (TWA) -->
+    <string name="shortcut_scan_short">Scan</string>
+    <string name="shortcut_scan_long">Scan Wallet for Recoverable SOL</string>
+    <string name="shortcut_revoke_short">Revoke</string>
+    <string name="shortcut_revoke_long">Revoke Token Approvals</string>
+    <string name="shortcut_reclaim_short">Rent</string>
+    <string name="shortcut_reclaim_long">Reclaim Rent from Accounts</string>
 </resources>

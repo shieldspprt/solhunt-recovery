@@ -1,1 +1,49 @@
-<shortcuts xmlns:android='http://schemas.android.com/apk/res/android' />
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Copyright 2025 SolHunt. All Rights Reserved.
+    Android app shortcuts for TWA quick actions.
+-->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="scan_wallet"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_scan_short"
+        android:shortcutLongLabel="@string/shortcut_scan_long"
+    >
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="dev.solhunt.app"
+            android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:data="https://solhunt.dev/?engine=scan"
+        />
+    </shortcut>
+    <shortcut
+        android:shortcutId="revoke_approvals"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_revoke_short"
+        android:shortcutLongLabel="@string/shortcut_revoke_long"
+    >
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="dev.solhunt.app"
+            android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:data="https://solhunt.dev/?engine=revoke"
+        />
+    </shortcut>
+    <shortcut
+        android:shortcutId="reclaim_rent"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_reclaim_short"
+        android:shortcutLongLabel="@string/shortcut_reclaim_long"
+    >
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="dev.solhunt.app"
+            android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:data="https://solhunt.dev/?engine=reclaim"
+        />
+    </shortcut>
+</shortcuts>

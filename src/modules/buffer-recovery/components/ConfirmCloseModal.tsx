@@ -61,6 +61,7 @@ export function ConfirmCloseModal({
                     <button
                         onClick={onClose}
                         disabled={isClosing}
+                        aria-label="Cancel and close modal"
                         className="flex-1 px-4 py-3 rounded-xl border border-shield-border font-semibold text-shield-muted hover:text-shield-text hover:bg-shield-card transition-all disabled:opacity-50"
                     >
                         Cancel
@@ -68,6 +69,7 @@ export function ConfirmCloseModal({
                     <button
                         onClick={onConfirm}
                         disabled={isClosing}
+                        aria-label={isClosing ? 'Closing buffers, please wait' : 'Confirm and close selected buffers'}
                         className="flex-1 px-4 py-3 rounded-xl bg-shield-danger font-semibold text-white hover:bg-shield-danger/90 transition-all shadow-lg shadow-shield-danger/20 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                         {isClosing && <Loader2 className="h-4 w-4 animate-spin" />}
