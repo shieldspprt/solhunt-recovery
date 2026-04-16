@@ -28,6 +28,7 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
             <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 <button
                     onClick={clearReclaim}
+                    aria-label="Close modal"
                     className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                 >
                     <X className="h-5 w-5" />
@@ -124,6 +125,7 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
                             onClick={clearReclaim}
+                            aria-label="Cancel reclaim"
                             className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                         >
                             Cancel
@@ -131,6 +133,7 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
                         <button
                             onClick={executeReclaim}
                             disabled={!feeConsent}
+                            aria-label="Confirm reclaim"
                             className="flex-1 rounded-xl bg-shield-success px-4 py-3 font-semibold text-white hover:bg-shield-success/90 shadow-lg shadow-shield-success/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none flex justify-center items-center gap-2"
                         >
                             <Coins className="h-5 w-5" />

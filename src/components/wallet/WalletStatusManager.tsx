@@ -74,7 +74,7 @@ export function useReliableDisconnect(): UseReliableDisconnectReturn {
                 toast.success('Wallet disconnected');
                 setIsDisconnecting(false);
                 return;
-            } catch (err) {
+            } catch (err: unknown) {
                 lastError = err instanceof Error ? err : new Error(String(err));
                 console.warn(`[WalletStatusManager] Disconnect attempt ${attempt} failed:`, lastError.message);
 
