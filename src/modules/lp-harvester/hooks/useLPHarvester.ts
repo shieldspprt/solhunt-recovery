@@ -132,8 +132,8 @@ export function useLPHarvester() {
             setHarvestStatus('error');
             setHarvestError(LP_ERROR_MESSAGES.LP_HARVEST_FAILED);
 
-            // Log the actual error for debugging
-            console.error('LP harvest failed:', err instanceof Error ? err.message : String(err));
+            // Log the actual error for debugging (warn since error is handled gracefully)
+            console.warn('LP harvest failed:', err instanceof Error ? err.message : String(err));
 
             logLPHarvestComplete({
                 success: false,

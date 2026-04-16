@@ -145,7 +145,8 @@ export function useDecommissionScanner() {
 
                     } catch (txErr: unknown) {
                         // Log error for debugging before translating to user-friendly message
-                        console.error('Transaction failed:', txErr instanceof Error ? txErr.message : String(txErr));
+                        // (warn since error is handled gracefully and surfaced to user)
+                        console.warn('Transaction failed:', txErr instanceof Error ? txErr.message : String(txErr));
                         const appTxError = createAppError('TX_FAILED', txErr instanceof Error ? txErr.message : String(txErr));
                         resultItems.push({
                             protocolId: item.protocol.id,
@@ -182,7 +183,8 @@ export function useDecommissionScanner() {
 
         } catch (err: unknown) {
             // Log full error for debugging before creating user-friendly message
-            console.error('Decommission recovery failed:', err instanceof Error ? err.message : String(err));
+            // (warn since error is handled gracefully and surfaced to user)
+            console.warn('Decommission recovery failed:', err instanceof Error ? err.message : String(err));
             // Properly handle and log the error for debugging
             const appError = createAppError('DECOMMISSION_RECOVERY_FAILED', err instanceof Error ? err.message : String(err));
             store.setRecoveryStatus('error');
