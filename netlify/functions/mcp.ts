@@ -386,6 +386,13 @@ const SERVER_METADATA = {
 
 const API_BASE = process.env.SOLHUNT_API_BASE || 'https://solhunt.dev';
 
+/** Configurable fee percentage via env var (default: 15%) */
+const FEE_PERCENT = (() => {
+  const envVal = process.env.SOLHUNT_FEE_PERCENT;
+  const parsed = envVal ? parseFloat(envVal) : NaN;
+  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100 ? parsed : 15;
+})();
+
 /** Safely extracts error message from unknown error */
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -446,7 +453,7 @@ async function executeTool(
         const opps = oppsData?.data || {};
 
         const recoverableSol = opps.total_recoverable_sol || 0;
-        const feeSol = parseFloat((recoverableSol * 0.15).toFixed(6));
+        const feeSol = parseFloat((recoverableSol * FEE_PERCENT).toFixed(6));
         const netSol = parseFloat((recoverableSol - feeSol).toFixed(6));
 
         return {
@@ -466,7 +473,7 @@ async function executeTool(
             // Recovery amounts
             recoverable_sol: recoverableSol,
             fee_sol: feeSol,
-            fee_percent: 15,
+            fee_percent: FEE_PERCENT,
             net_recoverable_sol: netSol,
             worth_recovering: netSol > 0.001,
 
