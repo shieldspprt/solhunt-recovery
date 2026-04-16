@@ -117,7 +117,8 @@ export function useTicketFinder() {
 
             // NEW — Engine 7 scan (runs in parallel, doesn't block tickets)
             scanMEVClaims().catch((err) => {
-                console.error('MEV scan failed silently', err);
+                // Background scan — non-critical, log as warn not error
+                console.warn('MEV scan failed silently', err instanceof Error ? err.message : String(err));
             });
         } catch (error) {
             const appError = isAppError(error)

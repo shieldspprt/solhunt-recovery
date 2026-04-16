@@ -34,5 +34,28 @@
       "type": "image/png",
       "purpose": "any"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Scan Wallet",
+      "short_name": "Scan",
+      "description": "Scan your wallet for recoverable SOL",
+      "url": "/?engine=scan",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Revoke Approvals",
+      "short_name": "Revoke",
+      "description": "View and revoke token approvals",
+      "url": "/?engine=revoke",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Reclaim Rent",
+      "short_name": "Rent",
+      "description": "Recover rent from zero-balance accounts",
+      "url": "/?engine=reclaim",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
   ]
 }
