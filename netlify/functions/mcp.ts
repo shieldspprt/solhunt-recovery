@@ -544,7 +544,7 @@ async function executeTool(
       }
 
       default:
-        return { error: `Unknown tool: ${name}` };
+        return createMCPError('TOOL_NOT_FOUND', `Unknown tool: ${name}`, name);
     }
   } catch (e: unknown) {
     const message = getErrorMessage(e);
