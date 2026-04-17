@@ -142,7 +142,7 @@ export async function scanWalletForDelegations(
                 programId: 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' as TokenProgramId,
             })),
         ];
-    } catch (error) {
+    } catch (error: unknown) {
         // If the error is already an AppError, rethrow it
         if (error && typeof error === 'object' && 'code' in error) {
             throw error;

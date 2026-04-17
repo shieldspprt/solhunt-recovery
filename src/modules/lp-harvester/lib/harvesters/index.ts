@@ -187,7 +187,7 @@ export async function harvestAllPositions(
             const successItem = buildSuccessItem(position, signature);
             items.push(successItem);
             onProgress(successItem);
-        } catch (error) {
+        } catch (error: unknown) {
             const failedItem = buildFailureItem(position, toErrorMessage(error));
             items.push(failedItem);
             onProgress(failedItem);
