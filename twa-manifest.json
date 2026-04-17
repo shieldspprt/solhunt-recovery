@@ -22,7 +22,26 @@
   },
   "appVersionName": "1",
   "appVersionCode": 1,
-  "shortcuts": [],
+  "shortcuts": [
+    {
+      "name": "Scan Wallet",
+      "shortName": "Scan",
+      "url": "/?engine=scan",
+      "icons": [{ "src": "https://solhunt.dev/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Revoke Approvals",
+      "shortName": "Revoke",
+      "url": "/?engine=revoke",
+      "icons": [{ "src": "https://solhunt.dev/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Reclaim Rent",
+      "shortName": "Reclaim",
+      "url": "/?engine=reclaim",
+      "icons": [{ "src": "https://solhunt.dev/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
   "generatorApp": "bubblewrap-cli",
   "webManifestUrl": "https://solhunt.dev/manifest.webmanifest",
   "fallbackType": "customtabs",
