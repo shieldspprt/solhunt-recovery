@@ -158,7 +158,7 @@ async function submitToJitoWithRetry(
             const result = await submitToJito(serializedTx);
             recordJitoSuccess(); // Reset circuit breaker on success
             return result;
-        } catch (err) {
+        } catch (err: unknown) {
             lastError = err instanceof Error ? err : new Error(String(err));
             
             // Don't record circuit breaker errors as Jito failures - they're intentional fallbacks

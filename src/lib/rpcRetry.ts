@@ -158,8 +158,8 @@ export async function withRetry<T>(
             for (const connection of connections) {
                 try {
                     return await rpcCall(connection);
-                } catch (err) {
-                    lastError = err instanceof Error ? err : new Error(String(err));
+                } catch (error: unknown) {
+                    lastError = error instanceof Error ? error : new Error(String(error));
                     if (attempt < maxRetries) {
                         const delayMs = getJitteredDelay(attempt);
                         await sleep(delayMs);
