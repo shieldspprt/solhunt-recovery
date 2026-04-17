@@ -476,7 +476,7 @@ export async function claimAllTickets(params: ClaimAllTicketsParams): Promise<Ti
                 claimedSOL: ticket.valueSOL,
                 message: 'Claim confirmed.',
             });
-        } catch (error) {
+        } catch (error: unknown) {
             failedTickets.push(ticket.ticketAccountAddress);
             const detail = error instanceof Error ? error.message : String(error);
             sessionError = detail;
@@ -501,7 +501,7 @@ export async function claimAllTickets(params: ClaimAllTicketsParams): Promise<Ti
             if (feeSignature) {
                 signatures.push(feeSignature);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             const detail = error instanceof Error ? error.message : String(error);
             sessionError = sessionError
                 ? `${sessionError} | Fee transfer failed: ${detail}`
