@@ -160,15 +160,15 @@ export function useRevoke() {
                     revokedCount: totalRevoked,
                     errorCode: null,
                 });
-            } catch (error) {
+            } catch (err: unknown) {
                 const appError: AppError =
-                    error && typeof error === 'object' && 'code' in error
-                        ? (error as AppError)
+                    err && typeof err === 'object' && 'code' in err
+                        ? (err as AppError)
                         : {
                             code: ERROR_CODES.TX_FAILED,
                             message: ERROR_MESSAGES.TX_FAILED,
                             technicalDetail:
-                                error instanceof Error ? error.message : String(error),
+                                err instanceof Error ? err.message : String(err),
                         };
 
                 setRevokeError(appError);

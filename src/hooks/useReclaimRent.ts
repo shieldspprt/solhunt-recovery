@@ -180,14 +180,14 @@ export function useReclaimRent() {
                 reclaimedSOL: approxReclaimedSOL,
             });
 
-        } catch (error) {
+        } catch (err: unknown) {
             const appError: AppError =
-                error && typeof error === 'object' && 'code' in error
-                    ? (error as AppError)
+                err && typeof err === 'object' && 'code' in err
+                    ? (err as AppError)
                     : {
                         code: ERROR_CODES.TX_FAILED,
                         message: ERROR_CODES.RECLAIM_TX_FAILED,
-                        technicalDetail: error instanceof Error ? error.message : String(error),
+                        technicalDetail: err instanceof Error ? err.message : String(err),
                     };
 
             setReclaimError(appError);

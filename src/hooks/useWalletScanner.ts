@@ -87,11 +87,11 @@ export function useWalletScanner() {
                     .length,
                 scanDurationMs: result.scanDurationMs,
             });
-        } catch (error) {
+        } catch (err: unknown) {
             // Use type guard for safer, cleaner error handling
-            const appError = isAppError(error) 
-                ? error 
-                : toAppError(error, 'SCAN_FAILED');
+            const appError = isAppError(err)
+                ? err
+                : toAppError(err, 'SCAN_FAILED');
 
             setScanError(appError);
             logScanError(appError.code);

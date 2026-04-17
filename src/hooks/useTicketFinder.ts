@@ -120,12 +120,12 @@ export function useTicketFinder() {
                 // Background scan — non-critical, log as warn not error
                 console.warn('MEV scan failed silently', err instanceof Error ? err.message : String(err));
             });
-        } catch (error) {
-            const appError = isAppError(error)
-                ? error
+        } catch (err: unknown) {
+            const appError = isAppError(err)
+                ? err
                 : createAppError(
                     'TICKET_SCAN_FAILED',
-                    error instanceof Error ? error.message : String(error)
+                    err instanceof Error ? err.message : String(err)
                 );
             setTicketScanError(appError);
         }
@@ -212,12 +212,12 @@ export function useTicketFinder() {
                 failedCount: result.failedTickets.length,
                 feeSOL: result.claimedSOL * (TICKET_CLAIM_FEE_PERCENT / 100),
             });
-        } catch (error) {
-            const appError = isAppError(error)
-                ? error
+        } catch (err: unknown) {
+            const appError = isAppError(err)
+                ? err
                 : createAppError(
                     'TICKET_CLAIM_FAILED',
-                    error instanceof Error ? error.message : String(error)
+                    err instanceof Error ? err.message : String(err)
                 );
             setTicketClaimError(appError);
             logTicketClaimComplete({
