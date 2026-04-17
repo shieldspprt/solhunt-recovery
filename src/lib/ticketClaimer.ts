@@ -233,7 +233,7 @@ export async function buildSanctumClaimTransaction(
     } catch {
         try {
             return Transaction.from(bytes);
-        } catch (error) {
+        } catch (error: unknown) {
             throw createAppError(
                 'TICKET_CLAIM_FAILED',
                 `Could not deserialize Sanctum transaction: ${error instanceof Error ? error.message : String(error)}`
