@@ -46,6 +46,7 @@ export function DecommissionPage() {
                         </p>
                         <button
                             onClick={scanner.startScan}
+                            aria-label="Scan wallet again"
                             className="inline-flex items-center gap-2 rounded-xl bg-shield-accent px-6 py-3 font-semibold text-shield-bg hover:bg-shield-highlight transition-all"
                         >
                             Scan Again
@@ -62,6 +63,7 @@ export function DecommissionPage() {
                         </p>
                         <button
                             onClick={scanner.startScan}
+                            aria-label="Retry scan"
                             className="inline-flex items-center gap-2 rounded-xl bg-shield-border px-6 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-all"
                         >
                             Try Again

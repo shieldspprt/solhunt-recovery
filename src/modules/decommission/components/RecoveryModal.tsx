@@ -146,6 +146,7 @@ export function RecoveryModal({ status, estimate, result, error, executeRecovery
                                 </button>
                                 <button
                                     onClick={executeRecovery}
+                                    aria-label="Execute recovery"
                                     className="flex-[2] rounded-xl bg-shield-accent px-4 py-3 font-bold text-shield-bg hover:bg-shield-highlight transition-all font-mono shadow-md shadow-shield-accent/20"
                                 >
                                     [Recover →]
