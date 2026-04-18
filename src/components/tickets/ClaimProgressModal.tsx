@@ -108,6 +108,7 @@ export const ClaimProgressModal = memo(() => {
                     {(isComplete || isError) && (
                         <button
                             onClick={cancelClaim}
+                            aria-label="Close claim progress"
                             className="mt-5 w-full rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                         >
                             Done
