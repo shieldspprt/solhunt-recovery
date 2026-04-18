@@ -770,7 +770,7 @@ export const handler: Handler = async (event) => {
               resources: {}
             },
             serverInfo: {
-              name: "SolHunt",
+              name: "solhunt",
               version: "1.0.0"
             }
           }
