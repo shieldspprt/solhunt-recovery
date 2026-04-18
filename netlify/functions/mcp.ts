@@ -677,7 +677,7 @@ export const handler: Handler = async (event) => {
     return {
       ...headers,
       'X-RateLimit-Remaining': String(rateLimit.remaining),
-      'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString(),
+      'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
       'X-RateLimit-Source': rateLimit.source
     };
   };
@@ -689,7 +689,7 @@ export const handler: Handler = async (event) => {
       headers: {
         ...headers,
         'X-RateLimit-Remaining': '0',
-        'X-RateLimit-Reset': new Date(rateLimit.resetAt).toISOString(),
+        'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
         'X-RateLimit-Source': rateLimit.source,
         'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000))
       },
