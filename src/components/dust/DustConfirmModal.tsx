@@ -33,6 +33,7 @@ export const DustConfirmModal = memo(function DustConfirmModal() {
                 <button
                     onClick={cancelDustSwap}
                     className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
+                    aria-label="Close dialog"
                 >
                     <X className="h-5 w-5" />
                 </button>

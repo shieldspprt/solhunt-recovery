@@ -678,6 +678,7 @@ export const handler: Handler = async (event) => {
       ...headers,
       'X-RateLimit-Remaining': String(rateLimit.remaining),
       'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
+      'X-RateLimit-Window': String(Math.floor(RATE_WINDOW_MS / 1000)),
       'X-RateLimit-Source': rateLimit.source
     };
   };
