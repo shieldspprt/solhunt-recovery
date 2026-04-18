@@ -692,6 +692,7 @@ export const handler: Handler = async (event) => {
         'X-RateLimit-Remaining': '0',
         'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
         'X-RateLimit-Source': rateLimit.source,
+        'X-RateLimit-Window': String(Math.floor(RATE_WINDOW_MS / 1000)),
         'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000))
       },
       body: JSON.stringify(createMCPError('RATE_LIMITED', 
