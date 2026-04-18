@@ -638,7 +638,8 @@ export const handler: Handler = async (event) => {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': corsOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-MCP-Version'
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-MCP-Version',
+    'Cache-Control': 'no-store',
   };
 
   if (event.httpMethod === 'OPTIONS') {
