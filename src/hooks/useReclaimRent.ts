@@ -121,7 +121,7 @@ export function useReclaimRent() {
 
                     totalClosed += closedAccountsInTx;
 
-                } catch (txError) {
+                } catch (txError: unknown) {
                     const errorMessage = txError instanceof Error ? txError.message : String(txError);
 
                     // User Cancelled
