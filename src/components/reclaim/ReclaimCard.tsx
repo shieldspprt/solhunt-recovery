@@ -56,6 +56,7 @@ export const ReclaimCard = memo(function ReclaimCard() {
 
             <button
                 onClick={initiateReclaim}
+                aria-label="Reclaim locked SOL from empty token accounts"
                 className="w-full relative overflow-hidden group rounded-xl bg-shield-success/10 border border-shield-success/30 px-4 py-3.5 text-shield-success font-semibold shadow-lg shadow-shield-success/5 transition-all duration-200 hover:bg-shield-success/20 hover:border-shield-success/50"
             >
                 <div className="relative z-10 hidden sm:flex items-center justify-center gap-2">

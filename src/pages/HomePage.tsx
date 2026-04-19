@@ -30,6 +30,10 @@ export const HomePage = memo(function HomePage() {
     const isAdmin = new URLSearchParams(location.search).get('admin') === 'true';
 
     useEffect(() => {
+        document.title = 'SolHunt | Recover Locked SOL';
+    }, []);
+
+    useEffect(() => {
         if (agentWallet) {
             navigate('/scan', { replace: true });
         }
