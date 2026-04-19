@@ -217,7 +217,10 @@ export function WalletScanner() {
           });
         }
       })
-      .catch(() => {});
+      .catch((err: unknown) => {
+        // Non-critical — pill stats failure should not crash or alert the user
+        console.warn('Live stats fetch failed:', err instanceof Error ? err.message : String(err));
+      });
     
     return () => controller.abort();
   }, []);

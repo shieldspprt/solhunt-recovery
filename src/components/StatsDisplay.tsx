@@ -196,7 +196,11 @@ export function StatsDisplay() {
         if (d.success) setData(d.data);
         else setError('Failed to load stats');
       })
-      .catch(() => setError('Failed to load stats'))
+      .catch((err: unknown) => {
+        // Log as warn since error is handled gracefully and surfaced to user
+        console.warn('Stats fetch failed:', err instanceof Error ? err.message : String(err));
+        setError('Failed to load stats');
+      })
       .finally(() => setLoading(false));
   }, []);
 
