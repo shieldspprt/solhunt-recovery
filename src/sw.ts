@@ -18,9 +18,6 @@ interface BeforeInstallPromptEvent extends Event {
 
 declare let self: ServiceWorkerGlobalScope;
 
-// Standard ExtendableEvent from DOM lib - no custom interface needed
-// ServiceWorkerGlobalScope provides proper types for activate events
-
 // ──────────────────────────────────────────────────────
 // 1. Precache static build assets (injected by vite-plugin-pwa)
 // ──────────────────────────────────────────────────────
