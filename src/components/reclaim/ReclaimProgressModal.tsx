@@ -41,6 +41,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                 {!isProcessing && (
                     <button
                         onClick={handleClose}
+                        aria-label="Close modal"
                         className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     >
                         <X className="h-5 w-5" />

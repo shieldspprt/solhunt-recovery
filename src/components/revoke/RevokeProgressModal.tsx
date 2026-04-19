@@ -45,6 +45,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                 {!isProcessing && (
                     <button
                         onClick={handleClose}
+                        aria-label="Close modal"
                         className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     >
                         <X className="h-5 w-5" />
@@ -108,6 +109,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
 
                                 <button
                                     onClick={clearRevoke}
+                                    aria-label="Done"
                                     className="w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors mt-4"
                                 >
                                     Done
@@ -134,12 +136,14 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button
                                     onClick={clearRevoke}
+                                    aria-label="Cancel"
                                     className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={() => revoke(delegations)}
+                                    aria-label="Try Again"
                                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                                 >
                                     <RefreshCw className="h-4 w-4" />
