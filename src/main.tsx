@@ -2,19 +2,20 @@ import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import App from './App.tsx'
 import './index.css'
+import { logger } from '@/lib/logger'
 
 // Firebase is initialized proactively via this import if the env vars are set
 import '@/config/firebase'
 
 // Service worker update interval in milliseconds (60 seconds)
-const SW_UPDATE_INTERVAL_MS = 60_000;
+const SW_UPDATE_INTERVAL_MS = 60_000
 
 // Register service worker with auto-update (polls every 60s for new builds)
 if ('serviceWorker' in navigator) {
     registerSW({
         immediate: true,
         onRegisteredSW(swUrl: string, registration: ServiceWorkerRegistration | undefined) {
-            console.log('[SolHunt] Service Worker registered:', swUrl);
+            logger.log('[SolHunt] Service Worker registered:', swUrl);
             if (registration) {
                 setInterval(() => {
                     registration.update();
@@ -22,7 +23,7 @@ if ('serviceWorker' in navigator) {
             }
         },
         onOfflineReady() {
-            console.log('[SolHunt] App shell cached for offline.');
+            logger.log('[SolHunt] App shell cached for offline.');
         },
     });
 }
