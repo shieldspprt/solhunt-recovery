@@ -1,10 +1,14 @@
 import { Shield, Lock, FileCode, Search, HelpCircle, Code2, Cpu, FileJson } from 'lucide-react';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 
 // Memoized to prevent unnecessary re-renders when parent state changes
 // This is a static content page with no props
 export const HowItWorksPage = memo(function HowItWorksPage() {
+    useEffect(() => {
+        document.title = 'How It Works | SolHunt';
+    }, []);
+
     return (
         <PageWrapper>
             <div className="mx-auto w-full max-w-4xl px-4 py-10 sm:px-6 sm:py-16">

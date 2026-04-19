@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Layers3, TrendingUp } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { useEffect } from 'react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { LPHarvesterCard } from '@/modules/lp-harvester';
@@ -10,6 +11,10 @@ const ENGINE = ENGINE_METADATA[4]; // Harvest LP Fees
 
 export function LpFeeHarvesterPage() {
     const { connected } = useWallet();
+
+    useEffect(() => {
+        document.title = 'LP Fee Harvester | SolHunt';
+    }, []);
 
     return (
         <PageWrapper>

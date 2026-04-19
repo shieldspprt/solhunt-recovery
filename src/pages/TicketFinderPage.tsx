@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Ticket, ArrowLeft, TrendingUp } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { useEffect } from 'react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { TicketFinderCard } from '@/components/tickets/TicketFinderCard';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
@@ -10,6 +11,10 @@ const ENGINE = ENGINE_METADATA[5]; // Claim Stakes (Engine 4)
 
 export function TicketFinderPage() {
     const { connected } = useWallet();
+
+    useEffect(() => {
+        document.title = 'Staking Ticket Finder | SolHunt';
+    }, []);
 
     return (
         <PageWrapper>
