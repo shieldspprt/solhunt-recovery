@@ -106,6 +106,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
 
                                 <button
                                     onClick={clearReclaim}
+                                    aria-label="Dismiss result"
                                     className="w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors mt-4"
                                 >
                                     Done
@@ -132,12 +133,14 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button
                                     onClick={clearReclaim}
+                                    aria-label="Cancel reclaim"
                                     className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={executeReclaim}
+                                    aria-label="Retry reclaim"
                                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                                 >
                                     <RefreshCw className="h-4 w-4" />
