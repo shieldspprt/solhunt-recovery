@@ -1,8 +1,13 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Copyright } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 
 export function CopyrightPage() {
+    useEffect(() => {
+        document.title = 'Copyright | SolHunt';
+    }, []);
+
     return (
         <PageWrapper>
             <div className="mx-auto max-w-3xl px-4 py-12 animate-fade-in-up">

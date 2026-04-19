@@ -1,8 +1,13 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Zap } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 
 export function NotFoundPage() {
+    useEffect(() => {
+        document.title = '404 Not Found | SolHunt';
+    }, []);
+
     return (
         <PageWrapper>
             <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center animate-fade-in-up">

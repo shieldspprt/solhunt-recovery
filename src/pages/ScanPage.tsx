@@ -19,6 +19,10 @@ export const ScanPage = memo(function ScanPage() {
         clearScan
     } = useWalletScanner();
 
+    useEffect(() => {
+        document.title = 'Scan | SolHunt';
+    }, []);
+
     // Memoize the hash value to prevent unnecessary effect re-runs
     // Extract just the hash to avoid triggering effect when other location properties change
     const hash = useMemo(() => location.hash?.replace('#', '') || '', [location.hash]);

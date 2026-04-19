@@ -295,6 +295,11 @@ export function LearnPage() {
     const activeEngineId = id && LEARN_CONTENT_MAP[id] ? id : '1';
     const activeContent = LEARN_CONTENT_MAP[activeEngineId];
 
+    // Set page title for SEO
+    useEffect(() => {
+        document.title = 'Learning Hub | SolHunt';
+    }, []);
+
     // Ensure URL matches active state
     useEffect(() => {
         if (!id || !LEARN_CONTENT_MAP[id]) {

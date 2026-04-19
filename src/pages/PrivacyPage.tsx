@@ -1,8 +1,13 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 
 export function PrivacyPage() {
+    useEffect(() => {
+        document.title = 'Privacy Policy | SolHunt';
+    }, []);
+
     return (
         <PageWrapper>
             <div className="mx-auto max-w-3xl px-4 py-12 animate-fade-in-up">

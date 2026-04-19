@@ -1,8 +1,13 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 
 export function TermsPage() {
+    useEffect(() => {
+        document.title = 'Terms of Service | SolHunt';
+    }, []);
+
     return (
         <PageWrapper>
             <div className="mx-auto max-w-3xl px-4 py-12 animate-fade-in-up">

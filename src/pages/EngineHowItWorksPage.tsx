@@ -2,6 +2,7 @@ import { useParams, Navigate, Link } from 'react-router-dom';
 import { ArrowLeft, Shield, FileCode, CheckCircle2, Lock, Cpu, Server, Sparkles, AlertTriangle, Code2 } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { ENGINE_METADATA } from '@/config/constants';
+import React, { useEffect } from 'react';
 
 interface EngineDetails {
     title: string;
@@ -371,6 +372,10 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
 
 export function EngineHowItWorksPage() {
     const { id } = useParams<{ id: string }>();
+
+    useEffect(() => {
+        document.title = 'How It Works | SolHunt';
+    }, []);
 
     // Route validation
     if (!id || !ENGINE_DETAILS_MAP[id]) {

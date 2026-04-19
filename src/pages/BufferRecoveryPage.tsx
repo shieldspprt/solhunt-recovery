@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Code2, TrendingUp } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
@@ -8,6 +9,10 @@ import { ENGINE_METADATA } from '@/config/constants';
 export function BufferRecoveryPage() {
     const { connected } = useWallet();
     const config = ENGINE_METADATA.find(e => e.id === 10)!; // Recover Program Buffers
+
+    useEffect(() => {
+        document.title = 'Buffer Recovery | SolHunt';
+    }, []);
 
     return (
         <PageWrapper>
