@@ -16,7 +16,12 @@ export function RecoveryModal({ status, estimate, result, error, executeRecovery
     const isError = status === 'error';
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="recovery-modal-title"
+        >
             <div className="w-full max-w-lg rounded-2xl bg-shield-bg border border-shield-border/50 shadow-2xl overflow-hidden relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-shield-accent/10 to-transparent opacity-20 pointer-events-none" />
 
@@ -29,7 +34,7 @@ export function RecoveryModal({ status, estimate, result, error, executeRecovery
                             {isComplete && '✅'}
                             {isError && '❌'}
                         </span>
-                        <h2 className="text-xl font-bold text-shield-text tracking-tight uppercase">
+                        <h2 id="recovery-modal-title" className="text-xl font-bold text-shield-text tracking-tight uppercase">
                             {isAwaiting && 'Recover Stranded Positions'}
                             {isRecovering && 'Processing Recovery...'}
                             {isComplete && 'Recovery Complete!'}
