@@ -16,7 +16,16 @@ interface BeforeInstallPromptEvent extends Event {
     prompt(): Promise<void>;
 }
 
-declare let self: ServiceWorkerGlobalScope;
+/**
+ * Extends ServiceWorkerGlobalScope with SolHunt-specific additions.
+ * Allows the app to access the deferred install prompt captured by the SW.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope
+ */
+interface SolHuntServiceWorkerGlobalScope extends ServiceWorkerGlobalScope {
+    deferredInstallPrompt: BeforeInstallPromptEvent | null;
+}
+
+declare let self: SolHuntServiceWorkerGlobalScope;
 
 // ──────────────────────────────────────────────────────
 // 1. Precache static build assets (injected by vite-plugin-pwa)
@@ -130,4 +139,4 @@ self.addEventListener('beforeinstallprompt', ((event: BeforeInstallPromptEvent) 
 }) as EventListener);
 
 // Make the deferred prompt available globally for the app to trigger
-(self as unknown as Record<string, unknown>).deferredInstallPrompt = deferredInstallPrompt;
+self.deferredInstallPrompt = deferredInstallPrompt;

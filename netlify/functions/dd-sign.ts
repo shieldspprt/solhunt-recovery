@@ -28,6 +28,10 @@ function checkAuth(headers: Record<string, string | undefined>): boolean {
   return diff === 0;
 }
 
+interface SpendLogRow {
+  amount_lamports: number;
+}
+
 // ── Daily spend check ─────────────────────────────────────────────────────────
 async function getTodaySpendLamports(): Promise<number> {
   const supabase = createClient(
@@ -40,7 +44,7 @@ async function getTodaySpendLamports(): Promise<number> {
     .from('dd_spend_log')
     .select('amount_lamports')
     .gte('sent_at', todayStart.toISOString());
-  return (data || []).reduce((sum: number, r: any) => sum + r.amount_lamports, 0);
+  return (data || []).reduce((sum: number, r: SpendLogRow) => sum + r.amount_lamports, 0);
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
