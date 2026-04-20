@@ -665,8 +665,8 @@ export const handler: Handler = async (event) => {
       const body = JSON.parse(event.body);
       const args = body.arguments || body.args || (body.params?.arguments) || {};
       walletAddress = args.wallet_address || args.destination_wallet;
-    } catch {
-      // Ignore parse errors - will be caught later
+    } catch (_e: unknown) {
+      // Ignore parse errors — rate limiting will use IP-only tracking
     }
   }
   
