@@ -31,6 +31,7 @@ export const ProtocolSection = memo(function ProtocolSection({
             <button
                 type="button"
                 onClick={() => setCollapsed((value) => !value)}
+                aria-label={collapsed ? `Expand ${info.displayName} section` : `Collapse ${info.displayName} section`}
                 className="flex w-full items-center justify-between px-4 py-3 text-left"
             >
                 <div className="flex items-center gap-2">
