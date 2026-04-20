@@ -112,13 +112,14 @@ self.addEventListener('activate', (event) => {
 // 7. PWA Install Prompt Capture
 //    Defer the native install prompt for better UX timing
 // ──────────────────────────────────────────────────────
-let deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
+let capturedInstallPrompt: BeforeInstallPromptEvent | null = null;
 
 self.addEventListener('beforeinstallprompt', ((event: BeforeInstallPromptEvent) => {
     // Prevent the mini-infobar from appearing on mobile
     event.preventDefault();
     // Store the event for later use by the app
-    deferredInstallPrompt = event;
+    // Note: stored in module scope variable below listener for app access
+    capturedInstallPrompt = event;
     // Notify any listening clients that install is available
     self.clients.matchAll({ type: 'window' }).then(clients => {
         clients.forEach(client => {
@@ -138,5 +139,5 @@ self.addEventListener('beforeinstallprompt', ((event: BeforeInstallPromptEvent) 
     });
 }) as EventListener);
 
-// Make the deferred prompt available globally for the app to trigger
-self.deferredInstallPrompt = deferredInstallPrompt;
+// Expose captured install prompt on SW global for app access
+self.deferredInstallPrompt = capturedInstallPrompt;

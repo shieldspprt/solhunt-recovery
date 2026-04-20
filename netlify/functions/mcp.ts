@@ -61,6 +61,7 @@ type MCPErrorCode =
   | 'EXECUTION_ERROR'
   | 'WALLET_NOT_FOUND'
   | 'RATE_LIMITED'
+  | 'METHOD_NOT_ALLOWED'
   | 'INTERNAL_ERROR';
 
 /** Typed error response */
@@ -842,6 +843,6 @@ export const handler: Handler = async (event) => {
   return {
     statusCode: 405,
     headers: buildHeaders(false), // Rate limit not applicable for method errors
-    body: JSON.stringify(createMCPError('INTERNAL_ERROR', 'Method not allowed'))
+    body: JSON.stringify(createMCPError('METHOD_NOT_ALLOWED', 'HTTP method not allowed. Use GET or POST.'))
   };
 };
