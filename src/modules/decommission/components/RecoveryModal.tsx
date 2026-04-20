@@ -140,6 +140,7 @@ export function RecoveryModal({ status, estimate, result, error, executeRecovery
                             <>
                                 <button
                                     onClick={cancelRecovery}
+                                    aria-label="Cancel recovery"
                                     className="flex-1 rounded-xl bg-shield-bg border border-shield-border/50 px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/20 transition-all font-mono"
                                 >
                                     [Cancel]
@@ -156,6 +157,7 @@ export function RecoveryModal({ status, estimate, result, error, executeRecovery
                         {(isComplete || isError) && (
                             <button
                                 onClick={cancelRecovery}
+                                aria-label="Close modal"
                                 className="w-full rounded-xl bg-shield-accent/10 border border-shield-accent/20 px-4 py-3 font-bold text-shield-accent hover:bg-shield-accent hover:text-shield-bg transition-all font-mono"
                             >
                                 [Close]
