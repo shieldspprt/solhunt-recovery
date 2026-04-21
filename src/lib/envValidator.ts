@@ -47,8 +47,8 @@ export function validateEnvironment(): EnvValidationResult {
                 errors.push('VITE_TREASURY_WALLET cannot be the default/null public key.');
                 treasuryPubkey = null;
             }
-        } catch {
-            errors.push(`VITE_TREASURY_WALLET is not a valid Solana public key: ${treasuryAddress.substring(0, 10)}...`);
+        } catch (err: unknown) {
+            errors.push(`VITE_TREASURY_WALLET is not a valid Solana public key: ${err instanceof Error ? err.message : String(err)}`);
         }
     }
 

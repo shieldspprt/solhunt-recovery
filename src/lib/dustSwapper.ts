@@ -78,8 +78,8 @@ function base64ToBytes(base64: string): Uint8Array {
     let binary: string;
     try {
         binary = atob(base64);
-    } catch {
-        throw createAppError('DUST_SWAP_FAILED', `Invalid base64 in serialized transaction.`);
+    } catch (err: unknown) {
+        throw createAppError('DUST_SWAP_FAILED', `Invalid base64 in serialized transaction: ${err instanceof Error ? err.message : String(err)}`);
     }
     const bytes = new Uint8Array(binary.length);
     for (let index = 0; index < binary.length; index += 1) {
