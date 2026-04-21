@@ -174,10 +174,12 @@ function validateToolArgs(name: ToolName, args: RawToolArgs): ToolArgs | null {
 // These are what agents see when they load SolHunt as an MCP tool
 // Write descriptions as if explaining to an AI agent — precise, actionable
 
-// SolHunt MCP — 3 tools only
+// SolHunt MCP — 5 tools:
 // get_wallet_report: understand the wallet
-// build_recovery_transaction: fix the wallet
-// discover_platform_features: understand the ecosystem
+// scan_token_approvals: security scan for token approvals
+// build_revoke_transactions: revoke token approvals
+// build_recovery_transaction: recover locked SOL
+// discover_platform_features: explore the ecosystem
 
 const TOOLS = [
   {
