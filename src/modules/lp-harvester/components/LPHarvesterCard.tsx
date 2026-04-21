@@ -99,6 +99,7 @@ export const LPHarvesterCard = memo(function LPHarvesterCard() {
 
                 <button
                     onClick={runScan}
+                    aria-label="Scan LP positions"
                     className="mt-3 w-full rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                 >
                     Scan LP Positions

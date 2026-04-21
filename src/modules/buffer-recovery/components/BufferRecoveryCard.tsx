@@ -84,6 +84,7 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
                 <p className="text-shield-muted mb-6">{bufferScanError.message}</p>
                 <button
                     onClick={runScan}
+                    aria-label="Retry buffer scan"
                     className="px-6 py-2 rounded-xl bg-shield-card border border-shield-border hover:bg-shield-border/20 transition-all font-semibold"
                 >
                     Try Again

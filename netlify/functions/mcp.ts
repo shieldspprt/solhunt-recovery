@@ -444,6 +444,15 @@ async function executeTool(
             { headers, signal: AbortSignal.timeout(10000) })
         ]);
 
+        if (!healthRes.ok) {
+          const detail = await healthRes.text().catch(() => healthRes.statusText);
+          return createMCPError('EXECUTION_ERROR', `Wallet scan API error ${healthRes.status}: ${detail}`, name);
+        }
+        if (!oppsRes.ok) {
+          const detail = await oppsRes.text().catch(() => oppsRes.statusText);
+          return createMCPError('EXECUTION_ERROR', `Opportunities API error ${oppsRes.status}: ${detail}`, name);
+        }
+
         const [healthData, oppsData] = await Promise.all([
           healthRes.json(),
           oppsRes.json()
@@ -500,6 +509,10 @@ async function executeTool(
           `${API_BASE}/api/scan-token-approvals?address=${encodeURIComponent(address)}`,
           { headers, signal: AbortSignal.timeout(10000) }
         );
+        if (!res.ok) {
+          const detail = await res.text().catch(() => res.statusText);
+          return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name);
+        }
         return res.json();
       }
 
@@ -513,6 +526,10 @@ async function executeTool(
             signal: AbortSignal.timeout(20000)
           }
         );
+        if (!res.ok) {
+          const detail = await res.text().catch(() => res.statusText);
+          return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name);
+        }
         return res.json();
       }
 
@@ -526,6 +543,10 @@ async function executeTool(
             signal: AbortSignal.timeout(20000)
           }
         );
+        if (!res.ok) {
+          const detail = await res.text().catch(() => res.statusText);
+          return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name);
+        }
         return res.json();
       }
 

@@ -47,6 +47,7 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
                         Scanned {totalTokenAccounts} token accounts in {formatDuration(scanDurationMs)}
                     </p>
                     <button
+                        type="button"
                         onClick={onScanAgain}
                         className="inline-flex items-center gap-2 rounded-xl bg-shield-card border border-shield-border px-6 py-3 font-medium text-shield-text hover:bg-shield-border/50 transition-colors"
                     >
