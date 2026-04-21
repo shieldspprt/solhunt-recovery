@@ -49,9 +49,10 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
                     <button
                         type="button"
                         onClick={onScanAgain}
+                        aria-label="Scan wallet again"
                         className="inline-flex items-center gap-2 rounded-xl bg-shield-card border border-shield-border px-6 py-3 font-medium text-shield-text hover:bg-shield-border/50 transition-colors"
                     >
-                        <RefreshCw className="h-4 w-4" />
+                        <RefreshCw className="h-4 w-4" aria-hidden="true" />
                         Scan Again
                     </button>
                 </div>
@@ -153,10 +154,12 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
             {hasDelegations && (
                 <div className="text-center">
                     <button
+                        type="button"
                         onClick={onScanAgain}
+                        aria-label="Scan wallet again"
                         className="inline-flex items-center gap-2 text-sm text-shield-muted hover:text-shield-text transition-colors"
                     >
-                        <RefreshCw className="h-4 w-4" />
+                        <RefreshCw className="h-4 w-4" aria-hidden="true" />
                         Scan Again
                     </button>
                 </div>
