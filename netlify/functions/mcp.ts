@@ -513,7 +513,7 @@ async function executeTool(
         );
         if (!res.ok) {
           const detail = await res.text().catch(() => res.statusText);
-          return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name);
+          return createMCPError('EXECUTION_ERROR', `Token approvals scan failed: ${res.status}`, name, detail);
         }
         return res.json();
       }

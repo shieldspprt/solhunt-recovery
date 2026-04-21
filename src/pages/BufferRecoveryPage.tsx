@@ -12,6 +12,8 @@ export function BufferRecoveryPage() {
 
     useEffect(() => {
         document.title = 'Buffer Recovery | SolHunt';
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', 'Recover locked SOL from Solana program buffer accounts using SolHunt\'s Buffer Recovery engine — safely, client-side.');
     }, []);
 
     return (
