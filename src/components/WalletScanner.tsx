@@ -370,6 +370,7 @@ export function WalletScanner() {
         </div>
         <button
           onClick={handleScan}
+          aria-label={state === 'loading' ? 'Cancel wallet scan' : 'Execute wallet scan'}
           disabled={state === 'loading' || !address.trim()}
           className={[
             'relative px-8 py-4 rounded-xl font-bold text-sm transition-all overflow-hidden group/btn font-mono uppercase tracking-widest',

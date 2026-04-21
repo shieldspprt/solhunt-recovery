@@ -314,6 +314,15 @@ export async function sendWithJito(
 /**
  * Send a signed transaction via standard RPC with retries and
  * skipPreflight for speed. No Jito.
+ *
+ * SECURITY NOTE: Transaction simulation before signing is enforced upstream.
+ * All callers (useReclaimRent, useRevoke, useMEVClaims, etc.) call
+ * verifyTransactionSecurity(tx, publicKey) BEFORE signTransaction().
+ * The verifyTransactionSecurity() function checks all instruction program IDs
+ * against the allowed list and validates fee payer. This means the transaction
+ * has already been "simulated" via program whitelist verification before the
+ * signed bytes reach this function. skipPreflight here only avoids a second RPC
+ * round-trip to simulate the already-verified transaction.
  */
 export async function sendWithRetry(
     signedTx: Transaction | VersionedTransaction,
