@@ -21,6 +21,8 @@ export const ScanPage = memo(function ScanPage() {
 
     useEffect(() => {
         document.title = 'Scan | SolHunt';
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', 'Scan your Solana wallet for recoverable SOL, token approvals, and hidden value across 9 recovery engines — instantly and client-side.');
     }, []);
 
     // Memoize the hash value to prevent unnecessary effect re-runs

@@ -6,6 +6,8 @@ import { PageWrapper } from '@/components/layout/PageWrapper';
 export function LicensePage() {
     useEffect(() => {
         document.title = 'License | SolHunt';
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', 'SolHunt is open source software. Learn about our license, third-party open source dependencies, and your rights to use, modify, and distribute the code.');
     }, []);
 
     return (

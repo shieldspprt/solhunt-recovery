@@ -6,6 +6,8 @@ import { PageWrapper } from '@/components/layout/PageWrapper';
 export function TermsPage() {
     useEffect(() => {
         document.title = 'Terms of Service | SolHunt';
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', 'SolHunt is a non-custodial Solana wallet recovery tool. Read our terms of service, fee structure, and liability disclosures before using the platform.');
     }, []);
 
     return (

@@ -375,6 +375,8 @@ export function EngineHowItWorksPage() {
 
     useEffect(() => {
         document.title = 'How It Works | SolHunt';
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', 'Learn how SolHunt recovery engines work — revoke approvals, reclaim rent, sweep dust, harvest LP fees, recover staking tickets, and more — all client-side.');
     }, []);
 
     // Route validation

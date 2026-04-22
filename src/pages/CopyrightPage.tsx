@@ -6,6 +6,8 @@ import { PageWrapper } from '@/components/layout/PageWrapper';
 export function CopyrightPage() {
     useEffect(() => {
         document.title = 'Copyright | SolHunt';
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', 'SolHunt copyright notice and intellectual property information. All rights reserved for SolHunt and its associated trademarks and technology.');
     }, []);
 
     return (

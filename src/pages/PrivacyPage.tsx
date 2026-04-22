@@ -6,6 +6,8 @@ import { PageWrapper } from '@/components/layout/PageWrapper';
 export function PrivacyPage() {
     useEffect(() => {
         document.title = 'Privacy Policy | SolHunt';
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', 'SolHunt is a client-side, non-custodial wallet recovery tool. We never access your private keys, hold your assets, or store your wallet data on any server.');
     }, []);
 
     return (
