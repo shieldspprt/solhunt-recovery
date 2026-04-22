@@ -51,7 +51,7 @@ export const handler: Handler = async (event) => {
       }
       
       return { statusCode: 200, headers, body: JSON.stringify({ logged: true }) };
-    } catch (e) {
+    } catch (err: unknown) {
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid log data' }) };
     }
   }
