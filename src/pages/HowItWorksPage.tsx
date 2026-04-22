@@ -7,6 +7,8 @@ import { PageWrapper } from '@/components/layout/PageWrapper';
 export const HowItWorksPage = memo(function HowItWorksPage() {
     useEffect(() => {
         document.title = 'How It Works | SolHunt';
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', 'A transparent technical breakdown of Solana rent, client-side transaction building, and SolHunt\'s non-custodial security model for recovering locked SOL.');
     }, []);
 
     return (
