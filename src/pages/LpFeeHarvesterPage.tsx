@@ -14,6 +14,8 @@ export function LpFeeHarvesterPage() {
 
     useEffect(() => {
         document.title = 'LP Fee Harvester | SolHunt';
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', 'Harvest unclaimed LP fees from Raydium, Orca, and other Solana DEXs using SolHunt\'s LP Fee Harvester — reclaim value earned but not collected.');
     }, []);
 
     return (
