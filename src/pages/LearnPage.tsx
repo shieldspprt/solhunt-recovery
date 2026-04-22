@@ -298,6 +298,8 @@ export function LearnPage() {
     // Set page title for SEO
     useEffect(() => {
         document.title = 'Learning Hub | SolHunt';
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', 'Deep dive into SolHunt\'s 9 recovery engines: revoke approvals, reclaim rent, harvest LP fees, and recover locked SOL from your Solana wallet.');
     }, []);
 
     // Ensure URL matches active state

@@ -6,6 +6,8 @@ import { PageWrapper } from '@/components/layout/PageWrapper';
 export function NotFoundPage() {
     useEffect(() => {
         document.title = '404 Not Found | SolHunt';
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', 'Page not found. SolHunt helps you recover locked SOL from your Solana wallet — safely, client-side, and non-custodially.');
     }, []);
 
     return (
