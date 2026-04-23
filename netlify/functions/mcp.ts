@@ -413,14 +413,17 @@ async function executeTool(
   args: ToolArgs,
   apiKey?: string
 ): Promise<unknown> {
-  // Log the tool call for analytics
+  // Log structured analytics for monitoring (safe: no wallet balance/tx details logged)
   const typedArgs = args;
-  const walletAddress = ('wallet_address' in typedArgs && typedArgs.wallet_address) || 
-                        ('destination_wallet' in typedArgs && typedArgs.destination_wallet) || 
+  const walletAddress = ('wallet_address' in typedArgs && typedArgs.wallet_address) ||
+                        ('destination_wallet' in typedArgs && typedArgs.destination_wallet) ||
                         'N/A';
-  console.log(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
-  
-  // Log to analytics endpoint
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+  if (!isProduction) {
+    console.log(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
+  }
+
+  // Log to analytics endpoint (silent fail if unavailable)
   fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
