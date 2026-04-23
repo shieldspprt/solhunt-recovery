@@ -12,6 +12,7 @@ import {
     logLPHarvestComplete,
     logLPHarvestInitiated,
 } from '@/lib/analytics';
+import { logger } from '@/lib/logger';
 
 function estimateNetworkFee(selectedPositions: LPPosition[]): number {
     // LP harvest transactions are larger than simple transfers; use conservative estimate.
@@ -133,7 +134,7 @@ export function useLPHarvester() {
             setHarvestError(LP_ERROR_MESSAGES.LP_HARVEST_FAILED);
 
             // Log the actual error for debugging (warn since error is handled gracefully)
-            console.warn('LP harvest failed:', err instanceof Error ? err.message : String(err));
+            logger.warn('LP harvest failed:', err instanceof Error ? err.message : String(err));
 
             logLPHarvestComplete({
                 success: false,

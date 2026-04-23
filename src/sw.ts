@@ -1,6 +1,7 @@
 import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, PrecacheEntry } from 'workbox-precaching';
 import { registerRoute, NavigationRoute } from 'workbox-routing';
 import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
+import { logger } from '@/lib/logger';
 
 // ──────────────────────────────────────────────────────
 // Type Definitions for Service Worker Events
@@ -129,11 +130,11 @@ self.addEventListener('beforeinstallprompt', ((event: BeforeInstallPromptEvent) 
                 });
             } catch (e: unknown) {
                 // Client may have disconnected, ignore
-                console.warn('Failed to notify client of install availability:', e instanceof Error ? e.message : String(e));
+                logger.warn('Failed to notify client of install availability:', e instanceof Error ? e.message : String(e));
             }
         });
     }).catch((err: unknown) => {
         // Service worker clients API may not be available in all contexts
-        console.warn('Failed to match clients for install notification:', err instanceof Error ? err.message : String(err));
+        logger.warn('Failed to match clients for install notification:', err instanceof Error ? err.message : String(err));
     });
 }) as EventListener);

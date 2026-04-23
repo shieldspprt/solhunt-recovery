@@ -17,6 +17,7 @@ import { KNOWN_TOKEN_SYMBOLS } from '../../utils/addresses';
 import { createReadonlyWallet, toBase58, toUiAmount } from '../../utils/readonlyWallet';
 import { toValidPublicKey } from '@/lib/validation';
 import { withRetry } from '@/lib/rpcRetry';
+import { logger } from '@/lib/logger';
 
 interface ParsedTokenAccountInfo {
     mint: string;
@@ -194,7 +195,7 @@ export async function scanOrcaPositions(
             // Silently skip to avoid spamming users with non-critical parsing errors.
             if (process.env.NODE_ENV === 'development') {
                 const msg = err instanceof Error ? err.message : String(err);
-                console.warn(`[OrcaScanner] Skipped mint ${mintAddress.slice(0, 8)}...: ${msg.slice(0, 100)}`);
+                logger.warn(`[OrcaScanner] Skipped mint ${mintAddress.slice(0, 8)}...: ${msg.slice(0, 100)}`);
             }
         }
     }
