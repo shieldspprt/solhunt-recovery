@@ -11,6 +11,7 @@ import { useEffect, useCallback, useState, useRef } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import toast from 'react-hot-toast';
 import { useAppStore } from '@/hooks/useAppStore';
+import { logger } from '@/lib/logger';
 
 interface WalletError {
     message: string;
@@ -31,7 +32,7 @@ export function WalletStatusManager() {
         // Detect unexpected disconnections (not user-initiated)
         if (!connected && previousConnected.current && !disconnecting) {
             // Wallet disconnected unexpectedly - could be extension error
-            console.warn('[WalletStatusManager] Unexpected wallet disconnection detected');
+            logger.warn('[WalletStatusManager] Unexpected wallet disconnection detected');
         }
 
         previousConnected.current = connected;
@@ -76,7 +77,7 @@ export function useReliableDisconnect(): UseReliableDisconnectReturn {
                 return;
             } catch (err: unknown) {
                 lastError = err instanceof Error ? err : new Error(String(err));
-                console.warn(`[WalletStatusManager] Disconnect attempt ${attempt} failed:`, lastError.message);
+                logger.warn(`[WalletStatusManager] Disconnect attempt ${attempt} failed:`, lastError.message);
 
                 // Wait before retry (exponential backoff)
                 if (attempt < DISCONNECT_RETRY_ATTEMPTS) {

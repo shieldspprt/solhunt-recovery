@@ -19,6 +19,7 @@ import type {
     TicketClaimProgressItem,
 } from '@/types';
 import { createAppError, isAppError } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 
 export function useTicketFinder() {
     const { connection } = useConnection();
@@ -118,7 +119,7 @@ export function useTicketFinder() {
             // NEW — Engine 7 scan (runs in parallel, doesn't block tickets)
             scanMEVClaims().catch((err: unknown) => {
                 // Background scan — non-critical, log as warn not error
-                console.warn('MEV scan failed silently', err instanceof Error ? err.message : String(err));
+                logger.warn('MEV scan failed silently', err instanceof Error ? err.message : String(err));
             });
         } catch (err: unknown) {
             const appError = isAppError(err)

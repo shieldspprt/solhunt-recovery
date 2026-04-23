@@ -8,6 +8,7 @@ import { DecommissionRecoveryEstimate, DecommissionRecoveryItemResult } from '..
 import { createAppError } from '@/lib/errors';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
 import { DECOMMISSION_SERVICE_FEE_PERCENT, DECOMMISSION_FEE_SOL_MIN } from '../constants';
+import { logger } from '@/lib/logger';
 
 const logEvent = (..._args: unknown[]) => { };
 
@@ -146,7 +147,7 @@ export function useDecommissionScanner() {
                     } catch (txErr: unknown) {
                         // Log error for debugging before translating to user-friendly message
                         // (warn since error is handled gracefully and surfaced to user)
-                        console.warn('Transaction failed:', txErr instanceof Error ? txErr.message : String(txErr));
+                        logger.warn('Transaction failed:', txErr instanceof Error ? txErr.message : String(txErr));
                         const appTxError = createAppError('TX_FAILED', txErr instanceof Error ? txErr.message : String(txErr));
                         resultItems.push({
                             protocolId: item.protocol.id,
@@ -184,7 +185,7 @@ export function useDecommissionScanner() {
         } catch (err: unknown) {
             // Log full error for debugging before creating user-friendly message
             // (warn since error is handled gracefully and surfaced to user)
-            console.warn('Decommission recovery failed:', err instanceof Error ? err.message : String(err));
+            logger.warn('Decommission recovery failed:', err instanceof Error ? err.message : String(err));
             // Properly handle and log the error for debugging
             const appError = createAppError('DECOMMISSION_RECOVERY_FAILED', err instanceof Error ? err.message : String(err));
             store.setRecoveryStatus('error');

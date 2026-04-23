@@ -12,6 +12,7 @@ import {
     logBufferCloseComplete
 } from '@/lib/analytics';
 import { RECENT_BUFFER_THRESHOLD_MS } from '../constants';
+import { logger } from '@/lib/logger';
 import toast from 'react-hot-toast';
 
 export function useBufferRecovery() {
@@ -65,7 +66,7 @@ export function useBufferRecovery() {
                 hasRecentBuffers: buffers.some(b => Date.now() - b.createdAt < RECENT_BUFFER_THRESHOLD_MS)
             });
         } catch (error: unknown) {
-            console.warn('Buffer scan failed:', error instanceof Error ? error.message : error);
+            logger.warn('Buffer scan failed:', error instanceof Error ? error.message : error);
             const message = error instanceof Error ? error.message : 'Failed to scan for program buffers';
             const technicalDetail = error instanceof Error ? error.toString() : String(error);
             setBufferScanError({
@@ -126,7 +127,7 @@ export function useBufferRecovery() {
 
             await runScan();
         } catch (error: unknown) {
-            console.warn('Buffer close failed:', error instanceof Error ? error.message : error);
+            logger.warn('Buffer close failed:', error instanceof Error ? error.message : error);
             const message = error instanceof Error ? error.message : 'Failed to close buffer accounts';
             const technicalDetail = error instanceof Error ? error.toString() : String(error);
             const appError = {
