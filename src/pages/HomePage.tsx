@@ -31,6 +31,8 @@ export const HomePage = memo(function HomePage() {
 
     useEffect(() => {
         document.title = 'SolHunt | Recover Locked SOL';
+        const metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.setAttribute('content', 'Recover locked and recoverable SOL from your Solana wallet with 9 client-side recovery engines — revoke token approvals, reclaim rent, harvest LP fees, and more. Non-custodial and open-source.');
     }, []);
 
     useEffect(() => {
