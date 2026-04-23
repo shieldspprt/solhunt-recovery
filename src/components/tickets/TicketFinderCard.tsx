@@ -48,6 +48,7 @@ export const TicketFinderCard = memo(function TicketFinderCard() {
             <button
                 data-agent-target="start-scan-tickets-btn"
                 onClick={runTicketScan}
+                type="button"
                 aria-label="Scan for Staking Tickets"
                 className="mt-3 w-full rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
             >
@@ -179,6 +180,7 @@ export const TicketFinderCard = memo(function TicketFinderCard() {
 
                         <button
                             onClick={initiateClaimAll}
+                            type="button"
                             aria-label={`Claim All ${ticketScanResult.claimableTickets.length} Tickets`}
                             className="w-full rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                         >
