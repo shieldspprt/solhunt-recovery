@@ -119,14 +119,18 @@ export function DustProgressModal() {
                             <div className="mt-5 flex flex-col gap-3">
                                 {failedMints.length > 0 && (
                                     <button
+                                        type="button"
                                         onClick={handleBurnFailed}
+                                        aria-label="Burn failed token accounts and reclaim SOL rent"
                                         className="w-full rounded-xl bg-shield-warning text-shield-bg px-4 py-3 font-semibold hover:bg-shield-warning/90 transition-colors"
                                     >
                                         Burn Failed Tokens & Reclaim Rent
                                     </button>
                                 )}
                                 <button
+                                    type="button"
                                     onClick={clearDust}
+                                    aria-label="Close dust consolidation complete dialog"
                                     className="w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                                 >
                                     Done
@@ -151,24 +155,30 @@ export function DustProgressModal() {
 
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button
+                                    type="button"
                                     onClick={cancelDustSwap}
+                                    aria-label="Cancel dust swap and close dialog"
                                     className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 {failedMints.length > 0 && (
                                     <button
+                                        type="button"
                                         onClick={handleBurnFailed}
+                                        aria-label="Burn failed token accounts and reclaim SOL rent"
                                         className="flex-1 rounded-xl bg-shield-warning text-shield-bg px-4 py-3 font-semibold hover:bg-shield-warning/90 transition-colors"
                                     >
                                         Burn Failed
                                     </button>
                                 )}
                                 <button
+                                    type="button"
                                     onClick={executeDustSwap}
+                                    aria-label="Retry dust swap"
                                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                                 >
-                                    <RefreshCw className="h-4 w-4" />
+                                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
                                     Try Again
                                 </button>
                             </div>
