@@ -50,6 +50,7 @@ export function DustProgressModal() {
                 {!isProcessing && (
                     <button
                         onClick={handleClose}
+                        aria-label="Close dialog"
                         className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     >
                         <X className="h-5 w-5" />
