@@ -3,6 +3,7 @@
 // Displays on solhunt.dev homepage or /stats page
 
 import { useState, useEffect, memo, useCallback } from 'react';
+import { logger } from '@/lib/logger';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -198,7 +199,7 @@ export function StatsDisplay() {
       })
       .catch((err: unknown) => {
         // Log as warn since error is handled gracefully and surfaced to user
-        console.warn('Stats fetch failed:', err instanceof Error ? err.message : String(err));
+        logger.warn('Stats fetch failed:', err instanceof Error ? err.message : String(err));
         setError('Failed to load stats');
       })
       .finally(() => setLoading(false));

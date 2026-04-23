@@ -6,6 +6,7 @@ import { useState, useCallback, useEffect, useRef, memo } from 'react';
 import { isValidSolanaAddress } from '@/lib/validation';
 import { shortenAddress } from '@/lib/formatting';
 import { toAppError } from '@/lib/errors';
+import { logger } from '@/lib/logger';
 import type { WalletScanResponse } from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -219,7 +220,7 @@ export function WalletScanner() {
       })
       .catch((err: unknown) => {
         // Non-critical — pill stats failure should not crash or alert the user
-        console.warn('Live stats fetch failed:', err instanceof Error ? err.message : String(err));
+        logger.warn('Live stats fetch failed:', err instanceof Error ? err.message : String(err));
       });
     
     return () => controller.abort();
