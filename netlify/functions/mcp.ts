@@ -883,7 +883,7 @@ export const handler: Handler = async (event) => {
 
   return {
     statusCode: 405,
-    headers: buildHeaders(false), // Rate limit not applicable for method errors
+    headers: buildHeaders(false),
     body: JSON.stringify(createMCPError('METHOD_NOT_ALLOWED', 'HTTP method not allowed. Use GET or POST.'))
   };
 };
