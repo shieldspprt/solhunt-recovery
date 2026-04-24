@@ -128,6 +128,7 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
                     <p className="text-shield-muted">No abandoned buffers found in this wallet. 🛡️</p>
                     <button
                         onClick={clearBuffers}
+                        aria-label="Return to start"
                         className="mt-4 text-sm text-shield-accent hover:underline"
                     >
                         Back to start
@@ -186,6 +187,7 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
                             onClick={() => setIsConfirmModalOpen(true)}
                             disabled={selectedCount === 0 || isClosing}
                             data-agent-target="close-buffers-btn"
+                            aria-label={selectedCount === 0 ? 'Select buffers first to close and reclaim SOL' : `Close and reclaim ${selectedSOL.toFixed(3)} SOL from ${selectedCount} buffer${selectedCount === 1 ? '' : 's'}`}
                             className="w-full sm:w-auto px-10 py-4 rounded-xl bg-shield-accent hover:bg-shield-accent/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-lg shadow-lg shadow-shield-accent/25 transition-all"
                         >
                             Close and Reclaim SOL
