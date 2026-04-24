@@ -109,12 +109,14 @@ export function HarvestConfirmModal({
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
                             onClick={onCancel}
+                            aria-label="Cancel harvest"
                             className="flex-1 rounded-xl border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={onConfirm}
+                            aria-label="Confirm harvest fees"
                             className="flex-1 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                         >
                             Harvest Fees
