@@ -55,9 +55,10 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
                     <button
                         onClick={handleInitialScan}
                         data-agent-target="scan-buffers-btn"
+                        aria-label="Scan wallet for buffer accounts"
                         className="inline-flex items-center gap-2 rounded-xl bg-shield-accent hover:bg-shield-accent/90 text-white font-bold px-8 py-4 text-lg shadow-lg shadow-shield-accent/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                     >
-                        <Search className="h-5 w-5" />
+                        <Search className="h-5 w-5" aria-hidden="true" />
                         Scan Wallet for Buffers
                     </button>
                     <p className="mt-4 text-xs text-shield-muted">
@@ -138,12 +139,14 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={selectAllBuffers}
+                                aria-label="Select all buffers"
                                 className="text-xs font-bold text-shield-accent hover:text-shield-accent/80 transition-colors"
                             >
                                 Select All
                             </button>
                             <button
                                 onClick={deselectAllBuffers}
+                                aria-label="Deselect all buffers"
                                 className="text-xs font-bold text-shield-muted hover:text-shield-text transition-colors"
                             >
                                 Deselect All
@@ -168,7 +171,7 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
                     <div className="sticky bottom-6 glass-card rounded-2xl p-6 border border-shield-accent/40 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 animate-fade-in-up">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-xl bg-shield-accent/10 flex items-center justify-center">
-                                <Info className="h-5 w-5 text-shield-accent" />
+                                <Info className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                             </div>
                             <div>
                                 <p className="text-sm font-bold text-shield-text">
