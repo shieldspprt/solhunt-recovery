@@ -1,3 +1,9 @@
+/**
+ * SolHunt Service Worker
+ * Cache version: 2026-04-24
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope
+ */
 import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, PrecacheEntry } from 'workbox-precaching';
 import { registerRoute, NavigationRoute } from 'workbox-routing';
 import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
