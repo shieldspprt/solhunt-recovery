@@ -767,7 +767,7 @@ export const handler: Handler = async (event) => {
     let body: Record<string, unknown>;
     try {
       body = JSON.parse(event.body || '{}');
-    } catch {
+    } catch (_e: unknown) {
       return {
         statusCode: 400,
         headers: buildHeaders(),
