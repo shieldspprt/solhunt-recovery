@@ -101,15 +101,30 @@ function isOptionalNumber(value: unknown): value is number | undefined {
   return value === undefined || (typeof value === 'number' && !isNaN(value));
 }
 
+/**
+ * Validates a Solana base58 public key format.
+ * Allows the MCP server to reject obviously malformed wallet addresses
+ * before they reach external API calls.
+ * Rejects: empty strings, wrong length, invalid base58 charset.
+ * @see https://docs.solana.com/terminology#public-key
+ */
+function isValidBase58Pubkey(value: unknown): value is string {
+  if (!isString(value)) return false;
+  // Solana pubkeys are 32-44 base58 characters
+  if (value.length < 32 || value.length > 44) return false;
+  // Base58 charset excludes ambiguous chars: 0, O, I, l
+  return /^[1-9A-HJ-NP-Za-km-z]+$/.test(value);
+}
+
 /** Validates and narrows raw arguments to GetWalletReportArgs */
 function validateGetWalletReportArgs(args: RawToolArgs): GetWalletReportArgs | null {
-  if (!isString(args.wallet_address)) return null;
+  if (!isValidBase58Pubkey(args.wallet_address)) return null;
   return { wallet_address: args.wallet_address };
 }
 
 /** Validates and narrows raw arguments to ScanTokenApprovalsArgs */
 function validateScanTokenApprovalsArgs(args: RawToolArgs): ScanTokenApprovalsArgs | null {
-  if (!isString(args.wallet_address)) return null;
+  if (!isValidBase58Pubkey(args.wallet_address)) return null;
   return { wallet_address: args.wallet_address };
 }
 
@@ -122,7 +137,7 @@ function isValidTokenAccountItem(item: unknown): item is TokenAccountItem {
 
 /** Validates and narrows raw arguments to BuildRevokeTransactionsArgs */
 function validateBuildRevokeTransactionsArgs(args: RawToolArgs): BuildRevokeTransactionsArgs | null {
-  if (!isString(args.wallet_address)) return null;
+  if (!isValidBase58Pubkey(args.wallet_address)) return null;
   if (!isArray(args.token_accounts)) return null;
   if (!args.token_accounts.every(isValidTokenAccountItem)) return null;
   
@@ -135,8 +150,8 @@ function validateBuildRevokeTransactionsArgs(args: RawToolArgs): BuildRevokeTran
 
 /** Validates and narrows raw arguments to BuildRecoveryTransactionArgs */
 function validateBuildRecoveryTransactionArgs(args: RawToolArgs): BuildRecoveryTransactionArgs | null {
-  if (!isString(args.wallet_address)) return null;
-  if (!isString(args.destination_wallet)) return null;
+  if (!isValidBase58Pubkey(args.wallet_address)) return null;
+  if (!isValidBase58Pubkey(args.destination_wallet)) return null;
   
   return {
     wallet_address: args.wallet_address,
