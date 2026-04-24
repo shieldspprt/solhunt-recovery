@@ -102,10 +102,12 @@ export const ScannerCard = memo(function ScannerCard() {
                             <span>Takes 5–15 seconds</span>
                         </div>
                         <button
+                            type="button"
                             id="start-scan-button"
                             data-agent-target="start-scan-btn"
                             onClick={scan}
                             disabled={isOnCooldown()}
+                            aria-label="Start Solana token account scan"
                             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-shield-accent hover:bg-shield-accent/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-8 py-4 text-lg shadow-lg shadow-shield-accent/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                         >
                             <Search className="h-5 w-5" aria-hidden="true" />
