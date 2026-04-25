@@ -256,7 +256,7 @@ IMPORTANT: This ONLY builds the transaction. The operator must:
 1. Sign with their own wallet
 2. Submit to Solana RPC
 
-Fee: 0.001 SOL service fee (first transaction only)
+Fee: 15% of recovered SOL (built atomically into the transaction)
 
 Input: List of token_account objects from scan_token_approvals response.
 Each account needs: address, mint, and optionally programId.
@@ -721,7 +721,8 @@ export const handler: Handler = async (event) => {
       'X-RateLimit-Remaining': String(rateLimit.remaining),
       'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
       'X-RateLimit-Window': String(Math.floor(RATE_WINDOW_MS / 1000)),
-      'X-RateLimit-Source': rateLimit.source
+      'X-RateLimit-Source': rateLimit.source,
+      'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000))
     };
   };
   
