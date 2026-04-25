@@ -155,14 +155,14 @@
             </intent-filter>
 
             <!-- Solana dApp Store Compliance: Mobile wallet deep links for connection -->
-            <intent-filter>
+            <intent-filter android:exported="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="solana"/>
             </intent-filter>
 
-            <intent-filter>
+            <intent-filter android:exported="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
