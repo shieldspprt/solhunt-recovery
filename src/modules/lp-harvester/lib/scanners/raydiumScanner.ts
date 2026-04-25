@@ -47,7 +47,7 @@ function toBase58(value: unknown): string {
         if (typeof fn === 'function') {
             try {
                 return fn.call(value);
-            } catch {
+            } catch (_e: unknown) {
                 return '';
             }
         }
@@ -263,7 +263,7 @@ async function scanRaydiumClmmPositions(
                     owner: new PublicKey(walletAddress),
                 });
                 break;
-            } catch {
+            } catch (_e: unknown) {
                 // Try next method shape.
             }
         }
@@ -361,7 +361,7 @@ async function scanRaydiumClmmPositions(
         }
 
         return positions;
-    } catch {
+    } catch (_e: unknown) {
         return [];
     }
 }

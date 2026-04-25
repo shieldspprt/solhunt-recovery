@@ -65,7 +65,7 @@ async function fetchDexScreenerPrices(mints: string[]): Promise<Map<string, numb
                     if (!priceMap.has(mint)) priceMap.set(mint, 0);
                 }
             }
-        } catch {
+        } catch (_e: unknown) {
             for (const mint of batch) {
                 if (!priceMap.has(mint)) priceMap.set(mint, 0);
             }

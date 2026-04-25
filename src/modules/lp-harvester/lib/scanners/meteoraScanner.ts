@@ -38,7 +38,7 @@ function toBase58(value: unknown): string {
         if (typeof fn === 'function') {
             try {
                 return fn.call(value);
-            } catch {
+            } catch (_e: unknown) {
                 return '';
             }
         }
@@ -302,13 +302,13 @@ export async function scanMeteoraPositions(
 
     try {
         return await parseSdkPositions(walletAddress, connection);
-    } catch {
+    } catch (_e: unknown) {
         // SDK path may fail on some environments; fallback to API as best-effort.
     }
 
     try {
         return await parseApiPositions(walletAddress, connection);
-    } catch {
+    } catch (_e: unknown) {
         return [];
     }
 }
