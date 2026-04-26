@@ -66,6 +66,7 @@ export class EngineErrorBoundary extends PureComponent<EngineErrorBoundaryProps,
                         onClick={this.handleReset}
                         className="inline-flex items-center gap-2 rounded-xl bg-shield-accent px-6 py-2.5 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                         type="button"
+                        aria-label={`Retry Engine ${this.props.engineId}`}
                     >
                         <RefreshCw className="h-4 w-4" aria-hidden="true" />
                         Try Again
