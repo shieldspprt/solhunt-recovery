@@ -122,6 +122,7 @@ export function DustBurnConfirmModal() {
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
                             onClick={cancelBurnReclaim}
+                            aria-label="Cancel burn and close dialog"
                             className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                         >
                             Cancel
@@ -129,6 +130,7 @@ export function DustBurnConfirmModal() {
                         <button
                             onClick={executeBurnReclaim}
                             disabled={!feeConsent}
+                            aria-label="Confirm burn and reclaim"
                             className="flex-1 rounded-xl bg-shield-warning text-shield-bg px-4 py-3 font-semibold hover:bg-shield-warning/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-shield-warning/20 disabled:shadow-none"
                         >
                             Burn & Reclaim
