@@ -547,7 +547,12 @@ async function executeTool(
           }
         );
         if (!res.ok) {
-          const detail = await res.text().catch(() => res.statusText);
+          // Try to extract structured error detail from JSON body first
+          let detail = res.statusText;
+          try {
+            const json = JSON.parse(await res.clone().text());
+            detail = json?.error ?? json?.message ?? json?.detail ?? detail;
+          } catch (_) { /* fall through to statusText */ }
           return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name);
         }
         return res.json();
@@ -564,7 +569,12 @@ async function executeTool(
           }
         );
         if (!res.ok) {
-          const detail = await res.text().catch(() => res.statusText);
+          // Try to extract structured error detail from JSON body first
+          let detail = res.statusText;
+          try {
+            const json = JSON.parse(await res.clone().text());
+            detail = json?.error ?? json?.message ?? json?.detail ?? detail;
+          } catch (_) { /* fall through to statusText */ }
           return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name);
         }
         return res.json();
