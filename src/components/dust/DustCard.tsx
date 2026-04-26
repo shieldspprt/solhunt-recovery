@@ -106,6 +106,7 @@ export const DustCard = memo(function DustCard() {
 
                 <div className="flex items-center gap-2">
                     <button
+                        type="button"
                         onClick={selectAll}
                         className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
                         aria-label="Select all dust tokens"
@@ -113,6 +114,7 @@ export const DustCard = memo(function DustCard() {
                         Select All
                     </button>
                     <button
+                        type="button"
                         onClick={deselectAll}
                         className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
                         aria-label="Deselect all dust tokens"
