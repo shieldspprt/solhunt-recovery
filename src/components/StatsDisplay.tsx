@@ -159,7 +159,7 @@ const MiniChart = memo(function MiniChart({ history }: { history: DayStat[] }) {
           <div
             key={d.date}
             className="flex-1 flex flex-col items-center gap-1"
-            title={`${d.date}: ${d.total_recoverable_sol} SOL`}
+            aria-label={`${d.date}: ${d.total_recoverable_sol} SOL`}
           >
             <div
               className="w-full rounded-t bg-purple-500/60 hover:bg-purple-400/80 transition-colors"
