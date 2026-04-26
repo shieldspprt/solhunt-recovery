@@ -119,6 +119,7 @@ export const HowItWorksPage = memo(function HowItWorksPage() {
                             href="https://twitter.com/solhuntdev"
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-label="Contact SolHunt on Twitter"
                             className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1DA1F2] px-6 py-3 font-semibold text-white shadow-lg shadow-[#1DA1F2]/20 hover:bg-[#1A91DA] transition-all hover:-translate-y-0.5"
                         >
                             <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
