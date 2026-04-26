@@ -298,6 +298,11 @@ Safety: Revoking is always safe — it only removes permissions, never adds them
           type: "number",
           description: "Which batch to build (default: 1). Up to 15 revocations per transaction.",
           default: 1
+        },
+        fee_percent: {
+          type: "number",
+          description: "Fee percentage to be applied to the recovered SOL (default: 15%).",
+          default: 15
         }
       }
     }
@@ -310,7 +315,7 @@ Close zero-balance token accounts to recover rent (0.002039 SOL per account).
 Returns base64-encoded unsigned transaction(s) ready for signing.
 The operator signs with their own wallet and submits — SolHunt never
 has custody. Each transaction includes closeAccount instructions AND
-a 15% fee transfer to SolHunt built atomically. What you see in
+a 15% fee to SolHunt built atomically. What you see in
 preview_recovery is exactly what gets executed — no surprises.
 
 IMPORTANT: Transactions expire after about 90 seconds on Solana.
