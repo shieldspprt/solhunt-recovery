@@ -210,7 +210,14 @@ export function WalletScanner() {
     const controller = new AbortController();
     
     fetch('/api/get-stats?days=1', { signal: controller.signal })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) return null;
+        try {
+          return res.json();
+        } catch {
+          return null;
+        }
+      })
       .then(data => {
         if (data?.success && data?.data?.today) {
           setLiveStats({
