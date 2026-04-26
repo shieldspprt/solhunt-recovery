@@ -74,6 +74,7 @@ export const ScannerCard = memo(function ScannerCard() {
                         </div>
                     </div>
                     <button
+                        type="button"
                         onClick={handleCopy}
                         className="p-2 rounded-lg hover:bg-shield-border/50 transition-colors text-shield-muted hover:text-shield-text"
                         title="Copy address"
