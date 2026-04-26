@@ -177,6 +177,7 @@ export const HomePage = memo(function HomePage() {
                                 href="https://twitter.com/solhuntdev"
                                 target="_blank"
                                 rel="noopener noreferrer"
+                                aria-label="Contact SolHunt on X (Twitter)"
                                 className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-[#1DA1F2] px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#1A91DA] hover:shadow-lg shadow-[#1DA1F2]/20"
                             >
                                 Contact @solhuntdev
