@@ -99,6 +99,7 @@ const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: strin
 
   return (
     <button
+      type="button"
       onClick={handleCopy}
       className={[
         'text-xs px-3 py-1.5 rounded-md font-medium transition-all',
@@ -294,6 +295,7 @@ export function StatsDisplay() {
               href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(today.x_draft)}`}
               target="_blank"
               rel="noopener noreferrer"
+              aria-label="Post draft to X (opens in new tab)"
               className="text-xs px-3 py-1.5 rounded-md font-medium bg-black hover:bg-gray-900 text-white border border-gray-700 transition-all"
             >
               Post to X →
