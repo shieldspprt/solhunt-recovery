@@ -347,7 +347,7 @@ export const handler: Handler = async (event) => {
       .limit(10);
 
     const excludeWallets = new Set(
-      (recentWorst || []).map((r: any) => r.worst_wallet).filter(Boolean)
+      (recentWorst || []).map((r: { worst_wallet: string | null }) => r.worst_wallet).filter((w): w is string => w !== null)
     );
 
     const stats = computeStats(wallets.length, results, excludeWallets);

@@ -14,10 +14,31 @@ function getTier(sol: number) {
   return TIERS.find(t => sol >= t.min) || null;
 }
 
-function extractMemo(tx: any): string | null {
+// ── Local Types for Helius Webhook Payload ──────────────────────────────────
+// Typed to match the Helius parsed transaction webhook format
+
+interface HeliusInstruction {
+  programId: string;
+  data?: string;
+}
+
+interface HeliusNativeTransfer {
+  fromUserAccount: string;
+  toUserAccount: string;
+  amount: number; // in lamports
+}
+
+interface HeliusTransaction {
+  signature: string;
+  instructions?: HeliusInstruction[];
+  nativeTransfers?: HeliusNativeTransfer[];
+  memo?: string;
+}
+
+function extractMemo(tx: HeliusTransaction): string | null {
   if (tx.memo && typeof tx.memo === 'string') return tx.memo.trim();
-  const ixs = tx.instructions || [];
-  const memoIx = ixs.find((ix: any) => ix.programId === MEMO_PROG);
+  const ixs = tx.instructions ?? [];
+  const memoIx = ixs.find((ix: HeliusInstruction) => ix.programId === MEMO_PROG);
   if (memoIx?.data) return String(memoIx.data).trim();
   return null;
 }
@@ -35,7 +56,7 @@ export const handler: Handler = async (event) => {
     return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
-  let transactions: any[];
+  let transactions: HeliusTransaction[];
   try {
     transactions = JSON.parse(event.body || '[]');
     if (!Array.isArray(transactions)) throw new Error('expected array');
@@ -53,7 +74,7 @@ export const handler: Handler = async (event) => {
   for (const tx of transactions) {
     try {
       const incoming = (tx.nativeTransfers || []).filter(
-        (t: any) => t.toUserAccount === DD_WALLET && t.amount > 0
+        (t: HeliusNativeTransfer) => t.toUserAccount === DD_WALLET && t.amount > 0
       );
 
       for (const transfer of incoming) {
