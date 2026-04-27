@@ -761,6 +761,7 @@ export const handler: Handler = async (event) => {
     if (!includeRateLimit) return headers;
     return {
       ...headers,
+      'X-RateLimit-Limit': String(RATE_LIMIT),
       'X-RateLimit-Remaining': String(rateLimit.remaining),
       'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
       'X-RateLimit-Window': String(Math.floor(RATE_WINDOW_MS / 1000)),
@@ -775,6 +776,7 @@ export const handler: Handler = async (event) => {
       statusCode: 429,
       headers: {
         ...headers,
+        'X-RateLimit-Limit': String(RATE_LIMIT),
         'X-RateLimit-Remaining': '0',
         'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
         'X-RateLimit-Source': rateLimit.source,
