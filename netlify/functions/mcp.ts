@@ -634,7 +634,8 @@ async function executeTool(
   } catch (e: unknown) {
     const message = getErrorMessage(e);
     // Detect if this is a Smithery/internal server error vs our own validation
-    const isInternalError = !(e instanceof Error) || message.includes('fetch') || message.includes('JSON');
+    const isInternalError = !(e instanceof Error) || 
+      (message !== undefined && (message.includes('fetch') || message.includes('JSON')));
     return createMCPError(
       isInternalError ? 'INTERNAL_ERROR' : 'EXECUTION_ERROR',
       `Tool execution failed: ${message}`,
