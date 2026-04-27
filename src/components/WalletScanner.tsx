@@ -414,7 +414,7 @@ export function WalletScanner() {
 
       {/* Loading state */}
       {state === 'loading' && (
-        <div className="mt-6 space-y-2">
+        <div className="mt-6 space-y-2" role="status" aria-live="polite" aria-label="Wallet scan in progress">
           <div className="flex items-center gap-3 text-gray-400 text-sm">
             <svg className="animate-spin h-4 w-4 text-purple-400" viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
