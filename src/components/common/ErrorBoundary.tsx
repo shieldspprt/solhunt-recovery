@@ -54,7 +54,7 @@ export class ErrorBoundary extends PureComponent<ErrorBoundaryProps, ErrorBounda
                 <div 
                     className="flex min-h-[400px] items-center justify-center p-8"
                     role="alert"
-                    aria-live="assertive"
+                    aria-live="polite"
                 >
                     <div className="max-w-md text-center">
                         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-danger/10">
