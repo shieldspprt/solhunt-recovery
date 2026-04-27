@@ -13,7 +13,7 @@ export function TicketFinderPage() {
     const { connected } = useWallet();
 
     useEffect(() => {
-        document.title = 'Staking Ticket Finder | SolHunt';
+        document.title = 'Ticket Finder | SolHunt';
         const metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc) metaDesc.setAttribute('content', 'Find and claim unclaimed staking tickets from Marinade, Jito, and other Solana staking protocols using SolHunt\'s Ticket Finder — fully client-side.');
     }, []);
