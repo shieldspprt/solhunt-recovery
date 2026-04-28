@@ -37,6 +37,7 @@ interface BuildRevokeTransactionsArgs {
   wallet_address: string;
   token_accounts: TokenAccountItem[];
   batch_number?: number;
+  fee_percent?: number;
 }
 
 /** Arguments for build_recovery_transaction tool */
@@ -141,10 +142,17 @@ function validateBuildRevokeTransactionsArgs(args: RawToolArgs): BuildRevokeTran
   if (!isArray(args.token_accounts)) return null;
   if (!args.token_accounts.every(isValidTokenAccountItem)) return null;
   
+  // Validate fee_percent if provided (0-100 range)
+  const feePercent = args.fee_percent;
+  if (feePercent !== undefined && (typeof feePercent !== 'number' || feePercent < 0 || feePercent > 100 || isNaN(feePercent))) {
+    return null;
+  }
+
   return {
     wallet_address: args.wallet_address,
     token_accounts: args.token_accounts as TokenAccountItem[],
     batch_number: isOptionalNumber(args.batch_number) ? args.batch_number : undefined,
+    fee_percent: typeof feePercent === 'number' ? feePercent : undefined,
   };
 }
 
