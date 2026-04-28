@@ -33,12 +33,12 @@ export function DustBurnConfirmModal() {
                     className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     aria-label="Close dialog"
                 >
-                    <X className="h-5 w-5" />
+                    <X className="h-5 w-5" aria-hidden="true" />
                 </button>
 
                 <div className="p-6 sm:p-8">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-warning/20 border border-shield-warning/30">
-                        <Flame className="h-8 w-8 text-shield-warning" />
+                        <Flame className="h-8 w-8 text-shield-warning" aria-hidden="true" />
                     </div>
 
                     <h2 className="text-xl font-bold text-center text-shield-text mb-4">
@@ -90,14 +90,14 @@ export function DustBurnConfirmModal() {
 
                     <div className="rounded-xl border border-shield-danger/30 bg-shield-danger/10 p-3 mb-6">
                         <p className="text-xs text-shield-danger font-medium flex items-start gap-2">
-                            <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                            <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
                             These tokens will be permanently destroyed, and account closure cannot be undone.
                         </p>
                     </div>
 
                     <div className="rounded-xl border border-shield-warning/30 bg-shield-warning/5 p-4 mb-6 mt-4">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-shield-warning mb-2 flex items-center gap-1">
-                            <Flame className="h-3 w-3" /> Transaction Preview
+                            <Flame className="h-3 w-3" aria-hidden="true" /> Transaction Preview
                         </h3>
                         <p className="text-xs text-shield-text leading-relaxed">
                             You are about to sign <span className="font-mono text-shield-warning">1</span> transaction containing <span className="font-mono text-shield-warning">{burnableTokens.length}</span> <span className="font-mono bg-shield-border/30 px-1 rounded">burn</span> and <span className="font-mono bg-shield-border/30 px-1 rounded">closeAccount</span> instructions. No transfer authority is granted to any third-party app.

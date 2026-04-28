@@ -35,12 +35,12 @@ export const DustConfirmModal = memo(function DustConfirmModal() {
                     className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     aria-label="Close dialog"
                 >
-                    <X className="h-5 w-5" />
+                    <X className="h-5 w-5" aria-hidden="true" />
                 </button>
 
                 <div className="p-6 sm:p-8">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-accent/10 border border-shield-accent/20">
-                        <ArrowRightLeft className="h-8 w-8 text-shield-accent" />
+                        <ArrowRightLeft className="h-8 w-8 text-shield-accent" aria-hidden="true" />
                     </div>
 
                     <h2 className="text-xl font-bold text-center text-shield-text mb-4">
@@ -93,7 +93,7 @@ export const DustConfirmModal = memo(function DustConfirmModal() {
 
                     <div className="rounded-xl border border-shield-accent/30 bg-shield-accent/5 p-4 mb-6 mt-4">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-shield-accent mb-2 flex items-center gap-1">
-                            <ArrowRightLeft className="h-3 w-3" /> Transaction Preview
+                            <ArrowRightLeft className="h-3 w-3" aria-hidden="true" /> Transaction Preview
                         </h3>
                         <p className="text-xs text-shield-text leading-relaxed">
                             You are about to sign <span className="font-mono text-shield-accent">1</span> transaction executing <span className="font-mono bg-shield-border/30 px-1 rounded">Jupiter Swap</span> instructions for {selectedTokens.length} tokens. Transfer authority is <strong>only</strong> granted to the exact swap routes for the specified amounts.
