@@ -41,11 +41,12 @@ export function DustBurnProgressModal() {
             <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 {!isProcessing && (
                     <button
+                        type="button"
                         onClick={handleClose}
-                        className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                         aria-label="Close dialog"
+                        className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     >
-                        <X className="h-5 w-5" />
+                        <X className="h-5 w-5" aria-hidden="true" />
                     </button>
                 )}
 
@@ -115,7 +116,9 @@ export function DustBurnProgressModal() {
                             )}
 
                             <button
+                                type="button"
                                 onClick={clearDustBurn}
+                                aria-label="Close dialog"
                                 className="mt-5 w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                             >
                                 Done
@@ -141,16 +144,20 @@ export function DustBurnProgressModal() {
 
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button
+                                    type="button"
                                     onClick={cancelBurnReclaim}
+                                    aria-label="Cancel burn and close dialog"
                                     className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={executeBurnReclaim}
+                                    aria-label="Retry burn and reclaim"
                                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                                 >
-                                    <RefreshCw className="h-4 w-4" />
+                                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
                                     Try Again
                                 </button>
                             </div>
@@ -159,7 +166,7 @@ export function DustBurnProgressModal() {
 
                     {!isProcessing && dustBurnStatus === 'error' && !dustBurnError && (
                         <div className="text-center text-shield-muted py-10">
-                            <Flame className="h-8 w-8 mx-auto mb-2" />
+                            <Flame className="h-8 w-8 mx-auto mb-2" aria-hidden="true" />
                             Unknown burn/reclaim error.
                         </div>
                     )}
