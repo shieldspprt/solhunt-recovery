@@ -264,7 +264,8 @@ IMPORTANT: This ONLY builds the transaction. The operator must:
 1. Sign with their own wallet
 2. Submit to Solana RPC
 
-Fee: 15% of recovered SOL (built atomically into the transaction)
+Fee: 15% of recovered SOL by default (built atomically into the transaction).
+Override with fee_percent (0-100, default 15). Set to 0 to disable.
 
 Input: List of token_account objects from scan_token_approvals response.
 Each account needs: address, mint, and optionally programId.
@@ -278,7 +279,7 @@ Safety: Revoking is always safe — it only removes permissions, never adds them
       properties: {
         wallet_address: {
           type: "string",
-          description: "Your Solana wallet address"
+          description: "Solana wallet public key (base58, 32-44 characters)"
         },
         token_accounts: {
           type: "array",
@@ -304,12 +305,12 @@ Safety: Revoking is always safe — it only removes permissions, never adds them
         },
         batch_number: {
           type: "number",
-          description: "Which batch to build (default: 1). Up to 15 revocations per transaction.",
+          description: "Which batch to revoke (default: 1). Up to 15 revocations per transaction.",
           default: 1
         },
         fee_percent: {
           type: "number",
-          description: "Fee percentage to be applied to the recovered SOL (default: 15%).",
+          description: "Fee percentage to be applied to the recovered SOL (default: 15%, range: 0-100). Set to 0 to disable the fee.",
           default: 15
         }
       }
