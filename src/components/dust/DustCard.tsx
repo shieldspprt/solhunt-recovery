@@ -47,7 +47,7 @@ export const DustCard = memo(function DustCard() {
             <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
-                        <Sparkles className="h-5 w-5 text-shield-accent" />
+                        <Sparkles className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-shield-text">Dust Consolidator</h2>
@@ -66,7 +66,7 @@ export const DustCard = memo(function DustCard() {
             <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-success/10 border border-shield-success/20">
-                        <Sparkles className="h-5 w-5 text-shield-success" />
+                        <Sparkles className="h-5 w-5 text-shield-success" aria-hidden="true" />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-shield-text">Dust Consolidator</h2>
@@ -93,7 +93,7 @@ export const DustCard = memo(function DustCard() {
             <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                 <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
-                        <Sparkles className="h-5 w-5 text-shield-accent" />
+                        <Sparkles className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-shield-text">Dust Tokens Found</h2>
@@ -202,7 +202,7 @@ export const DustCard = memo(function DustCard() {
                 className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-shield-accent text-white font-semibold px-4 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-shield-accent/90 transition-colors"
                 aria-label={`Consolidate ${selectedTokens.length} token${selectedTokens.length === 1 ? '' : 's'} to SOL`}
             >
-                <ArrowRightLeft className="h-4 w-4" />
+                <ArrowRightLeft className="h-4 w-4" aria-hidden="true" />
                 Consolidate {selectedTokens.length} Token{selectedTokens.length === 1 ? '' : 's'} to SOL
             </button>
 
