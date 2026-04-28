@@ -109,6 +109,7 @@ export function ClaimConfirmModal() {
 
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
+                            type="button"
                             onClick={cancelClaim}
                             aria-label="Cancel claim"
                             className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
@@ -116,6 +117,7 @@ export function ClaimConfirmModal() {
                             Cancel
                         </button>
                         <button
+                            type="button"
                             onClick={executeClaimAll}
                             aria-label="Confirm claim all tickets"
                             disabled={!feeConsent}
