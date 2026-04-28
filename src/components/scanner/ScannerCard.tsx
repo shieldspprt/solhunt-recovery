@@ -56,6 +56,8 @@ export const ScannerCard = memo(function ScannerCard() {
     return (
         <div
             className="w-full max-w-2xl mx-auto"
+            role="region"
+            aria-label="Solana wallet scanner"
             aria-live="polite"
             aria-busy={isScanning}
         >
