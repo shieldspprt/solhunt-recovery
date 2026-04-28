@@ -781,30 +781,53 @@ export const handler: Handler = async (event) => {
   // Helper to build headers with rate limit info
   const buildHeaders = (includeRateLimit = true): Record<string, string> => {
     if (!includeRateLimit) return headers;
-    return {
+    const base: Record<string, string> = {
       ...headers,
       'X-RateLimit-Limit': String(RATE_LIMIT),
       'X-RateLimit-Remaining': String(rateLimit.remaining),
       'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
       'X-RateLimit-Window': String(Math.floor(RATE_WINDOW_MS / 1000)),
       'X-RateLimit-Source': rateLimit.source,
-      'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000))
+      'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
     };
+    // Include per-wallet headers when wallet rate limiting is active
+    if (rateLimit.source === 'wallet' && walletAddress) {
+      const walletEntry = walletRateLimitMap.get(walletAddress);
+      if (walletEntry) {
+        base['X-RateLimit-Wallet-Remaining'] = String(
+          walletEntry.count >= WALLET_RATE_LIMIT ? 0 : WALLET_RATE_LIMIT - walletEntry.count
+        );
+        base['X-RateLimit-Wallet-Reset'] = String(Math.floor(walletEntry.resetAt / 1000));
+      }
+    }
+    return base;
   };
   
   // If rate limited, return early with 429
   if (!rateLimit.allowed) {
+    const rateLimitedHeaders: Record<string, string> = {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': corsOrigin,
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-MCP-Version',
+      'Cache-Control': 'no-store',
+      'X-RateLimit-Limit': String(RATE_LIMIT),
+      'X-RateLimit-Remaining': '0',
+      'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
+      'X-RateLimit-Source': rateLimit.source,
+      'X-RateLimit-Window': String(Math.floor(RATE_WINDOW_MS / 1000)),
+      'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
+    };
+    if (rateLimit.source === 'wallet' && walletAddress) {
+      const walletEntry = walletRateLimitMap.get(walletAddress);
+      if (walletEntry) {
+        rateLimitedHeaders['X-RateLimit-Wallet-Remaining'] = '0';
+        rateLimitedHeaders['X-RateLimit-Wallet-Reset'] = String(Math.floor(walletEntry.resetAt / 1000));
+      }
+    }
     return {
       statusCode: 429,
-      headers: {
-        ...headers,
-        'X-RateLimit-Limit': String(RATE_LIMIT),
-        'X-RateLimit-Remaining': '0',
-        'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
-        'X-RateLimit-Source': rateLimit.source,
-        'X-RateLimit-Window': String(Math.floor(RATE_WINDOW_MS / 1000)),
-        'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000))
-      },
+      headers: rateLimitedHeaders,
       body: JSON.stringify(createMCPError('RATE_LIMITED', 
         `Rate limit exceeded (${rateLimit.source === 'wallet' ? 'per-wallet' : 'per-IP'}). ` +
         `Try again after ${new Date(rateLimit.resetAt).toISOString()}`))

@@ -1,6 +1,6 @@
 /**
  * SolHunt Service Worker
- * Cache version: 2026-04-28
+ * Cache version: 2026-04-29
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope
  */
