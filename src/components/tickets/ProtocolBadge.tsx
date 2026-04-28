@@ -38,6 +38,8 @@ export const ProtocolBadge = memo(function ProtocolBadge({ protocol, size = 'sm'
                 <img
                     src={info.logoUri}
                     alt={info.displayName}
+                    width={20}
+                    height={20}
                     onError={() => setLogoFailed(true)}
                     className={`${styles.icon} rounded-full`}
                 />

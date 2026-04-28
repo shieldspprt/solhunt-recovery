@@ -412,7 +412,13 @@ const SERVER_METADATA = {
 
 // ── Tool Executor ─────────────────────────────────────────────────────────────
 
-const API_BASE = process.env.SOLHUNT_API_BASE || 'https://solhunt.dev';
+const API_BASE = (() => {
+  const base = process.env.SOLHUNT_API_BASE;
+  if (!base) {
+    throw new Error('SOLHUNT_API_BASE environment variable is required');
+  }
+  return base;
+})();
 
 /** Configurable fee percentage via env var (default: 15%) */
 const FEE_PERCENT = (() => {
