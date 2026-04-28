@@ -923,6 +923,24 @@ export const handler: Handler = async (event) => {
 
     const result = await executeTool(toolName, validatedArgs, apiKey);
 
+    // If executeTool returned an error (non-success), propagate it as-is
+    // without re-wrapping in a JSON-RPC result envelope (prevents double-wrapping)
+    if (result && typeof result === 'object' && 'code' in result && 'error' in result) {
+      const err = result as { code: string; error: string; tool?: string; detail?: string };
+      const jsonrpcBody = body.method
+        ? {
+            jsonrpc: "2.0",
+            id: body.id || null,
+            error: { code: -32000, message: err.error, data: err }
+          }
+        : result;
+      return {
+        statusCode: 400,
+        headers: buildHeaders(),
+        body: JSON.stringify(jsonrpcBody)
+      };
+    }
+
     // Return in JSON-RPC format if that was the request format
     if (body.method) {
       return {
