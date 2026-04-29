@@ -142,6 +142,7 @@ export function HarvestProgressModal({
                                 </a>
                             )}
                             <button
+                                type="button"
                                 onClick={onClose}
                                 className="w-full rounded-xl border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                             >
