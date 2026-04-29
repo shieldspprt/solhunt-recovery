@@ -42,7 +42,7 @@ if (isFirebaseConfigured) {
             if (supported && app) {
                 analytics = getAnalytics(app);
             }
-        }).catch(() => {
+        }).catch((_err: unknown) => {
             // Analytics not supported — no-op
         });
     } catch (error: unknown) {
