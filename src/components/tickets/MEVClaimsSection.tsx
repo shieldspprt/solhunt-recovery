@@ -57,6 +57,7 @@ export const MEVClaimsSection = memo(function MEVClaimsSection() {
                     </div>
                     {mevScanResult.items.length > 1 && (
                         <button
+                            type="button"
                             onClick={allSelected ? deselectAllMEV : selectAllMEV}
                             className="text-xs text-shield-accent hover:underline"
                             aria-label={allSelected ? 'Deselect all MEV rewards' : 'Select all MEV rewards'}

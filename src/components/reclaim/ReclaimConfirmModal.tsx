@@ -27,11 +27,12 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
             {/* Modal Content */}
             <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 <button
+                    type="button"
                     onClick={clearReclaim}
                     aria-label="Close modal"
                     className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                 >
-                    <X className="h-5 w-5" />
+                    <X className="h-5 w-5" aria-hidden="true" />
                 </button>
 
                 <div className="p-6 sm:p-8">
