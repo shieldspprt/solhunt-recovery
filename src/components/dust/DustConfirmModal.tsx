@@ -117,6 +117,7 @@ export const DustConfirmModal = memo(function DustConfirmModal() {
 
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
+                            type="button"
                             onClick={cancelDustSwap}
                             aria-label="Cancel swap and close dialog"
                             className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
@@ -124,6 +125,7 @@ export const DustConfirmModal = memo(function DustConfirmModal() {
                             Cancel
                         </button>
                         <button
+                            type="button"
                             onClick={executeDustSwap}
                             disabled={!feeConsent}
                             aria-label="Confirm token swap"

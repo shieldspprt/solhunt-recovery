@@ -124,6 +124,7 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
 
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
+                            type="button"
                             onClick={clearReclaim}
                             aria-label="Cancel reclaim"
                             className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
@@ -131,6 +132,7 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
                             Cancel
                         </button>
                         <button
+                            type="button"
                             onClick={executeReclaim}
                             disabled={!feeConsent}
                             aria-label="Confirm reclaim"
