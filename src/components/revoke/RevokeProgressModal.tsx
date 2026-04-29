@@ -105,9 +105,10 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                                         href={SOLSCAN_TX_URL(revokeResult.signature)}
                                         target="_blank"
                                         rel="noopener noreferrer"
+                                        aria-label="View revocation transaction on Solscan"
                                         className="inline-flex items-center gap-2 text-sm font-medium text-shield-accent hover:text-white transition-colors"
                                     >
-                                        View on Solscan <ExternalLink className="h-4 w-4" />
+                                        View on Solscan <ExternalLink className="h-4 w-4" aria-hidden="true" />
                                     </a>
                                 )}
 
