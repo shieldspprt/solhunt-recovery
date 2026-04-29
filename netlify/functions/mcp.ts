@@ -370,7 +370,8 @@ Returns descriptions of available tools. Visit https://solhunt.dev to access the
       properties: {
         feature_category: {
           type: "string",
-          description: "Optional category: 'recovery', 'security', 'harvesting', 'agents', or 'analytics'. Defaults to all."
+          description: "Optional category: 'recovery', 'security', 'harvesting', 'agents', or 'analytics'. Defaults to all.",
+          enum: ["recovery", "security", "harvesting", "agents", "analytics"]
         }
       }
     }
@@ -435,13 +436,6 @@ const FEE_PERCENT = (() => {
   const parsed = envVal ? parseFloat(envVal) : NaN;
   return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100 ? parsed : 15;
 })();
-
-/** Safely extracts error message from unknown error */
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'string') return error;
-  return String(error ?? 'Unknown error');
-}
 
 /** Creates a typed MCP error response */
 function createMCPError(code: MCPErrorCode, message: string, tool?: string, detail?: string): MCPErrorResponse {
@@ -647,12 +641,9 @@ async function executeTool(
         return createMCPError('TOOL_NOT_FOUND', `Unknown tool: ${name}`, name);
     }
   } catch (e: unknown) {
-    const message = getErrorMessage(e);
-    // Detect if this is a Smithery/internal server error vs our own validation
-    const isInternalError = !(e instanceof Error) || 
-      (message !== undefined && (message.includes('fetch') || message.includes('JSON')));
+    const message = e instanceof Error ? e.message : typeof e === 'string' ? e : String(e ?? 'Unknown error');
     return createMCPError(
-      isInternalError ? 'INTERNAL_ERROR' : 'EXECUTION_ERROR',
+      'EXECUTION_ERROR',
       `Tool execution failed: ${message}`,
       name,
       message
