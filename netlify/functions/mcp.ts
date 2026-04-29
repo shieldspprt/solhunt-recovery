@@ -571,7 +571,7 @@ async function executeTool(
           try {
             const json = JSON.parse(await res.clone().text());
             detail = json?.error ?? json?.message ?? json?.detail ?? detail;
-          } catch (_) { /* fall through to statusText */ }
+          } catch (_e: unknown) { /* fall through to statusText */ }
           return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name);
         }
         return res.json();
@@ -593,7 +593,7 @@ async function executeTool(
           try {
             const json = JSON.parse(await res.clone().text());
             detail = json?.error ?? json?.message ?? json?.detail ?? detail;
-          } catch (_) { /* fall through to statusText */ }
+          } catch (_e: unknown) { /* fall through to statusText */ }
           return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name);
         }
         return res.json();
