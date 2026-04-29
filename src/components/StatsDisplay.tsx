@@ -82,7 +82,7 @@ const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: strin
       await navigator.clipboard.writeText(text);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
-    } catch {
+    } catch (err: unknown) {
       // Fallback for older browsers without clipboard API
       const el = document.createElement('textarea');
       el.value = text;

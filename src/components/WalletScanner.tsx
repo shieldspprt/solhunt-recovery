@@ -214,7 +214,7 @@ export function WalletScanner() {
         if (!res.ok) return null;
         try {
           return res.json();
-        } catch {
+        } catch (err: unknown) {
           return null;
         }
       })
