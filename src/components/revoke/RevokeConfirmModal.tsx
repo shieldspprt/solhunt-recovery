@@ -1,10 +1,10 @@
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { useRevoke } from '@/hooks/useRevoke';
 import { estimateTransactionCost } from '@/lib/revoke';
 import { formatSOLValue, estimateUSD } from '@/lib/formatting';
 import { ShieldAlert, X } from 'lucide-react';
 import type { TokenDelegation } from '@/types';
-import { useState, useEffect, useRef } from 'react';
 import { memo } from 'react';
 
 interface RevokeConfirmModalProps {
@@ -14,69 +14,65 @@ interface RevokeConfirmModalProps {
 export const RevokeConfirmModal = memo(function RevokeConfirmModal({ delegations }: RevokeConfirmModalProps) {
     const { revokeStatus, clearRevoke } = useAppStore();
     const { revoke } = useRevoke();
+
+    // Guard: protect against undefined or malformed delegations prop — must be first
+    if (!delegations) return null;
+
+    // Only show when state is awaiting_confirmation
+    if (revokeStatus !== 'awaiting_confirmation') return null;
+
     const [feeConsent, setFeeConsent] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
     const cancelButtonRef = useRef<HTMLButtonElement>(null);
     const previousActiveElement = useRef<HTMLElement | null>(null);
 
-    // Only show when state is awaiting_confirmation
-    if (revokeStatus !== 'awaiting_confirmation') return null;
-
     const cost = estimateTransactionCost(delegations.length);
 
-    // Handle Escape key to close modal
-    useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                clearRevoke();
-            }
-        };
-
-        // Store the previously focused element
-        previousActiveElement.current = document.activeElement as HTMLElement;
-        
-        document.addEventListener('keydown', handleEscape);
-        
-        // Auto-focus cancel button when modal opens
-        setTimeout(() => {
-            cancelButtonRef.current?.focus();
-        }, 0);
-
-        return () => {
-            document.removeEventListener('keydown', handleEscape);
-            // Restore focus when modal closes
-            previousActiveElement.current?.focus();
-        };
+    // Handle Escape key to close modal — stable callback, no deps beyond clearRevoke
+    const handleEscape = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape') clearRevoke();
     }, [clearRevoke]);
 
-    // Trap focus within modal
+    const handleBackdropClick = useCallback(() => {
+        clearRevoke();
+    }, [clearRevoke]);
+
+    // Handle focus trap
+    const handleTabKey = useCallback((e: KeyboardEvent, first: HTMLElement | undefined, last: HTMLElement | undefined) => {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first?.focus();
+        }
+    }, []);
+
+    useEffect(() => {
+        previousActiveElement.current = document.activeElement as HTMLElement;
+        document.addEventListener('keydown', handleEscape);
+        const cancelBtn = cancelButtonRef.current;
+        const timer = setTimeout(() => cancelBtn?.focus(), 0);
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            previousActiveElement.current?.focus();
+            clearTimeout(timer);
+        };
+    }, [handleEscape]);
+
     useEffect(() => {
         const modal = modalRef.current;
         if (!modal) return;
-
-        const focusableElements = modal.querySelectorAll<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        const focusable = modal.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
         );
-        const firstElement = focusableElements[0];
-        const lastElement = focusableElements[focusableElements.length - 1];
-
-        const handleTabKey = (e: KeyboardEvent) => {
-            if (e.key !== 'Tab') return;
-
-            if (e.shiftKey && document.activeElement === firstElement) {
-                e.preventDefault();
-                lastElement?.focus();
-            } else if (!e.shiftKey && document.activeElement === lastElement) {
-                e.preventDefault();
-                firstElement?.focus();
-            }
-        };
-
-        modal.addEventListener('keydown', handleTabKey);
-        return () => {
-            modal.removeEventListener('keydown', handleTabKey);
-        };
-    }, []);
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const handler = (e: KeyboardEvent) => handleTabKey(e, first, last);
+        modal.addEventListener('keydown', handler);
+        return () => modal.removeEventListener('keydown', handler);
+    }, [handleTabKey]);
 
     return (
         <div 
@@ -88,7 +84,7 @@ export const RevokeConfirmModal = memo(function RevokeConfirmModal({ delegations
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-shield-bg/80 backdrop-blur-sm"
-                onClick={clearRevoke}
+                onClick={handleBackdropClick}
                 aria-hidden="true"
             />
 
@@ -98,6 +94,7 @@ export const RevokeConfirmModal = memo(function RevokeConfirmModal({ delegations
                 className="relative w-full max-w-md overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200"
             >
                 <button
+                    type="button"
                     onClick={clearRevoke}
                     className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     aria-label="Close revoke confirmation modal"
@@ -182,6 +179,7 @@ export const RevokeConfirmModal = memo(function RevokeConfirmModal({ delegations
 
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
+                            type="button"
                             ref={cancelButtonRef}
                             onClick={clearRevoke}
                             aria-label="Cancel and close modal"
@@ -190,6 +188,7 @@ export const RevokeConfirmModal = memo(function RevokeConfirmModal({ delegations
                             Cancel
                         </button>
                         <button
+                            type="button"
                             onClick={() => revoke(delegations)}
                             disabled={!feeConsent}
                             aria-label={`Revoke ${delegations.length} token permission${delegations.length !== 1 ? 's' : ''}`}

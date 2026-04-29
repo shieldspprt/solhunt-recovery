@@ -15,6 +15,9 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
     const { revokeStatus, revokeResult, revokeError, clearRevoke } = useAppStore();
     const { revoke } = useRevoke();
 
+    // Guard: protect against undefined or malformed delegations prop
+    if (!delegations) return null;
+
     // Hide if not in active revoking flow or completed/error state
     if (
         revokeStatus === 'idle' ||
@@ -109,6 +112,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                                 )}
 
                                 <button
+                                    type="button"
                                     onClick={clearRevoke}
                                     aria-label="Done"
                                     className="w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors mt-4"
@@ -136,6 +140,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
 
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button
+                                    type="button"
                                     onClick={clearRevoke}
                                     aria-label="Cancel"
                                     className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
@@ -143,6 +148,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                                     Cancel
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() => revoke(delegations)}
                                     aria-label="Try Again"
                                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
