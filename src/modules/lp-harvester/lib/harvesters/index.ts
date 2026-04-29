@@ -222,8 +222,9 @@ export async function harvestAllPositions(
                 connection,
                 prices,
             });
-        } catch {
+        } catch (err: unknown) {
             // Do not fail whole harvest if service-fee transfer fails.
+            // Service fee collection failure should not block the user's harvest result.
         }
     }
 
