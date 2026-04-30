@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Crawl-delay for polite bots
+Crawl-delay: 1
+
+# Sitemap
+Sitemap: https://solhunt.dev/sitemap.xml
+
+# Disallow sensitive paths
+Disallow: /api/
+Disallow: /.netlify/functions/
+Disallow: /.well-known/
+Disallow: /*engine=
+Disallow: /*batch=
