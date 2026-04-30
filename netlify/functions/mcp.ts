@@ -169,9 +169,15 @@ function validateBuildRecoveryTransactionArgs(args: RawToolArgs): BuildRecoveryT
 }
 
 /** Validates and narrows raw arguments to DiscoverPlatformFeaturesArgs */
+const VALID_FEATURE_CATEGORIES = ['recovery', 'security', 'harvesting', 'agents', 'analytics'] as const;
+type FeatureCategory = typeof VALID_FEATURE_CATEGORIES[number];
+
 function validateDiscoverPlatformFeaturesArgs(args: RawToolArgs): DiscoverPlatformFeaturesArgs | null {
   const feature_category = args.feature_category;
-  if (feature_category !== undefined && !isString(feature_category)) return null;
+  if (feature_category !== undefined) {
+    if (!isString(feature_category)) return null;
+    if (!VALID_FEATURE_CATEGORIES.includes(feature_category as FeatureCategory)) return null;
+  }
   return { feature_category };
 }
 
