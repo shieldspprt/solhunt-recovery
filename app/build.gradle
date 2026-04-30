@@ -39,7 +39,26 @@ def twaManifest = [
     // - short_name: Shorter string used if |name| is too long.
     // - url: Absolute path of the URL to launch the app with (e.g '/create').
     // - icon: Name of the resource in the drawable folder to use as an icon.
-    shortcuts: [],
+    shortcuts: [
+        [
+            name: 'Scan Wallet',
+            short_name: 'Scan',
+            url: 'https://solhunt.dev/?engine=scan',
+            icon: 'ic_shortcut_scan',
+        ],
+        [
+            name: 'Revoke Approvals',
+            short_name: 'Revoke',
+            url: 'https://solhunt.dev/?engine=revoke',
+            icon: 'ic_shortcut_revoke',
+        ],
+        [
+            name: 'Reclaim Rent',
+            short_name: 'Rent',
+            url: 'https://solhunt.dev/?engine=reclaim',
+            icon: 'ic_shortcut_rent',
+        ],
+    ],
     // The duration of fade out animation in milliseconds to be played when removing splash screen.
     splashScreenFadeOutDuration: 300,
     generatorApp: 'bubblewrap-cli', // Application that generated the Android Project
