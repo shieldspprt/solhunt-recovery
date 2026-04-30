@@ -45,6 +45,7 @@ export function DecommissionPage() {
                             Your wallet is clean from known decommissioned DeFi protocols. You may still have generic worthless dust tokens in Engine 3.
                         </p>
                         <button
+                            type="button"
                             onClick={scanner.startScan}
                             aria-label="Scan wallet again"
                             className="inline-flex items-center gap-2 rounded-xl bg-shield-accent px-6 py-3 font-semibold text-shield-bg hover:bg-shield-highlight transition-all"
@@ -62,6 +63,7 @@ export function DecommissionPage() {
                             {scanner.scanError || 'An unknown error occurred during scan.'}
                         </p>
                         <button
+                            type="button"
                             onClick={scanner.startScan}
                             aria-label="Retry scan"
                             className="inline-flex items-center gap-2 rounded-xl bg-shield-border px-6 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-all"
