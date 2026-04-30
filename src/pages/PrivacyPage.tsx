@@ -39,7 +39,7 @@ export function PrivacyPage() {
                         <h2 className="text-xl font-semibold text-shield-text mb-3">1. Introduction</h2>
                         <p>
                             SolHunt ("we," "us," or "our") operates the website at{' '}
-                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline">solhunt.dev</a>{' '}
+                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline" rel="noopener noreferrer">solhunt.dev</a>{' '}
                             and its associated applications (the "Service"). This Privacy Policy explains how we collect, use, and protect information when you use our Service.
                         </p>
                     </section>
@@ -147,7 +147,7 @@ export function PrivacyPage() {
                             For any questions or concerns about this Privacy Policy, please contact us at{' '}
                             <a href="https://x.com/solhuntdev" className="text-shield-accent hover:underline" target="_blank" rel="noopener noreferrer">@solhuntdev</a>{' '}
                             on X (Twitter) or visit{' '}
-                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline">solhunt.dev</a>.
+                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline" rel="noopener noreferrer">solhunt.dev</a>.
                         </p>
                     </section>
                 </div>

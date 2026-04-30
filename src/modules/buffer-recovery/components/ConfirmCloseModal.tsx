@@ -59,6 +59,7 @@ export function ConfirmCloseModal({
 
                 <div className="flex gap-3">
                     <button
+                        type="button"
                         onClick={onClose}
                         disabled={isClosing}
                         aria-label="Cancel and close modal"
@@ -67,6 +68,7 @@ export function ConfirmCloseModal({
                         Cancel
                     </button>
                     <button
+                        type="button"
                         onClick={onConfirm}
                         disabled={isClosing}
                         aria-label={isClosing ? 'Closing buffers, please wait' : 'Confirm and close selected buffers'}

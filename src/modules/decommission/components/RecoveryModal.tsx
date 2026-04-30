@@ -144,6 +144,7 @@ export function RecoveryModal({ status, estimate, result, error, executeRecovery
                         {isAwaiting && (
                             <>
                                 <button
+                                    type="button"
                                     onClick={cancelRecovery}
                                     aria-label="Cancel recovery"
                                     className="flex-1 rounded-xl bg-shield-bg border border-shield-border/50 px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/20 transition-all font-mono"
@@ -151,6 +152,7 @@ export function RecoveryModal({ status, estimate, result, error, executeRecovery
                                     [Cancel]
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={executeRecovery}
                                     aria-label="Execute recovery"
                                     className="flex-[2] rounded-xl bg-shield-accent px-4 py-3 font-bold text-shield-bg hover:bg-shield-highlight transition-all font-mono shadow-md shadow-shield-accent/20"
@@ -161,6 +163,7 @@ export function RecoveryModal({ status, estimate, result, error, executeRecovery
                         )}
                         {(isComplete || isError) && (
                             <button
+                                type="button"
                                 onClick={cancelRecovery}
                                 aria-label="Close modal"
                                 className="w-full rounded-xl bg-shield-accent/10 border border-shield-accent/20 px-4 py-3 font-bold text-shield-accent hover:bg-shield-accent hover:text-shield-bg transition-all font-mono"

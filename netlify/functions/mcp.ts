@@ -472,6 +472,9 @@ async function executeTool(
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
     ...(apiKey ? { 'X-API-Key': apiKey } : {})
   };
 

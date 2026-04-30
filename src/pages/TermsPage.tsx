@@ -39,7 +39,7 @@ export function TermsPage() {
                         <h2 className="text-xl font-semibold text-shield-text mb-3">1. Acceptance of Terms</h2>
                         <p>
                             By accessing or using SolHunt ("the Service"), available at{' '}
-                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline">solhunt.dev</a>{' '}
+                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline" rel="noopener noreferrer">solhunt.dev</a>{' '}
                             and its associated mobile applications, you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you must not use the Service.
                         </p>
                     </section>
@@ -174,7 +174,7 @@ export function TermsPage() {
                             For questions about these Terms, please contact us at{' '}
                             <a href="https://x.com/solhuntdev" className="text-shield-accent hover:underline" target="_blank" rel="noopener noreferrer">@solhuntdev</a>{' '}
                             on X (Twitter) or visit{' '}
-                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline">solhunt.dev</a>.
+                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline" rel="noopener noreferrer">solhunt.dev</a>.
                         </p>
                     </section>
                 </div>

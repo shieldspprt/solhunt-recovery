@@ -91,6 +91,7 @@ export function DecommissionPage() {
                         {scanner.selectedItems.length > 0 && (
                             <div className="flex justify-end p-4">
                                 <button
+                                    type="button"
                                     onClick={scanner.initiateRecovery}
                                     aria-label={`Recover ${scanner.selectedItems.length} selected position${scanner.selectedItems.length === 1 ? '' : 's'}`}
                                     className="inline-flex items-center gap-2 rounded-xl bg-shield-accent px-8 py-4 font-bold text-lg text-shield-bg hover:bg-shield-highlight transition-all shadow-lg shadow-shield-accent/20"
