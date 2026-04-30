@@ -374,10 +374,24 @@ export function EngineHowItWorksPage() {
     const { id } = useParams<{ id: string }>();
 
     useEffect(() => {
-        document.title = 'How It Works | SolHunt';
+        if (!id) return;
+        const details = ENGINE_DETAILS_MAP[id];
+        const engineInfo = ENGINE_METADATA.find(e => e.id.toString() === id);
+        const title = details
+            ? `${details.title} | SolHunt`
+            : engineInfo
+                ? `${engineInfo.name} | SolHunt`
+                : 'How It Works | SolHunt';
+        document.title = title;
         const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', 'Learn how SolHunt recovery engines work — revoke approvals, reclaim rent, sweep dust, harvest LP fees, recover staking tickets, and more — all client-side.');
-    }, []);
+        if (metaDesc) {
+            metaDesc.setAttribute('content', details
+                ? `${details.subtitle} ${details.sections.map((section: { heading: string }) => section.heading).join(', ')}.`
+                : engineInfo
+                    ? engineInfo.description
+                    : 'Learn how SolHunt recovery engines work — revoke approvals, reclaim rent, sweep dust, harvest LP fees, recover staking tickets, and more — all client-side.');
+        }
+    }, [id]);
 
     // Route validation
     if (!id || !ENGINE_DETAILS_MAP[id]) {

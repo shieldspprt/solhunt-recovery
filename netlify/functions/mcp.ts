@@ -222,7 +222,7 @@ net amount operator receives, and how many transaction batches needed.
 Use this as the first and usually only call before build_recovery_transaction.
 Replaces check_wallet_health + get_recovery_opportunities + preview_recovery.
 
-Free tier: no API key needed (10 calls/day limit).`,
+Free tier: no API key needed (100 requests/hour, 50/wallet/hour).`,
     inputSchema: {
       type: "object",
       required: ["wallet_address"],
