@@ -117,6 +117,7 @@ export const DeadProtocolCard = memo(function DeadProtocolCard({ item, isSelecte
 
                     {recoveryMethod === 'in_app' && isRecoverable && onToggle && (
                         <button
+                            type="button"
                             className={`relative z-20 flex items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition-all ${isSelected
                                     ? 'border-shield-accent bg-shield-accent text-shield-bg shadow-sm shadow-shield-accent/20 hover:bg-shield-highlight'
                                     : 'border-shield-border/50 bg-shield-bg/50 text-shield-text hover:border-shield-accent/50 hover:bg-shield-accent/10 hover:text-shield-accent'
