@@ -98,6 +98,7 @@ export const LPHarvesterCard = memo(function LPHarvesterCard() {
                 </div>
 
                 <button
+                    type="button"
                     onClick={runScan}
                     aria-label="Scan LP positions"
                     className="mt-3 w-full rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
@@ -138,6 +139,7 @@ export const LPHarvesterCard = memo(function LPHarvesterCard() {
                 <h2 className="text-lg font-bold text-shield-text mb-2">LP scan failed</h2>
                 <p className="text-sm text-shield-danger mb-4">{scanError || 'Could not scan LP positions.'}</p>
                 <button
+                    type="button"
                     onClick={runScan}
                     aria-label="Retry LP scan"
                     className="rounded-xl bg-shield-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-shield-accent/90 transition-colors"
@@ -170,6 +172,7 @@ export const LPHarvesterCard = memo(function LPHarvesterCard() {
                     </div>
 
                     <button
+                        type="button"
                         onClick={runScan}
                         aria-label="Rescan LP positions"
                         className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
@@ -243,6 +246,7 @@ export const LPHarvesterCard = memo(function LPHarvesterCard() {
                         )}
 
                         <button
+                            type="button"
                             onClick={initiateHarvest}
                             disabled={selectedPositions.length === 0}
                             aria-label={`Harvest ${selectedPositions.length} positions`}
