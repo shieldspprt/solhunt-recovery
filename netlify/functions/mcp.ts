@@ -151,7 +151,13 @@ function validateBuildRevokeTransactionsArgs(args: RawToolArgs): BuildRevokeTran
   return {
     wallet_address: args.wallet_address,
     token_accounts: args.token_accounts as TokenAccountItem[],
-    batch_number: isOptionalNumber(args.batch_number) ? args.batch_number : undefined,
+    batch_number: (() => {
+      const bn = args.batch_number;
+      if (bn === undefined) return undefined;
+      // Must be a finite positive integer — Solana batch numbers start at 1
+      if (typeof bn !== 'number' || !Number.isFinite(bn) || bn < 1 || !Number.isInteger(bn)) return undefined;
+      return bn;
+    })(),
     fee_percent: typeof feePercent === 'number' ? feePercent : undefined,
   };
 }

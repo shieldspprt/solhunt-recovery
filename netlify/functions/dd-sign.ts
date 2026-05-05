@@ -119,14 +119,16 @@ export const handler: Handler = async (event) => {
   try {
     const rawKey = process.env.DD_PRIVATE_KEY;
     if (!rawKey) {
-      console.error('DD_PRIVATE_KEY not set');
+      // Warn — config issue, recoverable with restart
+      console.warn('[dd-sign] DD_PRIVATE_KEY not set — check Netlify env vars');
       return { statusCode: 500, headers, body: JSON.stringify({ error: 'Configuration error' }) };
     }
 
     const ddKeypair = Keypair.fromSecretKey(bs58.decode(rawKey));
 
     if (ddKeypair.publicKey.toBase58() !== DD_WALLET) {
-      console.error('CRITICAL: keypair mismatch');
+      // Warn — keypair mismatch means wrong key loaded, but not a crash
+      console.warn('[dd-sign] Keypair public key does not match DD_WALLET constant');
       return { statusCode: 500, headers, body: JSON.stringify({ error: 'Internal error' }) };
     }
 
