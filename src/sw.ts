@@ -37,7 +37,7 @@ declare let self: SolHuntServiceWorkerGlobalScope;
 // ──────────────────────────────────────────────────────
 // 1. Precache static build assets (injected by vite-plugin-pwa)
 // ──────────────────────────────────────────────────────
-precacheAndRoute(self.__WB_MANIFEST as unknown as Array<PrecacheEntry>);
+precacheAndRoute(self.__WB_MANIFEST as PrecacheEntry[]);
 cleanupOutdatedCaches();
 
 // ──────────────────────────────────────────────────────
