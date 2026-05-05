@@ -108,16 +108,16 @@ export const DustCard = memo(function DustCard() {
                     <button
                         type="button"
                         onClick={selectAll}
-                        className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
                         aria-label="Select all dust tokens"
+                        className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
                     >
                         Select All
                     </button>
                     <button
                         type="button"
                         onClick={deselectAll}
-                        className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
                         aria-label="Deselect all dust tokens"
+                        className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
                     >
                         Deselect All
                     </button>
@@ -232,10 +232,11 @@ export const DustCard = memo(function DustCard() {
                         </div>
                     </div>
                     <button
+                        type="button"
                         onClick={initiateBurnReclaim}
                         disabled={isBurning}
-                        className="w-full rounded-xl bg-shield-warning text-shield-bg font-semibold px-4 py-3 hover:bg-shield-warning/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         aria-label={`Burn and reclaim ${unswappableTokens.length} account${unswappableTokens.length === 1 ? '' : 's'}`}
+                        className="w-full rounded-xl bg-shield-warning text-shield-bg font-semibold px-4 py-3 hover:bg-shield-warning/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         Burn & Reclaim {unswappableTokens.length} Account{unswappableTokens.length === 1 ? '' : 's'}
                     </button>
