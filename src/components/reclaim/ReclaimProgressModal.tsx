@@ -40,11 +40,12 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
             <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 {!isProcessing && (
                     <button
+                        type="button"
                         onClick={handleClose}
                         aria-label="Close modal"
                         className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     >
-                        <X className="h-5 w-5" />
+                        <X className="h-5 w-5" aria-hidden="true" />
                     </button>
                 )}
 
@@ -105,6 +106,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                                 )}
 
                                 <button
+                                    type="button"
                                     onClick={clearReclaim}
                                     aria-label="Dismiss result"
                                     className="w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors mt-4"
@@ -132,6 +134,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
 
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button
+                                    type="button"
                                     onClick={clearReclaim}
                                     aria-label="Cancel reclaim"
                                     className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
@@ -139,11 +142,12 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                                     Cancel
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={executeReclaim}
                                     aria-label="Retry reclaim"
                                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                                 >
-                                    <RefreshCw className="h-4 w-4" />
+                                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
                                     Try Again
                                 </button>
                             </div>
