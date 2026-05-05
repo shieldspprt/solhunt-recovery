@@ -197,6 +197,7 @@ export const DustCard = memo(function DustCard() {
             </p>
 
             <button
+                type="button"
                 onClick={initiateDustSwap}
                 disabled={selectedTokens.length === 0 || isSwappingDust}
                 className="mt-4 w-full inline-flex items-center justify-center gap-2 rounded-xl bg-shield-accent text-white font-semibold px-4 py-3.5 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-shield-accent/90 transition-colors"
