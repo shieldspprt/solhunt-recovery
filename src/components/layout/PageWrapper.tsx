@@ -23,6 +23,8 @@ export const PageWrapper = memo(function PageWrapper({ children }: PageWrapperPr
                             to="/"
                             className="inline-flex items-center gap-1.5 text-sm font-medium text-shield-muted hover:text-shield-text transition-colors group"
                             aria-label="Back to Home"
+                            role="button"
+                            type="button"
                         >
                             <ChevronLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-300" aria-hidden="true" />
                             Back to Home
