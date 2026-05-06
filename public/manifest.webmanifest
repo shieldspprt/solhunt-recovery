@@ -9,6 +9,12 @@
   "theme_color": "#09090b",
   "orientation": "portrait-primary",
   "categories": ["finance", "utilities"],
+  "related_applications": [
+    {
+      "platform": "play_app",
+      "url": "https://play.google.com/store/apps/details?id=dev.solhunt.app"
+    }
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.png",
