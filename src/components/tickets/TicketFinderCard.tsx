@@ -97,6 +97,7 @@ export const TicketFinderCard = memo(function TicketFinderCard() {
             <button
                 onClick={runTicketScan}
                 aria-label="Try Again"
+                type="button"
                 className="rounded-xl bg-shield-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-shield-accent/90 transition-colors"
             >
                 Try Again
@@ -130,6 +131,7 @@ export const TicketFinderCard = memo(function TicketFinderCard() {
                     <button
                         onClick={runTicketScan}
                         aria-label="Rescan"
+                        type="button"
                         className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
                     >
                         Rescan
