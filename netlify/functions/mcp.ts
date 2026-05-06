@@ -829,6 +829,7 @@ export const handler: Handler = async (event) => {
     if (rateLimit.source === 'wallet' && walletAddress) {
       const walletEntry = walletRateLimitMap.get(walletAddress);
       if (walletEntry) {
+        rateLimitedHeaders['X-RateLimit-Wallet-Limit'] = String(WALLET_RATE_LIMIT);
         rateLimitedHeaders['X-RateLimit-Wallet-Remaining'] = '0';
         rateLimitedHeaders['X-RateLimit-Wallet-Reset'] = String(Math.floor(walletEntry.resetAt / 1000));
       }
