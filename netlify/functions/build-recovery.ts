@@ -173,7 +173,11 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: `Failed to build recovery transaction: ${errorMessage}` })
+      body: JSON.stringify({
+        error: 'Failed to build recovery transaction',
+        code: 'EXECUTION_ERROR',
+        detail: errorMessage
+      })
     };
   }
 };

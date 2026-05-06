@@ -187,8 +187,9 @@ export const handler: Handler = async (event) => {
       statusCode: 500,
       headers,
       body: JSON.stringify({
-        success: false,
-        error: 'Failed to build revoke transaction. RPC may be rate limited.'
+        error: 'Failed to build revoke transaction',
+        code: 'EXECUTION_ERROR',
+        detail: errorMessage
       })
     };
   }
