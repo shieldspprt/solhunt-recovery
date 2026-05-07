@@ -9,7 +9,7 @@ export const Footer = memo(function Footer() {
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2 text-shield-muted">
-                            <Zap className="h-3.5 w-3.5 text-shield-accent" />
+                            <Zap className="h-3.5 w-3.5 text-shield-accent" aria-hidden="true" />
                             <span className="text-sm font-semibold">
                                 <span className="text-shield-text">Sol</span>
                                 <span className="text-shield-accent">Hunt</span>
