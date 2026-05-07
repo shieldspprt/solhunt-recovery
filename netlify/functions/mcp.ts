@@ -928,11 +928,18 @@ export const handler: Handler = async (event) => {
         headers: buildHeaders(),
         body: JSON.stringify({ jsonrpc: "2.0", result: null })
       };
+    } else if (body.method === 'ping') {
+      // Standard MCP ping
+      return {
+        statusCode: 200,
+        headers: buildHeaders(),
+        body: JSON.stringify({ jsonrpc: "2.0", id: body.id, result: null })
+      };
     } else {
       return {
         statusCode: 400,
         headers: buildHeaders(),
-        body: JSON.stringify(createMCPError('INVALID_PARAMS', 'Missing tool name. Send { tool: "name", arguments: {} }'))
+        body: JSON.stringify(createMCPError('INVALID_PARAMS', `Unsupported JSON-RPC method: ${body.method}`))
       };
     }
 

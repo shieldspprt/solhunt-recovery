@@ -108,7 +108,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                                 <button
                                     type="button"
                                     onClick={clearReclaim}
-                                    aria-label="Dismiss result"
+                                    aria-label="Dismiss recovery result and return to scanner"
                                     className="w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors mt-4"
                                 >
                                     Done
