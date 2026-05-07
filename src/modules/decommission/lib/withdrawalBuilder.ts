@@ -56,7 +56,7 @@ export async function buildWithdrawalTransactions(
                 lamports: serviceFeeLamports,
             }));
         } catch (e: unknown) {
-            logger.warn('Failed to add fee transfer', e);
+            logger.warn('Failed to add fee transfer', e instanceof Error ? e.message : String(e));
         }
     }
 
