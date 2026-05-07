@@ -37,7 +37,7 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
 
                 <div className="p-6 sm:p-8">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-success/10 border border-shield-success/20">
-                        <Coins className="h-8 w-8 text-shield-success" />
+                        <Coins className="h-8 w-8 text-shield-success" aria-hidden="true" />
                     </div>
 
                     <h2 className="text-xl font-bold text-center text-shield-text mb-6">
@@ -139,7 +139,7 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
                             aria-label="Confirm reclaim"
                             className="flex-1 rounded-xl bg-shield-success px-4 py-3 font-semibold text-white hover:bg-shield-success/90 shadow-lg shadow-shield-success/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none flex justify-center items-center gap-2"
                         >
-                            <Coins className="h-5 w-5" />
+                            <Coins className="h-5 w-5" aria-hidden="true" />
                             Confirm Reclaim
                         </button>
                     </div>

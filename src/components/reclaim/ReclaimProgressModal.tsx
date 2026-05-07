@@ -85,7 +85,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                     {reclaimStatus === 'complete' && reclaimResult?.success && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500">
                             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-shield-success/10 border border-shield-success/20">
-                                <CheckCircle2 className="h-12 w-12 text-shield-success" />
+                                <CheckCircle2 className="h-12 w-12 text-shield-success" aria-hidden="true" />
                             </div>
                             <h2 className="text-2xl font-bold text-shield-text mb-2">SOL Reclaimed!</h2>
                             <p className="text-shield-muted mb-6">
@@ -121,7 +121,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                     {reclaimStatus === 'error' && reclaimError && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500 w-full">
                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-danger/10">
-                                <XCircle className="h-8 w-8 text-shield-danger" />
+                                <XCircle className="h-8 w-8 text-shield-danger" aria-hidden="true" />
                             </div>
                             <h2 className="text-xl font-bold text-shield-text mb-2">Reclaim Failed</h2>
 

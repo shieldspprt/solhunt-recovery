@@ -20,7 +20,7 @@ export const ReclaimCard = memo(function ReclaimCard() {
         <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center gap-3 mb-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-success/10 border border-shield-success/20">
-                    <Coins className="h-5 w-5 text-shield-success" />
+                    <Coins className="h-5 w-5 text-shield-success" aria-hidden="true" />
                 </div>
                 <div>
                     <h2 className="text-xl font-bold text-shield-text">Locked SOL Found</h2>
