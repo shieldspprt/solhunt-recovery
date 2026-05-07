@@ -45,7 +45,7 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
             <div className="mx-auto w-full max-w-4xl">
                 <div className="glass-card rounded-2xl p-8 text-center border border-shield-border/30">
                     <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-shield-accent/10 border border-shield-accent/20 mb-6 mx-auto">
-                        <Code2 className="h-8 w-8 text-shield-accent" />
+                        <Code2 className="h-8 w-8 text-shield-accent" aria-hidden="true" />
                     </div>
                     <h2 className="text-2xl font-bold text-shield-text mb-3">Scan for Forgotten Buffers</h2>
                     <p className="text-shield-muted mb-8 max-w-lg mx-auto leading-relaxed">
@@ -105,7 +105,7 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="glass-card rounded-2xl p-6 border border-shield-border/30 flex items-center gap-4">
                     <div className="h-12 w-12 rounded-xl bg-shield-accent/10 flex items-center justify-center">
-                        <Code2 className="h-6 w-6 text-shield-accent" />
+                        <Code2 className="h-6 w-6 text-shield-accent" aria-hidden="true" />
                     </div>
                     <div>
                         <p className="text-xs text-shield-muted uppercase tracking-wider font-medium">Buffers Found</p>
@@ -114,7 +114,7 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
                 </div>
                 <div className="glass-card rounded-2xl p-6 border border-shield-accent/20 bg-shield-accent/5 flex items-center gap-4">
                     <div className="h-12 w-12 rounded-xl bg-shield-accent/20 flex items-center justify-center">
-                        <TrendingUp className="h-6 w-6 text-shield-accent" />
+                        <TrendingUp className="h-6 w-6 text-shield-accent" aria-hidden="true" />
                     </div>
                     <div>
                         <p className="text-xs text-shield-muted uppercase tracking-wider font-medium">Reclaimable</p>

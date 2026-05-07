@@ -35,7 +35,7 @@ export const BufferRow = memo(function BufferRow({ buffer, isSelected, onToggle 
                     onClick={(e) => e.stopPropagation()}
                 />
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-shield-card border border-shield-border">
-                    <Code2 className="h-5 w-5 text-shield-accent" />
+                    <Code2 className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                 </div>
                 <div>
                     <div className="flex items-center gap-2">
@@ -44,7 +44,7 @@ export const BufferRow = memo(function BufferRow({ buffer, isSelected, onToggle 
                         </span>
                         {isRecent && (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold bg-shield-warning/10 text-shield-warning border border-shield-warning/20">
-                                <AlertTriangle className="h-3 w-3" />
+                                <AlertTriangle className="h-3 w-3" aria-hidden="true" />
                                 RECENT
                             </span>
                         )}
