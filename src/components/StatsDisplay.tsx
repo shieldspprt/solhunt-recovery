@@ -107,7 +107,7 @@ const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: strin
           ? 'bg-green-600 text-white'
           : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
       ].join(' ')}
-      aria-label={copied ? 'Copied' : `Copy ${label.toLowerCase()}`}
+      aria-label={copied ? 'Copied' : label}
     >
       {copied ? '✓ Copied' : label}
     </button>
