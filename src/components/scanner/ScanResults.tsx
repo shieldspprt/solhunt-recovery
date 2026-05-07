@@ -35,7 +35,7 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
             {!hasDelegations && (
                 <div className="rounded-2xl border border-shield-success/30 bg-shield-success/5 p-8 sm:p-10 text-center">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-success/10">
-                        <CheckCircle2 className="h-10 w-10 text-shield-success" />
+                        <CheckCircle2 className="h-10 w-10 text-shield-success" aria-hidden="true" />
                     </div>
                     <h2 className="text-2xl font-bold text-shield-text mb-2">
                         ✅ Your wallet is clean!
@@ -65,7 +65,7 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
                     <div className="rounded-2xl border border-shield-danger/30 bg-shield-danger/5 p-6 sm:p-8">
                         <div className="flex items-start gap-4">
                             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-shield-danger/10 flex-shrink-0">
-                                <AlertTriangle className="h-6 w-6 text-shield-danger" />
+                                <AlertTriangle className="h-6 w-6 text-shield-danger" aria-hidden="true" />
                             </div>
                             <div className="flex-1">
                                 <h2 className="text-xl font-bold text-shield-text mb-3">
