@@ -26,7 +26,7 @@ export function ConfirmCloseModal({
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
             <div className="glass-card w-full max-w-md rounded-2xl p-6 border border-shield-border/50 shadow-2xl animate-scale-in">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-shield-warning/10 border border-shield-warning/20 mb-4 mx-auto">
-                    <AlertTriangle className="h-6 w-6 text-shield-warning" />
+                    <AlertTriangle className="h-6 w-6 text-shield-warning" aria-hidden="true" />
                 </div>
 
                 <h2 className="text-xl font-bold text-center text-shield-text mb-2">Destructive Action</h2>
@@ -74,7 +74,7 @@ export function ConfirmCloseModal({
                         aria-label={isClosing ? 'Closing buffers, please wait' : 'Confirm and close selected buffers'}
                         className="flex-1 px-4 py-3 rounded-xl bg-shield-danger font-semibold text-white hover:bg-shield-danger/90 transition-all shadow-lg shadow-shield-danger/20 disabled:opacity-50 flex items-center justify-center gap-2"
                     >
-                        {isClosing && <Loader2 className="h-4 w-4 animate-spin" />}
+                        {isClosing && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
                         {isClosing ? 'Closing...' : 'Close Buffers'}
                     </button>
                 </div>
