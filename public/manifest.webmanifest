@@ -62,6 +62,13 @@
       "description": "Recover rent from zero-balance accounts",
       "url": "/?engine=reclaim",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Fleet Manager",
+      "short_name": "Fleet",
+      "description": "Monitor up to 50 agent wallets in real-time",
+      "url": "/?engine=fleet",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

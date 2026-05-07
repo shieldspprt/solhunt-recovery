@@ -32,7 +32,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-shield-bg/90 backdrop-blur-sm"
+                className={`absolute inset-0 bg-shield-bg/90 backdrop-blur-sm${isProcessing ? ' cursor-default pointer-events-none' : ' cursor-pointer'}`}
                 onClick={handleClose}
             />
 
