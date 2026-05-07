@@ -29,11 +29,11 @@ export function DecommissionPage() {
                             </div>
                         </div>
                         <h2 className="mt-6 text-xl font-bold text-shield-text">Scanning dead protocols...</h2>
-                        {scanner.scanProgress && (
-                            <p className="mt-2 text-shield-muted">
-                                Checking {scanner.scanProgress.currentProtocol} ({scanner.scanProgress.processed}/{scanner.scanProgress.total})
-                            </p>
-                        )}
+                        <div aria-live="polite" aria-atomic="true" className="mt-2 text-shield-muted">
+                            {scanner.scanProgress && (
+                                <p>Checking {scanner.scanProgress.currentProtocol} ({scanner.scanProgress.processed}/{scanner.scanProgress.total})</p>
+                            )}
+                        </div>
                     </div>
                 )}
 
