@@ -33,7 +33,7 @@ export function MEVClaimConfirmModal() {
                     type="button"
                     className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                 >
-                    <X className="h-5 w-5" />
+                    <X className="h-5 w-5" aria-hidden="true" />
                 </button>
 
                 <div className="p-6 sm:p-8">
