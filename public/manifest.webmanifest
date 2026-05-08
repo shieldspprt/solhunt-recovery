@@ -9,6 +9,7 @@
   "theme_color": "#09090b",
   "orientation": "portrait-primary",
   "categories": ["finance", "utilities"],
+  "prefer_related_applications": false,
   "related_applications": [
     {
       "platform": "play_app",
