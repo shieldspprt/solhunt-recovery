@@ -109,9 +109,10 @@ export function DustBurnProgressModal() {
                                     href={SOLSCAN_TX_URL(dustBurnResult.signatures[0])}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    aria-label="View first transaction on Solscan (opens in new tab)"
                                     className="inline-flex items-center gap-2 text-sm font-medium text-shield-accent hover:text-white transition-colors"
                                 >
-                                    View first transaction <ExternalLink className="h-4 w-4" />
+                                    View first transaction <ExternalLink className="h-4 w-4" aria-hidden="true" />
                                 </a>
                             )}
 

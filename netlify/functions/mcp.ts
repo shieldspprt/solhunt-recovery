@@ -474,7 +474,9 @@ async function executeTool(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tool: name, wallet: walletAddress, duration: 0, success: true })
-  }).catch(() => {}); // Silent fail if logging fails
+  }).catch((_logErr: unknown) => {
+    // Silent fail — analytics logging must never break tool execution
+  });
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
