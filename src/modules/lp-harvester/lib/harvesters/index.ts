@@ -1,4 +1,5 @@
 import type { WalletContextState } from '@solana/wallet-adapter-react';
+import { logger } from '@/lib/logger';
 import {
     Connection,
     PublicKey,
@@ -225,6 +226,7 @@ export async function harvestAllPositions(
         } catch (err: unknown) {
             // Do not fail whole harvest if service-fee transfer fails.
             // Service fee collection failure should not block the user's harvest result.
+            logger.warn('Service fee collection failed:', err instanceof Error ? err.message : String(err));
         }
     }
 
