@@ -111,7 +111,7 @@ registerRoute(
 // 6. Lifecycle: skip waiting + claim clients for fast updates
 // ──────────────────────────────────────────────────────
 self.skipWaiting();
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', (event: ExtendableEvent) => {
   event.waitUntil(self.clients.claim());
 });
 
