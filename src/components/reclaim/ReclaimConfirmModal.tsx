@@ -136,7 +136,7 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
                             type="button"
                             onClick={executeReclaim}
                             disabled={!feeConsent}
-                            aria-label="Confirm reclaim"
+                            aria-label="Confirm reclaim and recover SOL"
                             className="flex-1 rounded-xl bg-shield-success px-4 py-3 font-semibold text-white hover:bg-shield-success/90 shadow-lg shadow-shield-success/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none flex justify-center items-center gap-2"
                         >
                             <Coins className="h-5 w-5" aria-hidden="true" />
