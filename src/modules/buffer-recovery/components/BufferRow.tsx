@@ -24,6 +24,14 @@ export const BufferRow = memo(function BufferRow({ buffer, isSelected, onToggle 
             onClick={() => onToggle(buffer.address)}
             role="button"
             tabIndex={0}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onToggle(buffer.address);
+                }
+            }}
+            aria-label={`Buffer account ${shortenAddress(buffer.address, 6)}. ${(buffer.lamports / 1e9).toFixed(3)} SOL locked. ${isSelected ? 'Selected' : 'Not selected'}. Press Enter or Space to toggle selection.`}
+            aria-pressed={isSelected}
             data-agent-target={`buffer-row-${buffer.address}`}
         >
             <div className="flex items-center gap-3">
