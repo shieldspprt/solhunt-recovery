@@ -617,7 +617,11 @@ async function executeTool(
       case 'discover_platform_features': {
         const category = (args as DiscoverPlatformFeaturesArgs).feature_category || 'all';
 
-        const allFeatures = {
+        interface FeatureMap {
+          [key: string]: string[];
+        }
+
+        const allFeatures: FeatureMap = {
           recovery: [
             'LP Fee Harvester: Harvest unclaimed LP fees from Orca, Raydium, Meteora.',
             'Staking Ticket Finder: Find and close SPL staking accounts.',
@@ -642,7 +646,7 @@ async function executeTool(
           ],
         };
 
-        const categories = category === 'all' ? Object.values(allFeatures).flat() : (allFeatures as Record<string, string[]>)[category] || [];
+        const categories = category === 'all' ? Object.values(allFeatures).flat() : (allFeatures[category] ?? []);
 
         return {
           success: true,
