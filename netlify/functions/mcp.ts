@@ -337,7 +337,7 @@ Returns base64-encoded unsigned transaction(s) ready for signing.
 The operator signs with their own wallet and submits — SolHunt never
 has custody. Each transaction includes closeAccount instructions AND
 a 15% fee to SolHunt built atomically. What you see in
-preview_recovery is exactly what gets executed — no surprises.
+get_wallet_report is exactly what gets executed — no surprises.
 
 IMPORTANT: Transactions expire after about 90 seconds on Solana.
 The unsigned transaction needs to be signed and submitted quickly after building!`,
