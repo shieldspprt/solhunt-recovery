@@ -469,8 +469,8 @@ async function executeTool(
     console.log(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
   }
 
-  // Log to analytics endpoint (silent fail if unavailable)
-  fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
+  // Fire-and-forget analytics logging — must never break tool execution
+  void fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ tool: name, wallet: walletAddress, duration: 0, success: true })
