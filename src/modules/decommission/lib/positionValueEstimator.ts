@@ -25,9 +25,10 @@ export interface ValueEstimate {
 
 async function getTokenPrice(mint: string): Promise<number> {
     try {
-        const response = await fetch(`https://api.dexscreener.com/tokens/v1/solana/${mint}`, {
-            signal: AbortSignal.timeout(5000)
-        });
+        const response = await fetch(
+            `https://api.dexscreener.com/tokens/v1/solana/${mint}`,
+            { signal: AbortSignal.timeout(5000) }
+        );
         if (!response.ok) return 0;
         const data = await response.json();
         if (data && data.length > 0 && data[0].priceUsd) {
@@ -35,6 +36,7 @@ async function getTokenPrice(mint: string): Promise<number> {
         }
         return 0;
     } catch (err: unknown) {
+        // Network or parse failure — price is unknown, return 0 rather than propagating
         logger.warn('Failed to fetch token price from DexScreener', mint, err instanceof Error ? err.message : String(err));
         return 0;
     }
