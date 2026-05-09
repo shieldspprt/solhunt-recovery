@@ -105,13 +105,14 @@ export const handler: Handler = async (event) => {
       })
     };
   } catch (error: unknown) {
-    console.error('preview-recovery error:', error instanceof Error ? error.message : String(error));
+    const message = error instanceof Error ? error.message : String(error);
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({
         success: false,
-        error: 'Failed to generate recovery preview. RPC may be rate limited.'
+        error: `Failed to generate recovery preview. RPC may be rate limited.`,
+        detail: message
       })
     };
   }

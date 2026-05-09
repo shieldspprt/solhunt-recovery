@@ -133,7 +133,17 @@ export const handler: Handler = async (event) => {
         registered++;
       }
     } catch (e: unknown) {
-      console.error('dd-payment error:', e instanceof Error ? e.message : String(e));
+      const message = e instanceof Error ? e.message : typeof e === 'string' ? e : String(e ?? 'Unknown error');
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          error: `Payment processing failed: ${message}`,
+          processed: transactions.length,
+          partial: { registered, queries, confirmations }
+        })
+      };
     }
   }
 
