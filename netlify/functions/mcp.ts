@@ -915,7 +915,7 @@ export const handler: Handler = async (event) => {
           jsonrpc: "2.0",
           id: body.id,
           result: {
-            protocolVersion: initParams.protocolVersion || "2024-11-05",
+            protocolVersion: initParams.protocolVersion || "2025-03-05",
             capabilities: {
               tools: {},
               resources: {}
