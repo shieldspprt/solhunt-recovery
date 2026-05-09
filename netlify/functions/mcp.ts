@@ -640,7 +640,7 @@ async function executeTool(
           ],
           agents: [
             'Fleet Manager: Monitor up to 50 agent wallets in real-time.',
-            'Agent Registry: Discover other AI agents operating on Solana.',
+            'API Access: Programmatic MCP access for AI agents and automated workflows.',
           ],
           analytics: [
             'Token Swap Hub: Jupiter and Raydium swap integrations for recovered dust.',
