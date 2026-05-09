@@ -400,7 +400,7 @@ export function WalletScanner() {
             </span>
           ) : (
             <span className="flex items-center gap-2">
-              <span className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 ease-out" />
+              <span className="absolute inset-0 bg-white/20 translate-y-full group-hover\/btn:translate-y-0 transition-transform duration-300 ease-out" />
               <span className="relative z-10">Execute</span>
             </span>
           )}
