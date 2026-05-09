@@ -69,7 +69,7 @@ export async function buildDustBurnReclaimTransactions(
             let burnAmount: bigint;
             try {
                 burnAmount = BigInt(token.rawBalance);
-            } catch {
+            } catch (err: unknown) {
                 continue;
             }
 

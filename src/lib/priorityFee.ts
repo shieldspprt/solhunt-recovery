@@ -65,7 +65,7 @@ export async function getOptimalPriorityFee(
 
         // Clamp between 10k and 1M micro-lamports
         return Math.max(10_000, Math.min(p75Fee, 1_000_000));
-    } catch {
+    } catch (err: unknown) {
         return DEFAULT_PRIORITY_FEE_MICRO_LAMPORTS;
     }
 }

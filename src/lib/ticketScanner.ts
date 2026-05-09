@@ -108,7 +108,7 @@ function readU64LE(data: Uint8Array, offset: number): bigint {
 function bytesToBase58(bytes: Uint8Array): string | null {
     try {
         return new PublicKey(bytes).toBase58();
-    } catch {
+    } catch (_err: unknown) {
         return null;
     }
 }
