@@ -8,7 +8,7 @@ function ProgressIcon({ status }: { status: string }) {
     if (status === 'success') return <CheckCircle2 className="h-4 w-4 text-shield-success" />;
     if (status === 'failed') return <XCircle className="h-4 w-4 text-shield-danger" />;
     if (status === 'pending' || status === 'skipped') return <Clock3 className="h-4 w-4 text-shield-muted" />;
-    return <Loader2 className="h-4 w-4 text-shield-accent animate-spin" />;
+    return <Loader2 className="h-4 w-4 text-shield-accent animate-spin" aria-hidden="true" />;
 }
 
 export const ClaimProgressModal = memo(() => {

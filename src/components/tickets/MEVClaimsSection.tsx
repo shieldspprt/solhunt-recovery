@@ -32,7 +32,7 @@ export const MEVClaimsSection = memo(function MEVClaimsSection() {
         return (
             <div className="mt-8 border-t border-shield-border pt-6">
                 <div className="flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 text-shield-accent animate-spin" />
+                    <Loader2 className="h-4 w-4 text-shield-accent animate-spin" aria-hidden="true" />
                     <span className="text-sm font-medium text-shield-muted">Checking Jito MEV and Priority Fee Rewards...</span>
                 </div>
             </div>
