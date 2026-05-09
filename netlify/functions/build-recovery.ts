@@ -48,7 +48,7 @@ export const handler: Handler = async (event) => {
   let body: Record<string, unknown>;
   try {
     body = JSON.parse(event.body || '{}') as Record<string, unknown>;
-  } catch {
+  } catch (err: unknown) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON body' }) };
   }
 
