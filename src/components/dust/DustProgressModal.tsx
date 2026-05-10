@@ -113,7 +113,7 @@ export function DustProgressModal() {
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-2 text-sm font-medium text-shield-accent hover:text-white transition-colors"
                                 >
-                                    View first transaction <ExternalLink className="h-4 w-4" />
+                                    View first transaction <ExternalLink className="h-4 w-4" aria-hidden="true" />
                                 </a>
                             )}
 
