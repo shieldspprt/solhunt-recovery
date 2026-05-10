@@ -271,8 +271,8 @@ async function scanSanctumTickets(
     let payload: unknown;
     try {
         payload = await response.json();
-    } catch {
-        logger.warn('Sanctum API returned non-JSON payload.');
+    } catch (err: unknown) {
+        logger.warn('Sanctum API returned non-JSON payload:', err instanceof Error ? err.message : String(err));
         return [];
     }
 
@@ -304,7 +304,7 @@ async function scanSanctumTickets(
         let valueLamports = 0n;
         try {
             valueLamports = BigInt(lamportsRaw);
-        } catch {
+        } catch (err: unknown) {
             continue;
         }
 

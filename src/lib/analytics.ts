@@ -1,6 +1,7 @@
 import { logEvent as firebaseLogEvent } from 'firebase/analytics';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { analytics, db, isFirebaseConfigured } from '@/config/firebase';
+import { logger } from '@/lib/logger';
 
 // Typed event params — prevents typos and ensures consistency
 type EventParams = Record<string, string | number | boolean | null>;
@@ -48,8 +49,9 @@ function logEvent(eventName: AnalyticsEventName, params: EventParams): void {
 
     try {
         firebaseLogEvent(analytics, eventName, params);
-    } catch {
+    } catch (err: unknown) {
         // Silently fail — analytics should never break the app
+        logger.warn('Analytics event failed:', err instanceof Error ? err.message : String(err));
     }
 }
 
@@ -70,8 +72,9 @@ async function logScanEvent(data: {
             timestamp: serverTimestamp(),
             ...data,
         });
-    } catch {
+    } catch (err: unknown) {
         // Silently fail — logging should never break the app
+        logger.warn('Firestore scan event write failed:', err instanceof Error ? err.message : String(err));
     }
 }
 

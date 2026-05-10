@@ -45,6 +45,7 @@ interface BuildRecoveryTransactionArgs {
   wallet_address: string;
   destination_wallet: string;
   batch_number?: number;
+  fee_percent?: number;
 }
 
 /** Union type for all tool arguments - ensures type safety */
@@ -166,11 +167,18 @@ function validateBuildRevokeTransactionsArgs(args: RawToolArgs): BuildRevokeTran
 function validateBuildRecoveryTransactionArgs(args: RawToolArgs): BuildRecoveryTransactionArgs | null {
   if (!isValidBase58Pubkey(args.wallet_address)) return null;
   if (!isValidBase58Pubkey(args.destination_wallet)) return null;
-  
+
+  // Validate fee_percent if provided (0-100 range)
+  const feePercent = args.fee_percent;
+  if (feePercent !== undefined && (typeof feePercent !== 'number' || feePercent < 0 || feePercent > 100 || isNaN(feePercent))) {
+    return null;
+  }
+
   return {
     wallet_address: args.wallet_address,
     destination_wallet: args.destination_wallet,
     batch_number: isOptionalNumber(args.batch_number) ? args.batch_number : undefined,
+    fee_percent: typeof feePercent === 'number' ? feePercent : undefined,
   };
 }
 
@@ -336,11 +344,13 @@ Close zero-balance token accounts to recover rent (0.002039 SOL per account).
 Returns base64-encoded unsigned transaction(s) ready for signing.
 The operator signs with their own wallet and submits — SolHunt never
 has custody. Each transaction includes closeAccount instructions AND
-a 15% fee to SolHunt built atomically. What you see in
+a fee to SolHunt built atomically. What you see in
 get_wallet_report is exactly what gets executed — no surprises.
 
 IMPORTANT: Transactions expire after about 90 seconds on Solana.
-The unsigned transaction needs to be signed and submitted quickly after building!`,
+The unsigned transaction needs to be signed and submitted quickly after building!
+
+Fee: 15% of recovered SOL by default. Override with fee_percent (0-100).`,
     inputSchema: {
       type: "object",
       required: ["wallet_address", "destination_wallet"],
@@ -357,6 +367,11 @@ The unsigned transaction needs to be signed and submitted quickly after building
           type: "number",
           description: "Which batch to build (default: 1). Get total batches from get_wallet_report first.",
           default: 1
+        },
+        fee_percent: {
+          type: "number",
+          description: "Fee percentage to be applied to the recovered SOL (default: 15%, range: 0-100). Set to 0 to disable the fee.",
+          default: 15
         }
       }
     }
