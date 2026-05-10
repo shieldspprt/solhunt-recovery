@@ -5,9 +5,33 @@ import {
     MEV_API_PAGE_SIZE,
     MEV_MIN_CLAIM_LAMPORTS,
 } from '@/config/constants';
+import { JUPITER_PRICE_API } from '@/modules/lp-harvester/constants';
 import type { MEVClaimItem } from '@/types';
 import { withTimeout } from './withTimeout';
 import { logger } from './logger';
+
+/** Fallback SOL price in USD when Jupiter price API is unavailable. */
+const FALLBACK_SOL_PRICE_USD = 150;
+
+/**
+ * Fetch the current SOL price in USD from Jupiter.
+ * Returns fallback price on any error (network, non-200, parse).
+ */
+async function fetchSOLPriceUSD(): Promise<number> {
+    try {
+        const res = await withTimeout(
+            fetch(`${JUPITER_PRICE_API}?ids=SOL`),
+            5_000,
+            'RPC_TIMEOUT'
+        );
+        if (!res.ok) return FALLBACK_SOL_PRICE_USD;
+        const json = await res.json() as { prices?: Array<{ price?: number }> };
+        const price = json?.prices?.[0]?.price;
+        return typeof price === 'number' && price > 0 ? price : FALLBACK_SOL_PRICE_USD;
+    } catch {
+        return FALLBACK_SOL_PRICE_USD;
+    }
+}
 
 /**
  * Paginated fetch with timeout wrapper for MEV API pages.
@@ -52,6 +76,9 @@ export interface JitoStakerReward {
 export async function fetchMEVClaims(
     walletAddress: string
 ): Promise<MEVClaimItem[]> {
+    // Fetch live SOL price first (non-blocking, fallback on error)
+    const solPriceUSD = await fetchSOLPriceUSD();
+
     try {
         const url = `${JITO_KOBE_API_BASE}${JITO_STAKER_REWARDS_ENDPOINT}`;
         const response = await withTimeout(
@@ -99,7 +126,7 @@ export async function fetchMEVClaims(
             }
         }
 
-        // Filter and transform
+        // Filter and transform using live SOL price
         return rewards
             .filter(
                 (r) =>
@@ -107,20 +134,21 @@ export async function fetchMEVClaims(
                     (r.reward_lamports || 0) + (r.priority_fee_lamports || 0) >=
                     MEV_MIN_CLAIM_LAMPORTS
             )
-            .map((r) => transformReward(r));
+            .map((r) => transformReward(r, solPriceUSD));
     } catch (err: unknown) {
         logger.error('fetchMEVClaims failed', err);
         return []; // Never block the rest of Engine 4 scan
     }
 }
 
-function transformReward(r: JitoStakerReward): MEVClaimItem {
+/**
+ * Transform a raw Jito staker reward into a MEVClaimItem.
+ * @param r - Raw reward from Jito API
+ * @param solPriceUSD - Current SOL price in USD (from Jupiter or fallback)
+ */
+function transformReward(r: JitoStakerReward, solPriceUSD: number): MEVClaimItem {
     const totalLamports = (r.reward_lamports ?? 0) + (r.priority_fee_lamports ?? 0);
     const totalSOL = totalLamports / LAMPORTS_PER_SOL;
-    // Fallback USD estimate when price feed is unavailable.
-    // Used only for display — actual MEV claims are denominated in SOL and unaffected.
-    // TODO(mcp): Replace with live SOL price from Jupiter/Coingecko when price cache is available.
-    const FALLBACK_SOL_PRICE_USD = 150;
 
     return {
         stakeAccount: r.stake_account ?? '',
@@ -131,7 +159,7 @@ function transformReward(r: JitoStakerReward): MEVClaimItem {
         priorityFeeLamports: r.priority_fee_lamports ?? 0,
         totalLamports,
         totalSOL,
-        estimatedValueUSD: totalSOL * FALLBACK_SOL_PRICE_USD,
+        estimatedValueUSD: totalSOL * solPriceUSD,
         mevCommissionBps: r.mev_commission_bps ?? 0,
         priorityFeeCommissionBps: r.priority_fee_commission_bps ?? 0,
         tipDistributionAccount: r.tip_distribution_account ?? '',
