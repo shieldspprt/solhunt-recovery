@@ -130,7 +130,7 @@ export const TicketFinderCard = memo(function TicketFinderCard() {
                     </div>
                     <button
                         onClick={runTicketScan}
-                        aria-label="Rescan"
+                        aria-label="Rescan staking tickets"
                         type="button"
                         className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
                     >
