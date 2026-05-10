@@ -563,7 +563,7 @@ export async function scanForStakingTickets(
     try {
         const epochInfo = await connection.getEpochInfo('confirmed');
         currentEpoch = epochInfo.epoch;
-    } catch {
+    } catch (_err: unknown) {
         return {
             scannedAt: new Date(),
             currentEpoch: 0,

@@ -28,7 +28,7 @@ async function fetchSOLPriceUSD(): Promise<number> {
         const json = await res.json() as { prices?: Array<{ price?: number }> };
         const price = json?.prices?.[0]?.price;
         return typeof price === 'number' && price > 0 ? price : FALLBACK_SOL_PRICE_USD;
-    } catch {
+    } catch (_err: unknown) {
         return FALLBACK_SOL_PRICE_USD;
     }
 }

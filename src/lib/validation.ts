@@ -60,7 +60,7 @@ export function isValidSolanaPublicKey(address: string): boolean {
     try {
         const key = new PublicKey(sanitized);
         return PublicKey.isOnCurve(key.toBytes());
-    } catch {
+    } catch (_err: unknown) {
         return false;
     }
 }
@@ -83,7 +83,7 @@ export function isValidSolanaAddress(address: string): boolean {
     try {
         const key = new PublicKey(sanitized);
         return key.toBytes().length === 32;
-    } catch {
+    } catch (_err: unknown) {
         return false;
     }
 }

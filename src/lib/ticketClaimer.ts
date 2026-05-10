@@ -230,7 +230,7 @@ export async function buildSanctumClaimTransaction(
     const bytes = base64ToBytes(payload.transaction);
     try {
         return VersionedTransaction.deserialize(bytes);
-    } catch {
+    } catch (_err: unknown) {
         try {
             return Transaction.from(bytes);
         } catch (error: unknown) {
