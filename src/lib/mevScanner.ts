@@ -117,7 +117,10 @@ export async function fetchMEVClaims(
 function transformReward(r: JitoStakerReward): MEVClaimItem {
     const totalLamports = (r.reward_lamports ?? 0) + (r.priority_fee_lamports ?? 0);
     const totalSOL = totalLamports / LAMPORTS_PER_SOL;
-    const solPriceHardcoded = 150; // Use reasonable price for USD estimation since no cache available
+    // Fallback USD estimate when price feed is unavailable.
+    // Used only for display — actual MEV claims are denominated in SOL and unaffected.
+    // TODO(mcp): Replace with live SOL price from Jupiter/Coingecko when price cache is available.
+    const FALLBACK_SOL_PRICE_USD = 150;
 
     return {
         stakeAccount: r.stake_account ?? '',
@@ -128,7 +131,7 @@ function transformReward(r: JitoStakerReward): MEVClaimItem {
         priorityFeeLamports: r.priority_fee_lamports ?? 0,
         totalLamports,
         totalSOL,
-        estimatedValueUSD: totalSOL * solPriceHardcoded,
+        estimatedValueUSD: totalSOL * FALLBACK_SOL_PRICE_USD,
         mevCommissionBps: r.mev_commission_bps ?? 0,
         priorityFeeCommissionBps: r.priority_fee_commission_bps ?? 0,
         tipDistributionAccount: r.tip_distribution_account ?? '',
