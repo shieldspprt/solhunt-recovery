@@ -219,8 +219,8 @@ export function StatsDisplay() {
 
   if (error || !data?.today) {
     return (
-      <section className="w-full max-w-2xl mx-auto px-4 py-8">
-        <p className="text-center text-gray-600 text-sm">
+      <section className="w-full max-w-2xl mx-auto px-4 py-8" aria-label="Stats unavailable">
+        <p className="text-center text-gray-600 text-sm" role="status">
           Stats update daily at 9am UTC.
           {!data?.today && data?.totals?.days_of_data === 0
             ? ' First scan has not run yet.'
