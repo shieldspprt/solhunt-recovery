@@ -86,7 +86,7 @@ function statusFromEpoch(
 function parseLamports(valueLamports: string): bigint {
     try {
         return BigInt(valueLamports);
-    } catch {
+    } catch (err: unknown) {
         return 0n;
     }
 }
