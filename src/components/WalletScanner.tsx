@@ -143,7 +143,7 @@ const ScanResults = memo(function ScanResults({ result }: { result: WalletScanRe
           </p>
           <button
             type="button"
-            aria-label="Initiate protocol to recover SOL"
+            aria-label="Initiate recovery protocol to reclaim SOL"
             className="inline-flex items-center gap-2 bg-shield-accent text-shield-bg hover:bg-white text-sm font-bold font-mono uppercase tracking-wide px-6 py-3 rounded-lg transition-all shadow-[0_0_15px_rgba(20,241,149,0.3)] hover:shadow-[0_0_25px_rgba(255,255,255,0.5)]"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
           >
