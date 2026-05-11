@@ -16,7 +16,7 @@ export const Footer = memo(function Footer() {
                                 <span className="text-shield-muted">.dev</span>
                             </span>
                         </div>
-                        <span className="text-xs text-shield-muted/60">built using gemini 3.1, claude 4.6 .. a nightly build</span>
+                        <span className="text-xs text-shield-muted/60">Non-custodial • Client-side • No data stored</span>
                     </div>
                     <div className="flex items-center gap-4 text-xs text-shield-muted">
                         <a href="https://twitter.com/solhuntdev" target="_blank" rel="noopener noreferrer" className="hover:text-[#1DA1F2] transition-colors" aria-label="Follow SolHunt on X (Twitter)">
