@@ -82,7 +82,7 @@ export const HomePage = memo(function HomePage() {
                                 <div className="absolute inset-0 bg-gradient-to-br from-shield-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                                 <div className="relative flex items-center gap-4 mb-4">
                                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20 group-hover:bg-shield-accent/20 group-hover:border-shield-accent/40 shadow-sm group-hover:shadow-shield-accent/20 transition-all duration-300">
-                                        <Icon className="h-6 w-6 text-shield-accent group-hover:scale-110 transition-transform duration-300" />
+                                        <Icon className="h-6 w-6 text-shield-accent group-hover:scale-110 transition-transform duration-300" aria-hidden="true" />
                                     </div>
                                     <div className="flex items-center justify-between flex-1">
                                         <h2 className="text-lg font-bold text-shield-text group-hover:text-shield-accent transition-colors duration-300">

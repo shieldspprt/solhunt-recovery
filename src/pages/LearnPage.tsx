@@ -17,7 +17,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '1': {
         title: 'Revoke Permissions',
         description: 'Understand SPL Token Delegation and how to safely revoke allowances.',
-        icon: <Shield className="h-5 w-5" />,
+        icon: <Shield className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -52,7 +52,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '2': {
         title: 'Reclaim Rent',
         description: 'Learn about Solana State Rent and the lifecycle of Token Accounts.',
-        icon: <Cpu className="h-5 w-5" />,
+        icon: <Cpu className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -87,7 +87,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '3': {
         title: 'Sweep Dust',
         description: 'Clear fractional token dust via Jupiter swaps and SPL Burn mechanics.',
-        icon: <Sparkles className="h-5 w-5" />,
+        icon: <Sparkles className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -183,7 +183,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '7': {
         title: 'MEV & Priority Fees',
         description: 'Learn how Jito Block Engine tips are distributed and claimed via Merkle Proofs.',
-        icon: <Terminal className="h-5 w-5" />,
+        icon: <Terminal className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
