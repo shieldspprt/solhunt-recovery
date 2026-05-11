@@ -8,7 +8,7 @@ import { Handler } from '@netlify/functions';
 // ── Type Definitions ────────────────────────────────────────────────────────────
 
 /** Valid MCP tool names */
-type ToolName = 'get_wallet_report' | 'scan_token_approvals' | 'build_revoke_transactions' | 'build_recovery_transaction' | 'discover_platform_features';
+type ToolName = 'get_wallet_report' | 'scan_token_approvals' | 'build_revoke_transactions' | 'build_recovery_transaction' | 'preview_recovery' | 'discover_platform_features';
 
 /** Arguments for get_wallet_report tool */
 interface GetWalletReportArgs {
@@ -17,6 +17,11 @@ interface GetWalletReportArgs {
 
 /** Arguments for scan_token_approvals tool */
 interface ScanTokenApprovalsArgs {
+  wallet_address: string;
+}
+
+/** Arguments for preview_recovery tool */
+interface PreviewRecoveryArgs {
   wallet_address: string;
 }
 
@@ -54,6 +59,7 @@ type ToolArgs =
   | ScanTokenApprovalsArgs 
   | BuildRevokeTransactionsArgs 
   | BuildRecoveryTransactionArgs 
+  | PreviewRecoveryArgs
   | DiscoverPlatformFeaturesArgs;
 
 /** Standard MCP error codes */
@@ -84,6 +90,7 @@ function isValidToolName(name: string): name is ToolName {
     'scan_token_approvals',
     'build_revoke_transactions',
     'build_recovery_transaction',
+    'preview_recovery',
     'discover_platform_features'
   ].includes(name);
 }
@@ -182,6 +189,12 @@ function validateBuildRecoveryTransactionArgs(args: RawToolArgs): BuildRecoveryT
   };
 }
 
+/** Validates and narrows raw arguments to PreviewRecoveryArgs */
+function validatePreviewRecoveryArgs(args: RawToolArgs): PreviewRecoveryArgs | null {
+  if (!isValidBase58Pubkey(args.wallet_address)) return null;
+  return { wallet_address: args.wallet_address };
+}
+
 /** Validates and narrows raw arguments to DiscoverPlatformFeaturesArgs */
 const VALID_FEATURE_CATEGORIES = ['recovery', 'security', 'harvesting', 'agents', 'analytics'] as const;
 type FeatureCategory = typeof VALID_FEATURE_CATEGORIES[number];
@@ -206,6 +219,8 @@ function validateToolArgs(name: ToolName, args: RawToolArgs): ToolArgs | null {
       return validateBuildRevokeTransactionsArgs(args);
     case 'build_recovery_transaction':
       return validateBuildRecoveryTransactionArgs(args);
+    case 'preview_recovery':
+      return validatePreviewRecoveryArgs(args);
     case 'discover_platform_features':
       return validateDiscoverPlatformFeaturesArgs(args);
     default:
@@ -217,11 +232,12 @@ function validateToolArgs(name: ToolName, args: RawToolArgs): ToolArgs | null {
 // These are what agents see when they load SolHunt as an MCP tool
 // Write descriptions as if explaining to an AI agent — precise, actionable
 
-// SolHunt MCP — 5 tools:
+// SolHunt MCP — 6 tools:
 // get_wallet_report: understand the wallet
 // scan_token_approvals: security scan for token approvals
 // build_revoke_transactions: revoke token approvals
 // build_recovery_transaction: recover locked SOL
+// preview_recovery: explicit fee preview before building transactions
 // discover_platform_features: explore the ecosystem
 
 const TOOLS = [
@@ -372,6 +388,35 @@ Fee: 15% of recovered SOL by default. Override with fee_percent (0-100).`,
           type: "number",
           description: "Fee percentage to be applied to the recovered SOL (default: 15%, range: 0-100). Set to 0 to disable the fee.",
           default: 15
+        }
+      }
+    }
+  },
+  {
+    name: "preview_recovery",
+    description: `Get an explicit fee and recovery preview BEFORE building a transaction.
+Use this when you want to show the user exactly what they'll recover and what
+SolHunt's fee will be — without committing to building a transaction yet.
+
+Unlike get_wallet_report (which gives a full health analysis), this tool is
+laser-focused on recovery economics: recoverable SOL, SolHunt's fee (default 15%),
+network transaction cost estimate, and net amount the user receives.
+
+Call this BEFORE build_recovery_transaction to give users full transparency
+before any signing happens.
+
+Input: wallet_address (the wallet to preview recovery for)
+
+Returns: exact recoverable SOL, fee in SOL and percent, network cost estimate,
+net amount, estimated number of batches, and whether recovery is worth doing.
+Does NOT build or return any transaction bytes.`,
+    inputSchema: {
+      type: "object",
+      required: ["wallet_address"],
+      properties: {
+        wallet_address: {
+          type: "string",
+          description: "Solana wallet to preview recovery for (base58, 32-44 characters)"
         }
       }
     }
@@ -629,6 +674,48 @@ async function executeTool(
           return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name);
         }
         return res.json();
+      }
+
+      case 'preview_recovery': {
+        const address = (args as PreviewRecoveryArgs).wallet_address;
+
+        // Fetch wallet opportunities for fee preview
+        const oppsRes = await fetch(
+          `${API_BASE}/api/wallet-opportunities?wallet=${encodeURIComponent(address)}`,
+          { headers, signal: AbortSignal.timeout(10000) }
+        );
+
+        if (!oppsRes.ok) {
+          const detail = await oppsRes.text().catch(() => oppsRes.statusText);
+          return createMCPError('EXECUTION_ERROR', `Opportunities API error ${oppsRes.status}: ${detail}`, name);
+        }
+
+        const oppsData = await oppsRes.json();
+        const opps = oppsData?.data || {};
+
+        const recoverableSol = opps.total_recoverable_sol || 0;
+        const feeSol = parseFloat((recoverableSol * FEE_PERCENT).toFixed(6));
+        const netSol = parseFloat((recoverableSol - feeSol).toFixed(6));
+        const txCostSol = opps.total_tx_cost_sol || 0;
+        const worthRecovering = netSol > 0.001;
+
+        return {
+          success: true,
+          data: {
+            address,
+            recoverable_sol: recoverableSol,
+            fee_sol: feeSol,
+            fee_percent: FEE_PERCENT,
+            net_recoverable_sol: netSol,
+            estimated_tx_cost_sol: txCostSol,
+            estimated_batches: opps.estimated_batches ?? 0,
+            worth_recovering: worthRecovering,
+            next_step: worthRecovering
+              ? 'Call build_recovery_transaction to get unsigned transaction bytes'
+              : 'No recovery needed. Wallet is clean.',
+            previewed_at: new Date().toISOString(),
+          }
+        };
       }
 
       case 'discover_platform_features': {
