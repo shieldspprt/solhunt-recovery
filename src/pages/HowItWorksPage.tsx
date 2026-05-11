@@ -91,7 +91,7 @@ export const HowItWorksPage = memo(function HowItWorksPage() {
                             </p>
                         </div>
                         <div className="glass-card rounded-2xl p-6">
-                            <Search className="h-6 w-6 text-shield-warning mb-3" />
+                            <Search className="h-6 w-6 text-shield-warning mb-3" aria-hidden="true" />
                             <h3 className="text-lg font-bold text-shield-text mb-2">Immutable Modals</h3>
                             <p className="text-sm text-shield-muted leading-relaxed">
                                 We've implemented explicit instruction preview banners on all signing modals. Before the transaction payload hits your extension, you will see exactly how many instructions you are signing and what type they are.
