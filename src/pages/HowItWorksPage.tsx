@@ -77,7 +77,7 @@ export const HowItWorksPage = memo(function HowItWorksPage() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="glass-card rounded-2xl p-6">
-                            <Lock className="h-6 w-6 text-shield-warning mb-3" />
+                            <Lock className="h-6 w-6 text-shield-warning mb-3" aria-hidden="true" />
                             <h3 className="text-lg font-bold text-shield-text mb-2">100% Non-Custodial</h3>
                             <p className="text-sm text-shield-muted leading-relaxed">
                                 We do not use a backend database or relayer. Your wallet is strictly connected to the Vite/React frontend using the official <code className="text-xs font-mono">@solana/wallet-adapter</code>. We never see your private key or write-transfer permissions.
@@ -98,7 +98,7 @@ export const HowItWorksPage = memo(function HowItWorksPage() {
                             </p>
                         </div>
                         <div className="glass-card rounded-2xl p-6">
-                            <FileJson className="h-6 w-6 text-shield-warning mb-3" />
+                            <FileJson className="h-6 w-6 text-shield-warning mb-3" aria-hidden="true" />
                             <h3 className="text-lg font-bold text-shield-text mb-2">Simulated Testing</h3>
                             <p className="text-sm text-shield-muted leading-relaxed">
                                 Before passing to the wallet, we optionally simulate the transaction against the RPC node using <code className="text-xs font-mono">simulateTransaction</code> to ensure mathematical accuracy and calculate required micro-lamport fee tiers.
@@ -122,7 +122,7 @@ export const HowItWorksPage = memo(function HowItWorksPage() {
                             aria-label="Contact SolHunt on Twitter"
                             className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1DA1F2] px-6 py-3 font-semibold text-white shadow-lg shadow-[#1DA1F2]/20 hover:bg-[#1A91DA] transition-all hover:-translate-y-0.5"
                         >
-                            <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
+                            <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                                 <path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" />
                             </svg>
                             Message @solhuntdev
