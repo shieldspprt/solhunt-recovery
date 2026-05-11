@@ -457,7 +457,7 @@ const SERVER_METADATA = {
   schema_version: "1.0",
   name: "solhunt",
   display_name: "SolHunt Wallet Intelligence",
-  description: "Solana wallet recovery intelligence. Five tools: get_wallet_report (full wallet analysis), scan_token_approvals (security scan for dApp spending rights), build_revoke_transactions (revoke risky token approvals), build_recovery_transaction (unsigned recovery transaction ready to sign), discover_platform_features (explore SolHunt web platform capabilities). No bloat. Just recovery.",
+  description: "Solana wallet recovery intelligence. Six tools: get_wallet_report (full wallet analysis), scan_token_approvals (security scan for dApp spending rights), build_revoke_transactions (revoke risky token approvals), build_recovery_transaction (unsigned recovery transaction ready to sign), preview_recovery (explicit fee preview before building), discover_platform_features (explore SolHunt web platform capabilities). No bloat. Just recovery.",
   version: "1.0.0",
   homepage: "https://solhunt.dev",
   icon: "https://solhunt.dev/icons/icon-192.png",
