@@ -194,7 +194,7 @@ export async function buildMarinadeClaimInstruction(
         }
 
         return instruction;
-    } catch {
+    } catch (_err: unknown) {
         // SDK is optional. Fallback is best-effort manual claim instruction.
         return buildFallbackMarinadeClaimInstruction(ticket, walletPublicKey);
     }
