@@ -98,19 +98,21 @@ const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: strin
   }, [text]);
 
   return (
-    <button
-      type="button"
-      onClick={handleCopy}
-      className={[
-        'text-xs px-3 py-1.5 rounded-md font-medium transition-all',
-        copied
-          ? 'bg-green-600 text-white'
-          : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-      ].join(' ')}
-      aria-label={copied ? 'Copied' : label}
-    >
-      {copied ? '✓ Copied' : label}
-    </button>
+    <span aria-live="polite" aria-atomic="true">
+      <button
+        type="button"
+        onClick={handleCopy}
+        className={[
+          'text-xs px-3 py-1.5 rounded-md font-medium transition-all',
+          copied
+            ? 'bg-green-600 text-white'
+            : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+        ].join(' ')}
+        aria-label={copied ? 'Copied' : label}
+      >
+        {copied ? '✓ Copied' : label}
+      </button>
+    </span>
   );
 });
 
