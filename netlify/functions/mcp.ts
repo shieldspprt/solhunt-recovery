@@ -629,7 +629,8 @@ async function executeTool(
           const detail = await res.text().catch(() => res.statusText);
           return createMCPError('EXECUTION_ERROR', `Token approvals scan failed: ${res.status}`, name, detail);
         }
-        return res.json();
+        const data = await res.json();
+        return { success: true, data };
       }
 
       case 'build_revoke_transactions': {
