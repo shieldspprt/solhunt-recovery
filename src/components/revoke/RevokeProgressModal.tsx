@@ -128,7 +128,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                     {revokeStatus === 'error' && revokeError && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500 w-full">
                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-danger/10">
-                                <XCircle className="h-8 w-8 text-shield-danger" />
+                                <XCircle className="h-8 w-8 text-shield-danger" aria-hidden="true" />
                             </div>
                             <h2 className="text-xl font-bold text-shield-text mb-2">Revocation Failed</h2>
 
