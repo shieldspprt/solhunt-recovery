@@ -925,27 +925,10 @@ export const handler: Handler = async (event) => {
   
   // If rate limited, return early with 429
   if (!rateLimit.allowed) {
-    const rateLimitedHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': corsOrigin,
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-MCP-Version',
-      'Cache-Control': 'no-store',
-      'X-RateLimit-Limit': String(RATE_LIMIT),
-      'X-RateLimit-Remaining': '0',
-      'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
-      'X-RateLimit-Source': rateLimit.source,
-      'X-RateLimit-Window': String(Math.floor(RATE_WINDOW_MS / 1000)),
-      'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
-    };
-    if (rateLimit.source === 'wallet' && walletAddress) {
-      const walletEntry = walletRateLimitMap.get(walletAddress);
-      if (walletEntry) {
-        rateLimitedHeaders['X-RateLimit-Wallet-Limit'] = String(WALLET_RATE_LIMIT);
-        rateLimitedHeaders['X-RateLimit-Wallet-Remaining'] = '0';
-        rateLimitedHeaders['X-RateLimit-Wallet-Reset'] = String(Math.floor(walletEntry.resetAt / 1000));
-      }
-    }
+    // Use buildHeaders(true) to keep rate limit headers consistent with successful responses
+    const rateLimitedHeaders = buildHeaders(true);
+    // Override remaining to 0 (buildHeaders uses actual remaining which may be > 0 at check time)
+    rateLimitedHeaders['X-RateLimit-Remaining'] = '0';
     return {
       statusCode: 429,
       headers: rateLimitedHeaders,
