@@ -34,6 +34,15 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
             <div
                 className={`absolute inset-0 bg-shield-bg/90 backdrop-blur-sm${isProcessing ? ' cursor-default pointer-events-none' : ' cursor-pointer'}`}
                 onClick={handleClose}
+                role="button"
+                aria-label="Close modal overlay"
+                tabIndex={isProcessing ? -1 : 0}
+                onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && !isProcessing) {
+                        e.preventDefault();
+                        handleClose();
+                    }
+                }}
             />
 
             {/* Modal Content */}
