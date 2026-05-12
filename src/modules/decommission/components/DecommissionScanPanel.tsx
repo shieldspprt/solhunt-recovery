@@ -45,7 +45,7 @@ export function DecommissionScanPanel({ startScan }: Props) {
             <button
                 type="button"
                 onClick={startScan}
-                aria-label="Scan My Wallet"
+                aria-label="Scan for decommissioned protocol positions"
                 className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-shield-accent px-10 py-5 text-lg font-bold text-shield-bg transition-all hover:bg-shield-highlight hover:shadow-xl hover:shadow-shield-accent/20 hover:-translate-y-1"
             >
                 <span>Scan My Wallet →</span>
