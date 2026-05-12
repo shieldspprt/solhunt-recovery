@@ -84,6 +84,8 @@ const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: strin
       setTimeout(() => setCopied(false), 2000);
     } catch (err: unknown) {
       // Fallback for older browsers without clipboard API
+      const fallbackErr = err instanceof Error ? err.message : String(err);
+      logger.warn('Clipboard write failed:', fallbackErr);
       const el = document.createElement('textarea');
       el.value = text;
       el.style.position = 'fixed';
