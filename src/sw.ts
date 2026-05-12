@@ -32,6 +32,16 @@ interface SolHuntServiceWorkerGlobalScope extends ServiceWorkerGlobalScope {
     deferredInstallPrompt: BeforeInstallPromptEvent | null;
 }
 
+/**
+ * The ExtendableEvent interface extends the Event interface to allow
+ * events to propagate beyond the initial script's execution context.
+ * Used in service worker activate events.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/ExtendableEvent
+ */
+interface SolHuntExtendableEvent extends ExtendableEvent {
+    waitUntil(promise: Promise<unknown>): void;
+}
+
 declare let self: SolHuntServiceWorkerGlobalScope;
 
 // ──────────────────────────────────────────────────────
@@ -111,7 +121,7 @@ registerRoute(
 // 6. Lifecycle: skip waiting + claim clients for fast updates
 // ──────────────────────────────────────────────────────
 self.skipWaiting();
-self.addEventListener('activate', (event: ExtendableEvent) => {
+self.addEventListener('activate', (event: SolHuntExtendableEvent) => {
   event.waitUntil(self.clients.claim());
 });
 
