@@ -170,7 +170,9 @@ const MiniChart = memo(function MiniChart({ history }: { history: DayStat[] }) {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   e.preventDefault();
-                  navigator.clipboard.writeText(`${d.total_recoverable_sol} SOL on ${d.date}`).catch(() => {});
+                  navigator.clipboard.writeText(`${d.total_recoverable_sol} SOL on ${d.date}`).catch((err: unknown) => {
+                    logger.warn('Clipboard write failed:', err instanceof Error ? err.message : String(err));
+                  });
                 }
               }}
               aria-label={`${d.date}: ${d.total_recoverable_sol} SOL recoverable. Press Enter to copy.`}
