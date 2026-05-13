@@ -29,7 +29,7 @@ export function TermsPage() {
                         <h1 className="text-3xl font-bold text-shield-text">Terms of Service</h1>
                     </div>
                     <p className="text-shield-muted text-sm">
-                        Last updated: March 27, 2025
+                        Last updated: May 13, 2026
                     </p>
                 </div>
 
@@ -182,7 +182,7 @@ export function TermsPage() {
                 {/* Footer */}
                 <div className="mt-12 pt-8 border-t border-shield-border">
                     <p className="text-sm text-shield-muted">
-                        © 2025 SolHunt. All rights reserved.
+                        © 2026 SolHunt. All rights reserved.
                     </p>
                 </div>
             </div>

@@ -46,7 +46,7 @@ export function CopyrightPage() {
                     <section>
                         <h2 className="text-xl font-semibold text-shield-text mb-3">Copyright Statement</h2>
                         <p>
-                            Copyright (c) 2025 SolHunt. All rights in the SolHunt brand, name,
+                            Copyright (c) 2026 SolHunt. All rights in the SolHunt brand, name,
                             logo, and proprietary content are reserved unless explicitly licensed
                             otherwise.
                         </p>
