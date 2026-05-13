@@ -543,6 +543,7 @@ async function executeTool(
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
     'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+    'Cache-Control': 'no-store, max-age=300',
     ...(apiKey ? { 'X-API-Key': apiKey } : {})
   };
 
