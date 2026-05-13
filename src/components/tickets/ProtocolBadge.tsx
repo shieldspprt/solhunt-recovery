@@ -37,14 +37,14 @@ export const ProtocolBadge = memo(function ProtocolBadge({ protocol, size = 'sm'
             {info.logoUri && !logoFailed ? (
                 <img
                     src={info.logoUri}
-                    alt={info.displayName}
+                    alt={`${info.displayName} logo`}
                     width={20}
                     height={20}
                     onError={() => setLogoFailed(true)}
                     className={`${styles.icon} rounded-full`}
                 />
             ) : (
-                <span className={`${styles.icon} inline-flex items-center justify-center rounded-full bg-shield-accent/20 text-[10px] font-semibold text-shield-accent`}>
+                <span className={`${styles.icon} inline-flex items-center justify-center rounded-full bg-shield-accent/20 text-[10px] font-semibold text-shield-accent`} aria-hidden="true">
                     {initial}
                 </span>
             )}

@@ -52,6 +52,7 @@ https://solhunt.dev/.netlify/functions/mcp
 | `scan_token_approvals` | Security scan for dApp spending approvals, rated by risk (HIGH/MEDIUM/LOW) |
 | `build_revoke_transactions` | Build unsigned tx to revoke token approvals |
 | `build_recovery_transaction` | Build unsigned tx to recover SOL from zero-balance accounts |
+| `preview_recovery` | Explicit fee preview before building — shows recoverable SOL, fee, net amount, and network cost |
 | `discover_platform_features` | Explore SolHunt web platform capabilities |
 
 ## Usage Patterns
