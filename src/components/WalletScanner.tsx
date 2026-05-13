@@ -296,6 +296,10 @@ export function WalletScanner() {
         return;
       }
 
+      // Log full error in non-production for debugging; in production this is
+      // handled gracefully and surfaced to the user as an AppError message
+      logger.warn('WalletScanner handleScan failed:', e instanceof Error ? e.message : String(e));
+
       setState('error');
       const appError = toAppError(e, 'NETWORK_ERROR');
       setError(appError.message);
