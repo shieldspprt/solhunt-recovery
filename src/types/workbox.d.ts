@@ -11,6 +11,20 @@ declare module 'workbox-precaching' {
     export function createHandlerBoundToURL(url: string): unknown;
 }
 
+// Extend Workbox's ServiceWorkerGlobalScope with the VitePWA-injected manifest.
+// Workbox's __WB_MANIFEST is typed as (string | PrecacheEntry)[] at runtime.
+// This augmentation provides a named interface for the manifest entries.
+interface WBManifestEntry {
+    url: string;
+    revision: string | null;
+}
+
+declare global {
+    interface ServiceWorkerGlobalScope {
+        __WB_MANIFEST: (WBManifestEntry | string)[];
+    }
+}
+
 declare module 'workbox-routing' {
     export class NavigationRoute {
         constructor(handler: unknown, options?: { denylist?: RegExp[]; allowlist?: RegExp[] });

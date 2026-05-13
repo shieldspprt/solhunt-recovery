@@ -4,7 +4,7 @@
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope
  */
-import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, PrecacheEntry } from 'workbox-precaching';
+import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, type PrecacheEntry } from 'workbox-precaching';
 import { registerRoute, NavigationRoute } from 'workbox-routing';
 import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
 import { logger } from '@/lib/logger';
@@ -44,10 +44,17 @@ interface SolHuntExtendableEvent extends ExtendableEvent {
 
 declare let self: SolHuntServiceWorkerGlobalScope;
 
+// Type guard: VitePWA can inject strings into __WB_MANIFEST but precacheAndRoute only accepts entries.
+// Filter to valid PrecacheEntry objects at runtime to satisfy the type system.
+// Uses `unknown` to bypass internal vs global PrecacheEntry type incompatibility.
+function isPrecacheEntry(entry: unknown): entry is PrecacheEntry {
+    return typeof entry === 'object' && entry !== null && 'url' in entry;
+}
+
 // ──────────────────────────────────────────────────────
 // 1. Precache static build assets (injected by vite-plugin-pwa)
-// ──────────────────────────────────────────────────────
-precacheAndRoute(self.__WB_MANIFEST as PrecacheEntry[]);
+// The manifest entries are typed via global ServiceWorkerGlobalScope augmentation
+precacheAndRoute(self.__WB_MANIFEST.filter(isPrecacheEntry));
 cleanupOutdatedCaches();
 
 // ──────────────────────────────────────────────────────
