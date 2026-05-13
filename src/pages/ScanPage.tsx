@@ -23,6 +23,9 @@ export const ScanPage = memo(function ScanPage() {
         document.title = 'Scan | SolHunt';
         const metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc) metaDesc.setAttribute('content', 'Scan your Solana wallet for recoverable SOL, token approvals, and hidden value across 9 recovery engines — instantly and client-side.');
+        // Prevent search engines from indexing wallet-specific scan results
+        const metaRobots = document.querySelector('meta[name="robots"]');
+        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
     }, []);
 
     // Memoize the hash value to prevent unnecessary effect re-runs

@@ -995,7 +995,8 @@ export const handler: Handler = async (event) => {
         })
       };
     } else if (body.method === 'initialize') {
-      // Standard MCP initialization
+      // Standard MCP initialization — include rate limit headers so clients
+      // know the current quota even on the initial handshake response
       const initParams = body.params as Record<string, unknown> || {};
       return {
         statusCode: 200,
