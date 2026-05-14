@@ -53,6 +53,7 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
                         If your deployment failed or you iterated quickly, these SOL are still sitting on-chain.
                     </p>
                     <button
+                        type="button"
                         onClick={handleInitialScan}
                         data-agent-target="scan-buffers-btn"
                         aria-label="Scan wallet for buffer accounts"
@@ -84,6 +85,7 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
                 <h3 className="text-lg font-bold text-shield-danger mb-2">Scan Failed</h3>
                 <p className="text-shield-muted mb-6">{bufferScanError.message}</p>
                 <button
+                    type="button"
                     onClick={runScan}
                     aria-label="Retry buffer scan"
                     className="px-6 py-2 rounded-xl bg-shield-card border border-shield-border hover:bg-shield-border/20 transition-all font-semibold"
@@ -127,6 +129,7 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
                 <div className="glass-card rounded-2xl p-12 text-center border border-shield-border/30">
                     <p className="text-shield-muted">No abandoned buffers found in this wallet. 🛡️</p>
                     <button
+                        type="button"
                         onClick={clearBuffers}
                         aria-label="Return to start"
                         className="mt-4 text-sm text-shield-accent hover:underline"
