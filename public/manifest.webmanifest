@@ -1,7 +1,7 @@
 {
   "name": "SolHunt",
   "short_name": "SolHunt",
-  "description": "Recover locked SOL, reclaim rent, revoke risky approvals, and harvest unclaimed value from your Solana wallet — securely and client-side.",
+  "description": "Recover locked SOL, reclaim rent, revoke risky approvals, and harvest unclaimed LP fees, staking tickets, MEV rewards, cNFT accounts, and buffer accounts — client-side and non-custodial.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
