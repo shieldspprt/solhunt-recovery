@@ -492,6 +492,23 @@ const SERVER_METADATA = {
   }
 };
 
+// ── JSON Response Helper ───────────────────────────────────────────────────────
+// Shared helper to parse JSON responses and extract structured error fields.
+// Centralizes the try/catch pattern used across all API response handlers.
+
+/**
+ * Parses the response body and extracts structured error/detail field.
+ * Falls back to statusText if JSON parsing fails or no structured field exists.
+ */
+async function parseResponseDetail(res: Response): Promise<string> {
+  try {
+    const json = JSON.parse(await res.clone().text());
+    return json?.error ?? json?.message ?? json?.detail ?? res.statusText;
+  } catch (_parseErr: unknown) {
+    return res.statusText;
+  }
+}
+
 // ── Tool Executor ─────────────────────────────────────────────────────────────
 
 const API_BASE = (() => {
@@ -509,7 +526,14 @@ const FEE_PERCENT = (() => {
   return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100 ? parsed : 15;
 })();
 
-/** Creates a typed MCP error response */
+/**
+ * Creates a typed MCP error response conforming to the Smithery MCP error schema.
+ * @param code - One of: INVALID_PARAMS, TOOL_NOT_FOUND, EXECUTION_ERROR, WALLET_NOT_FOUND,
+ *               RATE_LIMITED, METHOD_NOT_ALLOWED, INTERNAL_ERROR.
+ * @param message - Human-readable error message (used as 'error' field in response).
+ * @param tool - Optional tool name that produced this error (useful for debugging).
+ * @param detail - Machine-readable additional context (structured error body, etc.).
+ */
 function createMCPError(code: MCPErrorCode, message: string, tool?: string, detail?: string): MCPErrorResponse {
   return { error: message, code, tool, detail };
 }
@@ -627,7 +651,7 @@ async function executeTool(
           { headers, signal: AbortSignal.timeout(10000) }
         );
         if (!res.ok) {
-          const detail = await res.text().catch(() => res.statusText);
+          const detail = await parseResponseDetail(res);
           return createMCPError('EXECUTION_ERROR', `Token approvals scan failed: ${res.status}`, name, detail);
         }
         const data = await res.json();
@@ -645,12 +669,7 @@ async function executeTool(
           }
         );
         if (!res.ok) {
-          // Try to extract structured error detail from JSON body first
-          let detail = res.statusText;
-          try {
-            const json = JSON.parse(await res.clone().text());
-            detail = json?.error ?? json?.message ?? json?.detail ?? detail;
-          } catch (_e: unknown) { /* fall through to statusText */ }
+          const detail = await parseResponseDetail(res);
           return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name);
         }
         return res.json();
@@ -667,12 +686,7 @@ async function executeTool(
           }
         );
         if (!res.ok) {
-          // Try to extract structured error detail from JSON body first
-          let detail = res.statusText;
-          try {
-            const json = JSON.parse(await res.clone().text());
-            detail = json?.error ?? json?.message ?? json?.detail ?? detail;
-          } catch (_e: unknown) { /* fall through to statusText */ }
+          const detail = await parseResponseDetail(res);
           return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name);
         }
         return res.json();
