@@ -1089,7 +1089,12 @@ export const handler: Handler = async (event) => {
             id: body.id || null,
             error: { code: -32000, message: err.error, data: err }
           }
-        : result;
+        : {
+            // Direct format: return same typed error structure as JSON-RPC
+            jsonrpc: "2.0",
+            id: null,
+            error: { code: -32000, message: err.error, data: err }
+          };
       return {
         statusCode: 400,
         headers: buildHeaders(),
