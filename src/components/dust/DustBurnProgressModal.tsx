@@ -119,7 +119,7 @@ export function DustBurnProgressModal() {
                             <button
                                 type="button"
                                 onClick={clearDustBurn}
-                                aria-label="Close dialog"
+                                aria-label="Done"
                                 className="mt-5 w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                             >
                                 Done
