@@ -38,6 +38,7 @@ export function HarvestConfirmModal({
 
             <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 <button
+                    type="button"
                     onClick={onCancel}
                     aria-label="Close LP harvest confirmation modal"
                     className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
@@ -108,6 +109,7 @@ export function HarvestConfirmModal({
 
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
+                            type="button"
                             onClick={onCancel}
                             aria-label="Cancel harvest"
                             className="flex-1 rounded-xl border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
@@ -115,6 +117,7 @@ export function HarvestConfirmModal({
                             Cancel
                         </button>
                         <button
+                            type="button"
                             onClick={onConfirm}
                             aria-label="Confirm harvest fees"
                             className="flex-1 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"

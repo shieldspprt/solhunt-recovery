@@ -48,6 +48,7 @@ export function HarvestProgressModal({
             <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 {!processing && (
                     <button
+                        type="button"
                         onClick={onClose}
                         aria-label="Close LP harvest progress"
                         className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"

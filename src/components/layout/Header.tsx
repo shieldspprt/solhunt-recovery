@@ -73,6 +73,7 @@ export const Header = memo(function Header() {
                                 {shortenAddress(publicKey.toBase58(), 4)}
                             </span>
                             <button
+                                type="button"
                                 onClick={disconnect}
                                 disabled={isDisconnecting}
                                 className="text-xs text-shield-muted hover:text-shield-danger transition-colors px-2 py-1 rounded-md hover:bg-shield-danger/10 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-shield-danger/50 focus-visible:ring-offset-1"

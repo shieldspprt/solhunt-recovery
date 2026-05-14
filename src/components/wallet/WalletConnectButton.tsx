@@ -27,6 +27,7 @@ export const WalletConnectButton = memo(function WalletConnectButton({
 
     return (
         <button
+            type="button"
             id="wallet-connect-button"
             data-agent-target="connect-wallet-btn"
             onClick={() => setVisible(true)}

@@ -142,6 +142,7 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
                     <div className="flex items-center justify-between px-2">
                         <div className="flex items-center gap-4">
                             <button
+                                type="button"
                                 onClick={selectAllBuffers}
                                 aria-label="Select all buffers"
                                 className="text-xs font-bold text-shield-accent hover:text-shield-accent/80 transition-colors"
@@ -149,6 +150,7 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
                                 Select All
                             </button>
                             <button
+                                type="button"
                                 onClick={deselectAllBuffers}
                                 aria-label="Deselect all buffers"
                                 className="text-xs font-bold text-shield-muted hover:text-shield-text transition-colors"
