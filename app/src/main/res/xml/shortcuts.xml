@@ -46,4 +46,18 @@
             android:data="https://solhunt.dev/?engine=reclaim"
         />
     </shortcut>
+    <shortcut
+        android:shortcutId="fleet_manager"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_fleet_short"
+        android:shortcutLongLabel="@string/shortcut_fleet_long"
+    >
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="dev.solhunt.app"
+            android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:data="https://solhunt.dev/?engine=fleet"
+        />
+    </shortcut>
 </shortcuts>

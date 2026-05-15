@@ -47,4 +47,6 @@
     <string name="shortcut_revoke_long">Revoke Token Approvals</string>
     <string name="shortcut_reclaim_short">Rent</string>
     <string name="shortcut_reclaim_long">Reclaim Rent from Accounts</string>
+    <string name="shortcut_fleet_short">Fleet</string>
+    <string name="shortcut_fleet_long">Monitor Agent Wallets</string>
 </resources>
