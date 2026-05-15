@@ -120,7 +120,7 @@ export function ClaimConfirmModal() {
                         <button
                             type="button"
                             onClick={executeClaimAll}
-                            aria-label="Confirm claim all tickets"
+                            aria-label={`Confirm claim of ${formatSOLValue(claimEstimate.userReceivesSOL)}`}
                             disabled={!feeConsent}
                             className="flex-1 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white shadow-lg shadow-shield-accent/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none hover:bg-shield-accent/90"
                         >
