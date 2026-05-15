@@ -1083,22 +1083,24 @@ export const handler: Handler = async (event) => {
     // without re-wrapping in a JSON-RPC result envelope (prevents double-wrapping)
     if (result && typeof result === 'object' && 'code' in result && 'error' in result) {
       const err = result as { code: string; error: string; tool?: string; detail?: string };
-      const jsonrpcBody = body.method
-        ? {
+      // JSON-RPC calls: wrap in JSON-RPC error envelope per spec
+      // Direct format calls: return typed error as-is (no JSON-RPC wrapper)
+      if (body.method) {
+        return {
+          statusCode: 400,
+          headers: buildHeaders(),
+          body: JSON.stringify({
             jsonrpc: "2.0",
             id: body.id || null,
             error: { code: -32000, message: err.error, data: err }
-          }
-        : {
-            // Direct format: return same typed error structure as JSON-RPC
-            jsonrpc: "2.0",
-            id: null,
-            error: { code: -32000, message: err.error, data: err }
-          };
+          })
+        };
+      }
+      // Direct format: preserve the typed MCP error structure
       return {
         statusCode: 400,
         headers: buildHeaders(),
-        body: JSON.stringify(jsonrpcBody)
+        body: JSON.stringify({ error: err.error, code: err.code, tool: err.tool, detail: err.detail })
       };
     }
 
