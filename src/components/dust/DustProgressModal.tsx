@@ -91,17 +91,17 @@ export function DustProgressModal() {
                     {dustStatus === 'complete' && dustResult && (
                         <div className="text-center animate-in slide-in-from-bottom-4 duration-500">
                             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-shield-success/10 border border-shield-success/20">
-                                <CheckCircle2 className="h-12 w-12 text-shield-success" />
+                                <CheckCircle2 className="h-12 w-12 text-shield-success" aria-hidden="true" />
                             </div>
                             <h2 className="text-2xl font-bold text-shield-text mb-2">
                                 Dust Consolidation Complete
                             </h2>
                             <p className="text-shield-muted mb-3">
                                 Swapped {dustResult.swappedCount} token{dustResult.swappedCount === 1 ? '' : 's'} for
-                                {' '}~{formatSOLValue(dustResult.receivedSOL)}.
+                                estimated {formatSOLValue(dustResult.receivedSOL)} SOL
                             </p>
                             {dustResult.failedCount > 0 && (
-                                <p className="text-sm text-shield-warning mb-4">
+                                <p className="text-sm text-shield-warning mb-3">
                                     {dustResult.failedCount} token{dustResult.failedCount === 1 ? '' : 's'} could not be swapped.
                                 </p>
                             )}
@@ -111,6 +111,7 @@ export function DustProgressModal() {
                                     href={SOLSCAN_TX_URL(dustResult.signatures[0])}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    aria-label="View first transaction on Solscan (opens in new tab)"
                                     className="inline-flex items-center gap-2 text-sm font-medium text-shield-accent hover:text-white transition-colors"
                                 >
                                     View first transaction <ExternalLink className="h-4 w-4" aria-hidden="true" />
@@ -128,10 +129,11 @@ export function DustProgressModal() {
                                         Burn Failed Tokens & Reclaim Rent
                                     </button>
                                 )}
+
                                 <button
                                     type="button"
                                     onClick={clearDust}
-                                    aria-label="Close dust consolidation complete dialog"
+                                    aria-label="Done"
                                     className="w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                                 >
                                     Done
@@ -140,10 +142,16 @@ export function DustProgressModal() {
                         </div>
                     )}
 
+                    {dustStatus === 'complete' && !dustResult && (
+                        <div className="flex items-center justify-center py-12">
+                            <LoadingSpinner size="md" message="Finalising results..." />
+                        </div>
+                    )}
+
                     {dustStatus === 'error' && dustError && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500">
                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-danger/10">
-                                <XCircle className="h-8 w-8 text-shield-danger" />
+                                <XCircle className="h-8 w-8 text-shield-danger" aria-hidden="true" />
                             </div>
                             <h2 className="text-xl font-bold text-shield-text text-center mb-2">Dust Swap Failed</h2>
 
