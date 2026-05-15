@@ -47,28 +47,42 @@
       "name": "Scan Wallet",
       "short_name": "Scan",
       "description": "Scan your wallet for recoverable SOL",
-      "url": "/?engine=scan",
+      "url": "/scan",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Revoke Approvals",
       "short_name": "Revoke",
       "description": "View and revoke token approvals",
-      "url": "/?engine=revoke",
+      "url": "/",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
       "name": "Reclaim Rent",
       "short_name": "Rent",
       "description": "Recover rent from zero-balance accounts",
-      "url": "/?engine=reclaim",
+      "url": "/scan",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Fleet Manager",
-      "short_name": "Fleet",
-      "description": "Monitor up to 50 agent wallets in real-time",
-      "url": "/?engine=fleet",
+      "name": "LP Fee Harvester",
+      "short_name": "LP Fees",
+      "description": "Harvest unclaimed LP fees from Orca, Raydium, Meteora",
+      "url": "/lp-fees",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Buffer Recovery",
+      "short_name": "Buffers",
+      "description": "Recover SOL from closed program buffer accounts",
+      "url": "/buffers",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ticket Finder",
+      "short_name": "Tickets",
+      "description": "Find and close SPL staking accounts",
+      "url": "/tickets",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
