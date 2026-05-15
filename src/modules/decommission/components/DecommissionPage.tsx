@@ -23,10 +23,11 @@ export function DecommissionPage() {
                 {scanner.scanStatus === 'scanning' && (
                     <div className="flex flex-col items-center justify-center py-20">
                         <div className="inline-block relative">
-                            <div className="w-16 h-16 rounded-full border-4 border-shield-border/50 border-t-shield-accent animate-spin" />
+                            <div className="w-16 h-16 rounded-full border-4 border-shield-border/50 border-t-shield-accent animate-spin" aria-hidden="true" />
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xl">🪦</span>
+                                <span className="text-xl" aria-hidden="true" title="Scanning decommissioned protocols">🪦</span>
                             </div>
+                            <span className="sr-only">Scanning decommissioned protocols, please wait</span>
                         </div>
                         <h2 className="mt-6 text-xl font-bold text-shield-text">Scanning dead protocols...</h2>
                         <div aria-live="polite" aria-atomic="true" className="mt-2 text-shield-muted">
