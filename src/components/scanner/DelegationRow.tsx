@@ -44,7 +44,7 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                             className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1 transition-colors"
                         >
                             {shortenAddress(delegation.mint, 4)}
-                            <ExternalLink className="h-3 w-3" />
+                            <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         </a>
                     </div>
                 </td>
@@ -61,7 +61,7 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                     <div className="flex flex-col">
                         {knownName ? (
                             <span className="inline-flex items-center gap-1.5 text-shield-success text-sm font-medium">
-                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                                 {knownName}
                             </span>
                         ) : null}
@@ -72,7 +72,7 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                             className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1 transition-colors"
                         >
                             {shortenAddress(delegation.delegate, 4)}
-                            <ExternalLink className="h-3 w-3" />
+                            <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         </a>
                     </div>
                 </td>
@@ -112,7 +112,7 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                             <div className="flex items-center gap-2">
                                 {knownName && (
                                     <span className="inline-flex items-center gap-1 text-shield-success text-xs font-medium">
-                                        <CheckCircle2 className="h-3 w-3" />
+                                        <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
                                         {knownName}
                                     </span>
                                 )}
@@ -123,7 +123,7 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                                     className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1"
                                 >
                                     {shortenAddress(delegation.delegate, 4)}
-                                    <ExternalLink className="h-3 w-3" />
+                                    <ExternalLink className="h-3 w-3" aria-hidden="true" />
                                 </a>
                             </div>
                         </div>
@@ -135,7 +135,7 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                             className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1"
                         >
                             Mint: {shortenAddress(delegation.mint, 4)}
-                            <ExternalLink className="h-3 w-3" />
+                            <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         </a>
                     </div>
                 </td>
