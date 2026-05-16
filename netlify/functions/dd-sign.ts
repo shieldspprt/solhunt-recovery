@@ -191,7 +191,10 @@ export const handler: Handler = async (event) => {
     };
 
   } catch (e: unknown) {
-    console.error('dd-sign error:', e instanceof Error ? e.message : String(e));
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+    if (!isProduction) {
+      console.error('dd-sign error:', e instanceof Error ? e.message : String(e));
+    }
     return {
       statusCode: 500,
       headers,
