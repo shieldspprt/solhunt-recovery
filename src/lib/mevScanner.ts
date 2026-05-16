@@ -120,8 +120,9 @@ export async function fetchMEVClaims(
                         const pageRewards = pageData?.rewards ?? [];
                         rewards = [...rewards, ...pageRewards];
                     }
-                } catch (pageErr: unknown) {
-                    logger.error(`fetchMEVClaims page ${page} failed`, pageErr);
+                } catch (_pageErr: unknown) {
+                    // pageErr intentionally unused — network failures are non-fatal (logged above)
+                    logger.error(`fetchMEVClaims page ${page} failed`);
                 }
             }
         }
