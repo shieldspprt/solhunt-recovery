@@ -110,8 +110,8 @@ export function MEVClaimConfirmModal() {
 
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
-                            onClick={cancelClaim}
                             type="button"
+                            onClick={cancelClaim}
                             aria-label="Cancel MEV reward claim"
                             className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                         >
