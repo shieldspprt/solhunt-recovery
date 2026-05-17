@@ -352,7 +352,8 @@ Safety: Revoking is always safe — it only removes permissions, never adds them
           default: 15
         }
       }
-    }
+    },
+    instructions: `Step 1: Call scan_token_approvals with a Solana wallet address.\nStep 2: Parse the response — collect HIGH and MEDIUM risk token account addresses to revoke.\nStep 3: Call build_revoke_transactions with the wallet address and the token accounts list.\nStep 4: Sign the resulting unsigned transaction with your wallet and submit to Solana RPC.\nStep 5: Confirm the revocation succeeded on-chain.`
   },
   {
     name: "build_recovery_transaction",
