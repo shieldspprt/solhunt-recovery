@@ -24,6 +24,10 @@ export function MEVClaimConfirmModal() {
             <div
                 className="absolute inset-0 bg-shield-bg/80 backdrop-blur-sm"
                 onClick={cancelClaim}
+                onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') cancelClaim(); }}
+                role="button"
+                tabIndex={0}
+                aria-label="Close MEV claim confirmation"
             />
 
             <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
