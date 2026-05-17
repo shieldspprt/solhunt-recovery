@@ -83,18 +83,21 @@ const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: strin
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err: unknown) {
-      // Fallback for older browsers without clipboard API
       const fallbackErr = err instanceof Error ? err.message : String(err);
       logger.warn('Clipboard write failed:', fallbackErr);
-      const el = document.createElement('textarea');
-      el.value = text;
-      el.style.position = 'fixed';
-      el.style.opacity = '0';
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-      setCopied(true);
+      try {
+        const el = document.createElement('textarea');
+        el.value = text;
+        el.style.position = 'fixed';
+        el.style.opacity = '0';
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        setCopied(true);
+      } catch {
+        // execCommand fallback failed silently — clipboard remains inaccessible
+      }
       setTimeout(() => setCopied(false), 2000);
     }
   }, [text]);
@@ -201,7 +204,8 @@ export function StatsDisplay() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('/api/get-stats')
+    const controller = new AbortController();
+    fetch('/api/get-stats', { signal: controller.signal })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -211,11 +215,12 @@ export function StatsDisplay() {
         else setError('Failed to load stats');
       })
       .catch((err: unknown) => {
-        // Log as warn since error is handled gracefully and surfaced to user
+        if ((err as Error).name === 'AbortError') return;
         logger.warn('Stats fetch failed:', err instanceof Error ? err.message : String(err));
         setError('Failed to load stats');
       })
       .finally(() => setLoading(false));
+    return () => controller.abort();
   }, []);
 
   if (loading) {
