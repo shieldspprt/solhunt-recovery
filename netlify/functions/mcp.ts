@@ -393,7 +393,8 @@ Fee: 15% of recovered SOL by default. Override with fee_percent (0-100).`,
           default: 15
         }
       }
-    }
+    },
+    instructions: `Step 1: Call get_wallet_report with a Solana wallet address.\nStep 2: Parse the response — it includes recoverable_sol, estimated_batches, and net_recoverable_sol.\nStep 3: If net_recoverable_sol > 0.001, call build_recovery_transaction with wallet_address, destination_wallet, and batch_number=1.\nStep 4: Sign the resulting unsigned transaction with the user's wallet and submit to Solana RPC.\nStep 5: Repeat for each batch until all recoverable SOL is collected.`
   },
   {
     name: "preview_recovery",
@@ -403,7 +404,7 @@ SolHunt's fee will be — without committing to building a transaction yet.
 
 Unlike get_wallet_report (which gives a full health analysis), this tool is
 laser-focused on recovery economics: recoverable SOL, SolHunt's fee (default 15%),
-network transaction cost estimate, and net amount the user receives.
+network transaction estimate, and net amount the user receives.
 
 Call this BEFORE build_recovery_transaction to give users full transparency
 before any signing happens.
@@ -422,7 +423,8 @@ Does NOT build or return any transaction bytes.`,
           description: "Solana wallet to preview recovery for (base58, 32-44 characters)"
         }
       }
-    }
+    },
+    instructions: `Step 1: Call preview_recovery with a Solana wallet address.\nStep 2: Parse the response — it includes recoverable_sol, fee_sol, net_recoverable_sol, and worth_recovering.\nStep 3: If worth_recovering is true, call build_recovery_transaction to get unsigned transaction bytes.\nStep 4: Show the user the fee preview before asking them to sign anything.`
   },
   {
     name: "discover_platform_features",
