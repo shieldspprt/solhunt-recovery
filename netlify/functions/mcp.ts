@@ -451,7 +451,8 @@ Returns descriptions of available tools. Visit https://solhunt.dev to access the
           enum: ["recovery", "security", "harvesting", "agents", "analytics"]
         }
       }
-    }
+    },
+    instructions: `Step 1: Call discover_platform_features with an optional feature_category.\nStep 2: Parse the response — it includes a list of web-only tools available at https://solhunt.dev.\nStep 3: Visit https://solhunt.dev to access the full platform (LP Fee Harvester, Staking Ticket Finder, cNFT Cleaner, MEV/Priority Fee Claims, Fleet Manager, Token Swap Hub).\nStep 4: For programmatic access, use the SolHunt MCP tools for wallet recovery and token approval management.`
   }
 ];
 
