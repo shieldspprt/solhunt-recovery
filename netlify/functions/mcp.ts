@@ -262,7 +262,8 @@ Free tier: no API key needed (100 requests/hour, 50/wallet/hour).`,
           description: "Solana wallet public key (base58, 32-44 characters)"
         }
       }
-    }
+    },
+    instructions: `Step 1: Call get_wallet_report with a Solana wallet address.\nStep 2: Parse the response — it includes health_score, grade, recoverable_sol, fee_sol, and net_recoverable_sol.\nStep 3: If net_recoverable_sol > 0.001, call build_recovery_transaction to get unsigned transaction bytes.\nStep 4: Sign the transaction with the user's wallet and submit to Solana RPC.`
   },
   {
     name: "scan_token_approvals",
@@ -289,7 +290,8 @@ Free tier: no API key needed.`,
           description: "Solana wallet to scan for token approvals"
         }
       }
-    }
+    },
+    instructions: `Step 1: Call scan_token_approvals with a Solana wallet address.\nStep 2: Parse the response — it includes a list of dApps with spending approvals, rated by risk (HIGH/MEDIUM/LOW).\nStep 3: For HIGH-risk approvals, collect the token account addresses to revoke.\nStep 4: Call build_revoke_transactions with the wallet address and token accounts to revoke.`
   },
   {
     name: "build_revoke_transactions",
