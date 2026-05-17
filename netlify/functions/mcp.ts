@@ -788,10 +788,11 @@ async function executeTool(
         return createMCPError('TOOL_NOT_FOUND', `Unknown tool: ${name}`, name);
     }
   } catch (e: unknown) {
+    // Unexpected errors are server-side bugs, not tool execution failures — tag as INTERNAL_ERROR
     const message = e instanceof Error ? e.message : typeof e === 'string' ? e : String(e ?? 'Unknown error');
     return createMCPError(
-      'EXECUTION_ERROR',
-      `Tool execution failed: ${message}`,
+      'INTERNAL_ERROR',
+      `Internal server error: ${message}`,
       name,
       message
     );
