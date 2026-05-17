@@ -37,7 +37,7 @@ export const LoadingSpinner = memo(function LoadingSpinner({
                 aria-hidden="true"
             />
             {message && (
-                <p className="text-sm text-shield-muted animate-pulse" aria-atomic="true" aria-live="off">{message}</p>
+                <p className="text-sm text-shield-muted animate-pulse">{message}</p>
             )}
         </div>
     );
