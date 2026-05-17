@@ -7,6 +7,7 @@ import { buildWithdrawalTransactions } from '../lib/withdrawalBuilder';
 import { DecommissionRecoveryEstimate, DecommissionRecoveryItemResult } from '../types';
 import { createAppError } from '@/lib/errors';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
+import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 import { DECOMMISSION_SERVICE_FEE_PERCENT, DECOMMISSION_FEE_SOL_MIN } from '../constants';
 import { logger } from '@/lib/logger';
 
@@ -125,6 +126,9 @@ export function useDecommissionScanner() {
                     store.setRecoveryProgress(`Recovering ${item.protocol.name}... (${i + 1}/${transactions.length})`);
 
                     try {
+                        // SECURITY: Verify transaction before signing — program whitelist check
+                        verifyTransactionSecurity(transactions[i], publicKey);
+
                         const signed = await signTransaction(transactions[i]);
                         // If it's empty because of stub, it'll fail or not be broadcast if 0 ixs. Let's guard this:
                         if (transactions[i].instructions.length === 0) {
