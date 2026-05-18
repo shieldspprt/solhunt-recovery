@@ -96,8 +96,8 @@ export const RevokeConfirmModal = memo(function RevokeConfirmModal({ delegations
                 <button
                     type="button"
                     onClick={clearRevoke}
-                    className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     aria-label="Close revoke confirmation modal"
+                    className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                 >
                     <X className="h-5 w-5" aria-hidden="true" />
                 </button>
