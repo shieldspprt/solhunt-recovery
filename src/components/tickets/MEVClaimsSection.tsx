@@ -62,6 +62,7 @@ export const MEVClaimsSection = memo(function MEVClaimsSection() {
                             className="text-xs text-shield-accent hover:underline"
                             aria-label={allSelected ? 'Deselect all MEV rewards' : 'Select all MEV rewards'}
                         >
+                            <Zap className="h-4 w-4" fill="currentColor" aria-hidden="true" />
                             {allSelected ? 'Deselect All' : 'Select All'}
                         </button>
                     )}
