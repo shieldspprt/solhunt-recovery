@@ -4,10 +4,10 @@ import { useTicketFinder } from '@/hooks/useTicketFinder';
 import { SOLSCAN_TX_URL, TICKET_CLAIM_FEE_PERCENT } from '@/config/constants';
 import { estimateUSD, formatSOLValue, shortenAddress } from '@/lib/formatting';
 
-function ProgressIcon({ status }: { status: string }) {
+function ProgressIcon({ status }: { status: 'success' | 'failed' | 'pending' | 'skipped' | 'awaiting_signature' | 'confirming' | 'building' }) {
     if (status === 'success') return <CheckCircle2 className="h-4 w-4 text-shield-success" aria-hidden="true" />;
     if (status === 'failed') return <XCircle className="h-4 w-4 text-shield-danger" aria-hidden="true" />;
-    if (status === 'pending' || status === 'skipped') return <Clock3 className="h-4 w-4 text-shield-muted" aria-hidden="true" />;
+    if (status === 'pending' || status === 'skipped' || status === 'awaiting_signature' || status === 'confirming' || status === 'building') return <Clock3 className="h-4 w-4 text-shield-muted" aria-hidden="true" />;
     return <Loader2 className="h-4 w-4 text-shield-accent animate-spin" aria-hidden="true" />;
 }
 

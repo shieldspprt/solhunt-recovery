@@ -5,10 +5,10 @@ import { useAppStore } from '@/hooks/useAppStore';
 import { SOLSCAN_TX_URL, MEV_SERVICE_FEE_PERCENT } from '@/config/constants';
 import { estimateUSD, formatSOLValue, shortenAddress } from '@/lib/formatting';
 
-function ProgressIcon({ status }: { status: string }) {
+function ProgressIcon({ status }: { status: 'success' | 'failed' | 'pending' | 'skipped' }) {
     if (status === 'success') return <CheckCircle2 className="h-4 w-4 text-shield-success" aria-hidden="true" />;
     if (status === 'failed') return <XCircle className="h-4 w-4 text-shield-danger" aria-hidden="true" />;
-    if (status === 'pending') return <Clock3 className="h-4 w-4 text-shield-muted" aria-hidden="true" />;
+    if (status === 'pending' || status === 'skipped') return <Clock3 className="h-4 w-4 text-shield-muted" aria-hidden="true" />;
     return <Loader2 className="h-4 w-4 text-shield-accent animate-spin" aria-hidden="true" />;
 }
 
