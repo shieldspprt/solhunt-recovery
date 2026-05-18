@@ -607,8 +607,8 @@ async function executeTool(
         }
 
         const [healthData, oppsData] = await Promise.all([
-          healthRes.json(),
-          oppsRes.json()
+          healthRes.json().catch((e: unknown) => { throw new Error(`Health scan response parse failed: ${e instanceof Error ? e.message : String(e)}`); }),
+          oppsRes.json().catch((e: unknown) => { throw new Error(`Opportunities response parse failed: ${e instanceof Error ? e.message : String(e)}`); })
         ]);
 
         // Merge into single report
