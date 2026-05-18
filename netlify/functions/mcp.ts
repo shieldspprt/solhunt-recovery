@@ -666,7 +666,7 @@ async function executeTool(
           const detail = await parseResponseDetail(res);
           return createMCPError('EXECUTION_ERROR', `Token approvals scan failed: ${res.status}`, name, detail);
         }
-        const data = await res.json();
+        const data = await res.json().catch((e: unknown) => { throw new Error(`Token approvals scan response parse failed: ${e instanceof Error ? e.message : String(e)}`); });
         return { success: true, data };
       }
 
@@ -684,7 +684,7 @@ async function executeTool(
           const detail = await parseResponseDetail(res);
           return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name);
         }
-        return res.json();
+        return res.json().catch((e: unknown) => { throw new Error(`Build revoke response parse failed: ${e instanceof Error ? e.message : String(e)}`); });
       }
 
       case 'build_recovery_transaction': {
@@ -701,7 +701,7 @@ async function executeTool(
           const detail = await parseResponseDetail(res);
           return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name);
         }
-        return res.json();
+        return res.json().catch((e: unknown) => { throw new Error(`Build recovery response parse failed: ${e instanceof Error ? e.message : String(e)}`); });
       }
 
       case 'preview_recovery': {
@@ -718,7 +718,7 @@ async function executeTool(
           return createMCPError('EXECUTION_ERROR', `Opportunities API error ${oppsRes.status}: ${detail}`, name);
         }
 
-        const oppsData = await oppsRes.json();
+        const oppsData = await oppsRes.json().catch((e: unknown) => { throw new Error(`Preview recovery response parse failed: ${e instanceof Error ? e.message : String(e)}`); });
         const opps = oppsData?.data || {};
 
         const recoverableSol = opps.total_recoverable_sol || 0;
