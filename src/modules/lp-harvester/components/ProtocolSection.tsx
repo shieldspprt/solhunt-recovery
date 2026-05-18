@@ -36,9 +36,9 @@ export const ProtocolSection = memo(function ProtocolSection({
             >
                 <div className="flex items-center gap-2">
                     {collapsed ? (
-                        <ChevronRight className="h-4 w-4 text-shield-muted" />
+                        <ChevronRight className="h-4 w-4 text-shield-muted" aria-hidden="true" />
                     ) : (
-                        <ChevronDown className="h-4 w-4 text-shield-muted" />
+                        <ChevronDown className="h-4 w-4 text-shield-muted" aria-hidden="true" />
                     )}
                     <span className="text-sm font-semibold text-shield-text">
                         {info.displayName.toUpperCase()}
