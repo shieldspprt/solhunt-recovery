@@ -77,7 +77,17 @@ async function estimateLPTokenValue(
             return { estimatedUnderlyingA: null, estimatedUnderlyingB: null, estimatedValueUSD: null };
         }
 
-        const mintData = (mintInfo.value.data as MintAccountData).parsed?.info;
+        const rawData = mintInfo.value.data;
+        if (
+          typeof rawData !== 'object' ||
+          rawData === null ||
+          !('parsed' in rawData) ||
+          typeof (rawData as Record<string, unknown>).parsed !== 'object'
+        ) {
+          return { estimatedUnderlyingA: null, estimatedUnderlyingB: null, estimatedValueUSD: null };
+        }
+        const parsed = (rawData as Record<string, unknown>).parsed as MintAccountData['parsed'];
+        const mintData = parsed?.info;
         if (!mintData) {
             return { estimatedUnderlyingA: null, estimatedUnderlyingB: null, estimatedValueUSD: null };
         }
