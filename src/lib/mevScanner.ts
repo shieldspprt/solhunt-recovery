@@ -122,7 +122,7 @@ export async function fetchMEVClaims(
                     }
                 } catch (_pageErr: unknown) {
                     // pageErr intentionally unused — network failures are non-fatal (logged above)
-                    logger.error(`fetchMEVClaims page ${page} failed`);
+                    logger.warn(`fetchMEVClaims page ${page} failed: ${_pageErr instanceof Error ? _pageErr.message : String(_pageErr)}`);
                 }
             }
         }
