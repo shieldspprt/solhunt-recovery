@@ -26,6 +26,11 @@ export const ScanPage = memo(function ScanPage() {
         // Prevent search engines from indexing wallet-specific scan results
         const metaRobots = document.querySelector('meta[name="robots"]');
         if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
+        // Update OG tags so shared links show page-specific content
+        const ogTitle = document.querySelector('meta[property="og:title"]');
+        const ogDesc = document.querySelector('meta[property="og:description"]');
+        if (ogTitle) ogTitle.setAttribute('content', 'Scan | SolHunt');
+        if (ogDesc) ogDesc.setAttribute('content', 'Scan your Solana wallet for recoverable SOL, token approvals, and hidden value across 9 recovery engines — instantly and client-side.');
     }, []);
 
     // Memoize the hash value to prevent unnecessary effect re-runs

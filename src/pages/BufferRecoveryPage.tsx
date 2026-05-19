@@ -14,6 +14,10 @@ export function BufferRecoveryPage() {
         document.title = 'Buffer Recovery | SolHunt';
         const metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc) metaDesc.setAttribute('content', 'Recover locked SOL from Solana program buffer accounts using SolHunt\'s Buffer Recovery engine — safely, client-side.');
+        const ogTitle = document.querySelector('meta[property="og:title"]');
+        const ogDesc = document.querySelector('meta[property="og:description"]');
+        if (ogTitle) ogTitle.setAttribute('content', 'Buffer Recovery | SolHunt');
+        if (ogDesc) ogDesc.setAttribute('content', 'Recover locked SOL from Solana program buffer accounts using SolHunt\'s Buffer Recovery engine — safely, client-side.');
     }, []);
 
     return (
