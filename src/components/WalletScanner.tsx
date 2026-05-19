@@ -432,6 +432,7 @@ export function WalletScanner() {
               <button
                 onClick={() => { cleanupScan(); setState('idle'); setIsSlow(false); }}
                 type="button"
+                aria-label="Cancel slow scan"
                 className="ml-2 underline hover:text-yellow-300"
               >
                 Cancel
