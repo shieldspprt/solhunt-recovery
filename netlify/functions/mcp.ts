@@ -957,6 +957,8 @@ export const handler: Handler = async (event) => {
     const rateLimitedHeaders = buildHeaders(true);
     // Override remaining to 0 (buildHeaders uses actual remaining which may be > 0 at check time)
     rateLimitedHeaders['X-RateLimit-Remaining'] = '0';
+    const retryAfterSec = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
+    const retryAt = new Date(rateLimit.resetAt).toISOString();
     return {
       statusCode: 429,
       headers: rateLimitedHeaders,
@@ -965,8 +967,19 @@ export const handler: Handler = async (event) => {
         id: null,
         error: {
           code: -32000,
-          message: `Rate limit exceeded (${rateLimit.source === 'wallet' ? 'per-wallet' : 'per-IP'}). Try again after ${new Date(rateLimit.resetAt).toISOString()}`,
-          data: createMCPError('RATE_LIMITED', `Rate limit exceeded (${rateLimit.source === 'wallet' ? 'per-wallet' : 'per-IP'}). Try again after ${new Date(rateLimit.resetAt).toISOString()}`)
+          message: `Rate limit exceeded (${rateLimit.source === 'wallet' ? 'per-wallet' : 'per-IP'}). Try again after ${retryAt}`,
+          data: {
+            error: `Rate limit exceeded (${rateLimit.source === 'wallet' ? 'per-wallet' : 'per-IP'}). Try again after ${retryAt}`,
+            code: 'RATE_LIMITED',
+            retry_after_seconds: retryAfterSec,
+            rate_limit: {
+              limit: RATE_LIMIT,
+              remaining: 0,
+              reset_at: retryAt,
+              window_seconds: Math.floor(RATE_WINDOW_MS / 1000),
+              source: rateLimit.source
+            }
+          }
         }
       })
     };
