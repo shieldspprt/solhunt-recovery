@@ -151,7 +151,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                                 <button
                                     type="button"
                                     onClick={() => revoke(delegations)}
-                                    aria-label="Try Again"
+                                    aria-label="Cancel and close modal"
                                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                                 >
                                     <RefreshCw className="h-4 w-4" aria-hidden="true" />
