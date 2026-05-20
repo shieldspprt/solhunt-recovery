@@ -592,14 +592,14 @@ async function executeTool(
         ]);
 
         if (!healthRes.ok) {
-          const detail = await healthRes.text().catch(() => healthRes.statusText);
+          const detail = await healthRes.text().catch((e: unknown) => healthRes.statusText || String(e));
           if (healthRes.status === 404) {
             return createMCPError('WALLET_NOT_FOUND', `Wallet ${address} not found. Check the address and try again.`, name);
           }
           return createMCPError('EXECUTION_ERROR', `Wallet scan API error ${healthRes.status}: ${detail}`, name);
         }
         if (!oppsRes.ok) {
-          const detail = await oppsRes.text().catch(() => oppsRes.statusText);
+          const detail = await oppsRes.text().catch((e: unknown) => oppsRes.statusText || String(e));
           if (oppsRes.status === 404) {
             return createMCPError('WALLET_NOT_FOUND', `Wallet ${address} not found or has no recovery opportunities.`, name);
           }
@@ -714,7 +714,7 @@ async function executeTool(
         );
 
         if (!oppsRes.ok) {
-          const detail = await oppsRes.text().catch(() => oppsRes.statusText);
+          const detail = await oppsRes.text().catch((e: unknown) => oppsRes.statusText || String(e));
           return createMCPError('EXECUTION_ERROR', `Opportunities API error ${oppsRes.status}: ${detail}`, name);
         }
 
