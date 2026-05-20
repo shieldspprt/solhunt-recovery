@@ -8,6 +8,10 @@ export function CopyrightPage() {
         document.title = 'Copyright | SolHunt';
         const metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc) metaDesc.setAttribute('content', 'SolHunt copyright notice and intellectual property information. All rights reserved for SolHunt and its associated trademarks and technology.');
+        const ogTitle = document.querySelector('meta[property="og:title"]');
+        const ogDesc = document.querySelector('meta[property="og:description"]');
+        if (ogTitle) ogTitle.setAttribute('content', 'Copyright | SolHunt');
+        if (ogDesc) ogDesc.setAttribute('content', 'SolHunt copyright notice and intellectual property information. All rights reserved for SolHunt and its associated trademarks and technology.');
     }, []);
 
     return (

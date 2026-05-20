@@ -391,6 +391,10 @@ export function EngineHowItWorksPage() {
                     ? engineInfo.description
                     : 'Learn how SolHunt recovery engines work — revoke approvals, reclaim rent, sweep dust, harvest LP fees, recover staking tickets, and more — all client-side.');
         }
+        const ogTitle = document.querySelector('meta[property="og:title"]');
+        const ogDesc = document.querySelector('meta[property="og:description"]');
+        if (ogTitle) ogTitle.setAttribute('content', title);
+        if (ogDesc && metaDesc) ogDesc.setAttribute('content', metaDesc.getAttribute('content') || title);
     }, [id]);
 
     // Route validation

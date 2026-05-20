@@ -33,6 +33,10 @@ export const HomePage = memo(function HomePage() {
         document.title = 'SolHunt | Recover Locked SOL';
         const metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc) metaDesc.setAttribute('content', 'Recover locked and recoverable SOL from your Solana wallet with 9 client-side recovery engines — revoke token approvals, reclaim rent, harvest LP fees, and more. Non-custodial and open-source.');
+        const ogTitle = document.querySelector('meta[property="og:title"]');
+        const ogDesc = document.querySelector('meta[property="og:description"]');
+        if (ogTitle) ogTitle.setAttribute('content', 'SolHunt | Recover Locked SOL');
+        if (ogDesc) ogDesc.setAttribute('content', 'Recover locked and recoverable SOL from your Solana wallet with 9 client-side recovery engines — revoke token approvals, reclaim rent, harvest LP fees, and more. Non-custodial and open-source.');
     }, []);
 
     useEffect(() => {

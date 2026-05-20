@@ -9,6 +9,10 @@ export const HowItWorksPage = memo(function HowItWorksPage() {
         document.title = 'How It Works | SolHunt';
         const metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc) metaDesc.setAttribute('content', 'A transparent technical breakdown of Solana rent, client-side transaction building, and SolHunt\'s non-custodial security model for recovering locked SOL.');
+        const ogTitle = document.querySelector('meta[property="og:title"]');
+        const ogDesc = document.querySelector('meta[property="og:description"]');
+        if (ogTitle) ogTitle.setAttribute('content', 'How It Works | SolHunt');
+        if (ogDesc) ogDesc.setAttribute('content', 'A transparent technical breakdown of Solana rent, client-side transaction building, and SolHunt\'s non-custodial security model for recovering locked SOL.');
     }, []);
 
     return (

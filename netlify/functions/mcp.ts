@@ -380,7 +380,7 @@ Fee: 15% of recovered SOL by default. Override with fee_percent (0-100).`,
         },
         destination_wallet: {
           type: "string",
-          description: "Where to send recovered SOL (can be same wallet)"
+          description: "Solana wallet public key (base58, 32-44 characters)"
         },
         batch_number: {
           type: "number",

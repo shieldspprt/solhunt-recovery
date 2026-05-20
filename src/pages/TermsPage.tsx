@@ -8,6 +8,10 @@ export function TermsPage() {
         document.title = 'Terms of Service | SolHunt';
         const metaDesc = document.querySelector('meta[name="description"]');
         if (metaDesc) metaDesc.setAttribute('content', 'SolHunt is a non-custodial Solana wallet recovery tool. Read our terms of service, fee structure, and liability disclosures before using the platform.');
+        const ogTitle = document.querySelector('meta[property="og:title"]');
+        const ogDesc = document.querySelector('meta[property="og:description"]');
+        if (ogTitle) ogTitle.setAttribute('content', 'Terms of Service | SolHunt');
+        if (ogDesc) ogDesc.setAttribute('content', 'SolHunt is a non-custodial Solana wallet recovery tool. Read our terms of service, fee structure, and liability disclosures before using the platform.');
     }, []);
 
     return (
