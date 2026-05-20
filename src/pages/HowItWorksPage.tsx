@@ -88,7 +88,7 @@ export const HowItWorksPage = memo(function HowItWorksPage() {
                             </p>
                         </div>
                         <div className="glass-card rounded-2xl p-6">
-                            <FileCode className="h-6 w-6 text-shield-warning mb-3" />
+                            <FileCode className="h-6 w-6 text-shield-warning mb-3" aria-hidden="true" />
                             <h3 className="text-lg font-bold text-shield-text mb-2">Client-Side Assembly</h3>
                             <p className="text-sm text-shield-muted leading-relaxed">
                                 Every Transaction and VersionedTransaction is natively constructed in your browser using <code className="text-xs font-mono">@solana/web3.js</code>. The raw buffers are serialized and passed directly to your wallet extension (Phantom/Solflare) for you to review and sign.
