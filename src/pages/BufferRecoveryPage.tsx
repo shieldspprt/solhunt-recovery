@@ -18,6 +18,9 @@ export function BufferRecoveryPage() {
         const ogDesc = document.querySelector('meta[property="og:description"]');
         if (ogTitle) ogTitle.setAttribute('content', 'Buffer Recovery | SolHunt');
         if (ogDesc) ogDesc.setAttribute('content', 'Recover locked SOL from Solana program buffer accounts using SolHunt\'s Buffer Recovery engine — safely, client-side.');
+        // Prevent search engines from indexing wallet-specific scan results
+        const metaRobots = document.querySelector('meta[name="robots"]');
+        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
     }, []);
 
     return (
