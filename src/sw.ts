@@ -122,6 +122,9 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
   event.waitUntil(self.clients.claim());
 });
 
+// Workaround: ExtendableEvent is not in lib.dom.d.ts but is valid in Service Worker scope.
+// Use type assertion to satisfy TypeScript strict mode while preserving runtime correctness.
+
 // ──────────────────────────────────────────────────────
 // 7. PWA Install Prompt Capture
 //    Defer the native install prompt for better UX timing
