@@ -159,38 +159,30 @@ const MiniChart = memo(function MiniChart({ history }: { history: DayStat[] }) {
   const maxSol = Math.max(...reversed.map(d => d.total_recoverable_sol));
 
   return (
-    <div className="mt-4" role="region" aria-label="7-day recoverable SOL chart">
+    <div className="mt-4" role="figure" aria-label="7-day recoverable SOL bar chart">
       <p className="text-xs text-gray-500 mb-2">7-day recoverable SOL</p>
       <div className="flex items-end gap-1 h-12">
-        {reversed.map((d) => (
-          <div
-            key={d.date}
-            className="flex-1 flex flex-col items-center gap-1"
-          >
+        {reversed.map((d) => {
+          const barHeight = maxSol > 0
+            ? `${Math.max(4, (d.total_recoverable_sol / maxSol) * 40)}px`
+            : '4px';
+          const ariaLabel = `${d.date}: ${d.total_recoverable_sol} SOL recoverable`;
+          return (
             <div
-              className="w-full rounded-t bg-purple-500/60 hover:bg-purple-400/80 transition-colors cursor-default"
-              role="img"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  navigator.clipboard.writeText(`${d.total_recoverable_sol} SOL on ${d.date}`).catch((err: unknown) => {
-                    logger.warn('Clipboard write failed:', err instanceof Error ? err.message : String(err));
-                  });
-                }
-              }}
-              aria-label={`${d.date}: ${d.total_recoverable_sol} SOL recoverable. Press Enter to copy.`}
-              style={{
-                height: maxSol > 0
-                  ? `${Math.max(4, (d.total_recoverable_sol / maxSol) * 40)}px`
-                  : '4px'
-              }}
-            />
-            <span className="text-gray-600 text-xs">
-              {new Date(d.date).getDate()}
-            </span>
-          </div>
-        ))}
+              key={d.date}
+              className="flex-1 flex flex-col items-center gap-1"
+              aria-label={ariaLabel}
+            >
+              <div
+                className="w-full rounded-t bg-purple-500/60 hover:bg-purple-400/80 transition-colors cursor-default"
+                style={{ height: barHeight }}
+              />
+              <span className="text-gray-600 text-xs">
+                {new Date(d.date).getDate()}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
