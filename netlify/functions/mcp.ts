@@ -1090,7 +1090,7 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 400,
         headers: buildHeaders(),
-        body: JSON.stringify(createMCPError('TOOL_NOT_FOUND', `Unknown tool: ${toolName || 'undefined'}`, toolName))
+        body: JSON.stringify(createMCPError('TOOL_NOT_FOUND', `Unknown tool: ${toolName || 'undefined'}`, toolName, `Valid tool names are: get_wallet_report, scan_token_approvals, build_revoke_transactions, build_recovery_transaction, preview_recovery, discover_platform_features`))
       };
     }
 
@@ -1099,7 +1099,7 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 400,
         headers: buildHeaders(),
-        body: JSON.stringify(createMCPError('INVALID_PARAMS', `Invalid arguments for ${toolName}`))
+        body: JSON.stringify(createMCPError('INVALID_PARAMS', `Invalid arguments for ${toolName}. See the tool inputSchema for required and optional fields.`, toolName))
       };
     }
 
