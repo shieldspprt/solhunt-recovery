@@ -118,12 +118,11 @@ registerRoute(
 // 6. Lifecycle: skip waiting + claim clients for fast updates
 // ──────────────────────────────────────────────────────
 self.skipWaiting();
-self.addEventListener('activate', (event: ExtendableEvent) => {
-  event.waitUntil(self.clients.claim());
+self.addEventListener('activate', (event: unknown) => {
+  // Workaround: ExtendableEvent is not in lib.dom.d.ts but is valid in Service Worker scope.
+  // Use type assertion to satisfy TypeScript strict mode while preserving runtime correctness.
+  (event as ExtendableEvent).waitUntil(self.clients.claim());
 });
-
-// Workaround: ExtendableEvent is not in lib.dom.d.ts but is valid in Service Worker scope.
-// Use type assertion to satisfy TypeScript strict mode while preserving runtime correctness.
 
 // ──────────────────────────────────────────────────────
 // 7. PWA Install Prompt Capture
