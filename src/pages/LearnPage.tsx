@@ -302,10 +302,8 @@ export function LearnPage() {
         if (metaDesc) metaDesc.setAttribute('content', 'Deep dive into SolHunt\'s 9 recovery engines: revoke approvals, reclaim rent, harvest LP fees, and recover locked SOL from your Solana wallet.');
         const ogTitle = document.querySelector('meta[property="og:title"]');
         const ogDesc = document.querySelector('meta[property="og:description"]');
-        const ogImage = document.querySelector('meta[property="og:image"]');
         if (ogTitle) ogTitle.setAttribute('content', 'Learning Hub | SolHunt');
         if (ogDesc) ogDesc.setAttribute('content', 'Deep dive into SolHunt\'s 9 recovery engines: revoke approvals, reclaim rent, harvest LP fees, and recover locked SOL from your Solana wallet.');
-        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
         // Prevent search engines from indexing the learning hub
         const metaRobots = document.querySelector('meta[name="robots"]');
         if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
