@@ -289,19 +289,19 @@ export function WalletScanner() {
 
       setResult(data.data);
       setState('success');
-    } catch (e: unknown) {
+    } catch (err: unknown) {
       // Don't report errors for aborted requests - they were intentionally cancelled
-      if (e instanceof Error && e.name === 'AbortError') {
+      if (err instanceof Error && err.name === 'AbortError') {
         setState('idle');
         return;
       }
 
       // Log full error in non-production for debugging; in production this is
       // handled gracefully and surfaced to the user as an AppError message
-      logger.warn('WalletScanner handleScan failed:', e instanceof Error ? e.message : String(e));
+      logger.warn('WalletScanner handleScan failed:', err instanceof Error ? err.message : String(err));
 
       setState('error');
-      const appError = toAppError(e, 'NETWORK_ERROR');
+      const appError = toAppError(err, 'NETWORK_ERROR');
       setError(appError.message);
     } finally {
       // Clear slow scan timeout in case of error

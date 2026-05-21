@@ -118,8 +118,8 @@ async function estimateLPTokenValue(
             estimatedUnderlyingB: userAmountB,
             estimatedValueUSD,
         };
-    } catch (e: unknown) {
-        const message = e instanceof Error ? e.message : 'Failed to estimate LP token value';
+    } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Failed to estimate LP token value';
         logger.warn(message);
         return { estimatedUnderlyingA: null, estimatedUnderlyingB: null, estimatedValueUSD: null };
     }
