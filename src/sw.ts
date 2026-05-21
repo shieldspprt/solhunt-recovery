@@ -24,6 +24,15 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 /**
+ * Service Worker activate event.
+ * Used to claim clients after a new service worker activates.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/ExtendableEvent
+ */
+interface ActivateEvent extends ExtendableEvent {
+    waitUntil(promise: Promise<unknown>): void;
+}
+
+/**
  * Extends ServiceWorkerGlobalScope with SolHunt-specific additions.
  * Allows the app to access the deferred install prompt captured by the SW.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope
@@ -118,10 +127,8 @@ registerRoute(
 // 6. Lifecycle: skip waiting + claim clients for fast updates
 // ──────────────────────────────────────────────────────
 self.skipWaiting();
-self.addEventListener('activate', (event: unknown) => {
-  // Workaround: ExtendableEvent is not in lib.dom.d.ts but is valid in Service Worker scope.
-  // Use type assertion to satisfy TypeScript strict mode while preserving runtime correctness.
-  (event as ExtendableEvent).waitUntil(self.clients.claim());
+self.addEventListener('activate', (event: ActivateEvent) => {
+    event.waitUntil(self.clients.claim());
 });
 
 // ──────────────────────────────────────────────────────
