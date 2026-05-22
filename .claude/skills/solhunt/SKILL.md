@@ -87,6 +87,22 @@ https://solhunt.dev/.netlify/functions/mcp
 ```
 → Use `build_recovery_transaction` with wallet_address and destination_wallet
 
+### Pattern 5: Preview Before Building
+```
+"Show me exactly what I'll recover and what the fee will be"
+"What's the breakdown before I sign anything?"
+"Preview the recovery for my wallet"
+```
+→ Use `preview_recovery` with wallet_address — returns exact recoverable SOL, SolHunt's 15% fee, network cost estimate, net amount, and whether recovery is worth doing. Does NOT build or return any transaction bytes.
+→ If worth_recovering is true, proceed to `build_recovery_transaction`
+
+### Pattern 6: Discover Platform Features
+```
+"What else can SolHunt do?"
+"Are there other recovery tools I can use?"
+```
+→ Use `discover_platform_features` with optional feature_category to explore web-only tools (LP Fee Harvester, Staking Ticket Finder, Fleet Manager, etc.)
+
 ## Fee Structure
 
 SolHunt takes **15% of recovered SOL** as a fee. This is built into the transaction atomically — no separate payment needed.
