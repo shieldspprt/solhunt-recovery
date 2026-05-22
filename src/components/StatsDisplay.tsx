@@ -103,7 +103,7 @@ const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: strin
   }, [text]);
 
   return (
-    <span aria-live="polite" aria-atomic="true">
+    <span>
       <button
         type="button"
         onClick={handleCopy}
@@ -113,9 +113,9 @@ const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: strin
             ? 'bg-green-600 text-white'
             : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
         ].join(' ')}
-        aria-label={copied ? `Copied: ${label}` : label}
+        aria-label={label}
       >
-        {copied ? '✓ Copied' : label}
+        {label}
       </button>
     </span>
   );
