@@ -953,15 +953,12 @@ export const handler: Handler = async (event) => {
   
   // If rate limited, return early with 429
   if (!rateLimit.allowed) {
-    // Use buildHeaders(true) to keep rate limit headers consistent with successful responses
-    const rateLimitedHeaders = buildHeaders(true);
-    // Override remaining to 0 (buildHeaders uses actual remaining which may be > 0 at check time)
-    rateLimitedHeaders['X-RateLimit-Remaining'] = '0';
+    // Rate limit headers are already set — preserve them in the body response too
     const retryAfterSec = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
     const retryAt = new Date(rateLimit.resetAt).toISOString();
     return {
       statusCode: 429,
-      headers: rateLimitedHeaders,
+      headers: buildHeaders(true),
       body: JSON.stringify({
         jsonrpc: "2.0",
         id: null,
