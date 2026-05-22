@@ -248,7 +248,9 @@ export function StatsDisplay() {
             })}
           </p>
         </div>
-        <span className="text-xs text-gray-600 bg-gray-800 px-2 py-1 rounded">
+        <span className="text-xs text-gray-600 bg-gray-800 px-2 py-1 rounded"
+          aria-label="Stats update schedule: daily at 9am UTC"
+        >
           Updates 9am UTC
         </span>
       </div>
