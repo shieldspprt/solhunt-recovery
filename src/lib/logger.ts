@@ -20,5 +20,8 @@ export const logger = {
         if (!IS_PRODUCTION) console.error(context, err);
         // In production: errors are sent to Firebase Analytics
         // via the existing logScanError / logEvent system.
+        // Until that path is wired, avoid raw console.error to prevent
+        // wallet data leakage to server stderr — use logger.warn instead.
+        if (IS_PRODUCTION) logger.warn(`[ERROR] ${context}`, err);
     },
 };
