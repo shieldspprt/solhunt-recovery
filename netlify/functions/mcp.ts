@@ -350,6 +350,11 @@ Safety: Revoking is always safe — it only removes permissions, never adds them
           type: "number",
           description: "Fee percentage to be applied to the recovered SOL (default: 15%, range: 0-100). Set to 0 to disable the fee.",
           default: 15
+        },
+        max_revoke_batch_size: {
+          type: "number",
+          description: "Maximum number of revocations per transaction (default: 15, Solana hard limit). SolHunt will split into multiple transactions if the total exceeds this.",
+          default: 15
         }
       }
     },
