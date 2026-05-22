@@ -130,7 +130,7 @@ export function DustBurnProgressModal() {
                     {dustBurnStatus === 'error' && dustBurnError && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500">
                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-danger/10">
-                                <XCircle className="h-8 w-8 text-shield-danger" />
+                                <XCircle className="h-8 w-8 text-shield-danger" aria-hidden="true" />
                             </div>
                             <h2 className="text-xl font-bold text-shield-text text-center mb-2">
                                 Burn & Reclaim Failed
