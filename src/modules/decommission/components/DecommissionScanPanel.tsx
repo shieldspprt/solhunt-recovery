@@ -33,7 +33,7 @@ export function DecommissionScanPanel({ startScan }: Props) {
             </div>
 
             <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-5 max-w-2xl mx-auto mb-10 text-left flex gap-4">
-                <span className="text-2xl">⚠️</span>
+                <span className="text-2xl" aria-hidden="true">⚠️</span>
                 <div>
                     <strong className="text-orange-400 block mb-1">Important: Do not burn tokens from dead protocols.</strong>
                     <span className="text-shield-muted text-sm">
