@@ -108,11 +108,12 @@ const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: strin
         type="button"
         onClick={handleCopy}
         className={[
-          'text-xs px-3 py-1.5 rounded-md font-medium transition-all',
+          'text-xs px-3 py-1.5 rounded-md font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent',
           copied
             ? 'bg-green-600 text-white'
             : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-        ].join(' ')}
+        ].join(' ')
+        }
         aria-label={label}
       >
         {label}
@@ -313,7 +314,7 @@ export function StatsDisplay() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Post draft to X (opens in new tab)"
-              className="text-xs px-3 py-1.5 rounded-md font-medium bg-black hover:bg-gray-900 text-white border border-gray-700 transition-all"
+              className="text-xs px-3 py-1.5 rounded-md font-medium bg-black hover:bg-gray-900 text-white border border-gray-700 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent"
             >
               Post to X →
             </a>
