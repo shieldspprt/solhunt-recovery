@@ -601,14 +601,14 @@ async function executeTool(
           if (healthRes.status === 404) {
             return createMCPError('WALLET_NOT_FOUND', `Wallet ${address} not found. Check the address and try again.`, name);
           }
-          return createMCPError('EXECUTION_ERROR', `Wallet scan API error ${healthRes.status}: ${detail}`, name);
+          return createMCPError('EXECUTION_ERROR', `Wallet scan API error ${healthRes.status}: ${detail}`, name, detail);
         }
         if (!oppsRes.ok) {
           const detail = await oppsRes.text().catch((e: unknown) => oppsRes.statusText || String(e));
           if (oppsRes.status === 404) {
             return createMCPError('WALLET_NOT_FOUND', `Wallet ${address} not found or has no recovery opportunities.`, name);
           }
-          return createMCPError('EXECUTION_ERROR', `Opportunities API error ${oppsRes.status}: ${detail}`, name);
+          return createMCPError('EXECUTION_ERROR', `Opportunities API error ${oppsRes.status}: ${detail}`, name, detail);
         }
 
         const [healthData, oppsData] = await Promise.all([
@@ -720,7 +720,7 @@ async function executeTool(
 
         if (!oppsRes.ok) {
           const detail = await oppsRes.text().catch((e: unknown) => oppsRes.statusText || String(e));
-          return createMCPError('EXECUTION_ERROR', `Opportunities API error ${oppsRes.status}: ${detail}`, name);
+          return createMCPError('EXECUTION_ERROR', `Opportunities API error ${oppsRes.status}: ${detail}`, name, detail);
         }
 
         const oppsData = await oppsRes.json().catch((e: unknown) => { throw new Error(`Preview recovery response parse failed: ${e instanceof Error ? e.message : String(e)}`); });
