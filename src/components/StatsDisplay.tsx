@@ -169,12 +169,10 @@ const MiniChart = memo(function MiniChart({ history }: { history: DayStat[] }) {
           const barHeight = maxSol > 0
             ? `${Math.max(4, (d.total_recoverable_sol / maxSol) * 40)}px`
             : '4px';
-          const ariaLabel = `${d.date}: ${d.total_recoverable_sol} SOL recoverable`;
           return (
             <div
               key={d.date}
               className="flex-1 flex flex-col items-center gap-1"
-              aria-label={ariaLabel}
             >
               <div
                 className="w-full rounded-t bg-purple-500/60 hover:bg-purple-400/80 transition-colors cursor-default"
