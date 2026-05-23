@@ -92,7 +92,7 @@ export const ClaimProgressModal = memo(() => {
                                             <a
                                                 href={SOLSCAN_TX_URL(item.signature)}
                                                 target="_blank"
-                                                rel="noreferrer"
+                                                rel="noopener noreferrer"
                                                 className="text-xs text-shield-accent hover:underline"
                                             >
                                                 View
