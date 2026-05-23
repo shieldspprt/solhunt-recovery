@@ -964,26 +964,21 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 429,
       headers: buildHeaders(true),
-      body: JSON.stringify({
-        jsonrpc: "2.0",
-        id: null,
-        error: {
-          code: -32000,
-          message: `Rate limit exceeded (${rateLimit.source === 'wallet' ? 'per-wallet' : 'per-IP'}). Try again after ${retryAt}`,
-          data: {
-            error: `Rate limit exceeded (${rateLimit.source === 'wallet' ? 'per-wallet' : 'per-IP'}). Try again after ${retryAt}`,
-            code: 'RATE_LIMITED',
-            retry_after_seconds: retryAfterSec,
-            rate_limit: {
-              limit: RATE_LIMIT,
-              remaining: 0,
-              reset_at: retryAt,
-              window_seconds: Math.floor(RATE_WINDOW_MS / 1000),
-              source: rateLimit.source
-            }
-          }
-        }
-      })
+      body: JSON.stringify(createMCPError(
+        'RATE_LIMITED',
+        `Rate limit exceeded (${rateLimit.source === 'wallet' ? 'per-wallet' : 'per-IP'}). Try again after ${retryAt}`,
+        undefined,
+        JSON.stringify({
+          retry_after_seconds: retryAfterSec,
+          rate_limit: {
+            limit: RATE_LIMIT,
+            remaining: 0,
+            reset_at: retryAt,
+            window_seconds: Math.floor(RATE_WINDOW_MS / 1000),
+            source: rateLimit.source,
+          },
+        })
+      ))
     };
   }
 
