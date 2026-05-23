@@ -36,7 +36,7 @@ async function fetchSOLPriceUSD(): Promise<number> {
 /**
  * Paginated fetch with timeout wrapper for MEV API pages.
  */
-async function fetchWithTimeout(url: string, body: object): Promise<Response> {
+async function fetchWithTimeout(url: string, body: Record<string, unknown>): Promise<Response> {
     return withTimeout(
         fetch(url, {
             method: 'POST',
