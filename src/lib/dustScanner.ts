@@ -102,7 +102,16 @@ async function fetchDexScreenerPairs(mints: string[]): Promise<Map<string, DexSc
 
     for (const mintBatch of mintBatches) {
         const url = `${DEXSCREENER_TOKEN_PRICES_API}/${mintBatch.join(',')}`;
-        const response = await fetch(url);
+        let response: Response;
+        try {
+            response = await fetch(url);
+        } catch (fetchErr: unknown) {
+            throw createAppError(
+                'DUST_PRICE_FETCH_FAILED',
+                `Network error reaching DexScreener: ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}`
+            );
+        }
+
         if (!response.ok) {
             throw createAppError(
                 'DUST_PRICE_FETCH_FAILED',
@@ -110,7 +119,15 @@ async function fetchDexScreenerPairs(mints: string[]): Promise<Map<string, DexSc
             );
         }
 
-        const payload = (await response.json()) as DexScreenerPair[];
+        let payload: DexScreenerPair[];
+        try {
+            payload = (await response.json()) as DexScreenerPair[];
+        } catch (parseErr: unknown) {
+            throw createAppError(
+                'DUST_PRICE_FETCH_FAILED',
+                `DexScreener returned malformed JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`
+            );
+        }
 
         for (const mint of mintBatch) {
             const bestPair = chooseBestPairForMint(mint, payload);
