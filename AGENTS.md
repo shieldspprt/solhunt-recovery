@@ -54,7 +54,7 @@ Revoke, Reclaim Rent, Dust Consolidator, Staking Ticket Finder, LP Fee Harvester
 **Deployed**: `https://solhunt.dev/.netlify/functions/mcp`
 **Discovery**: `https://solhunt.dev/.well-known/mcp/server-card.json`
 
-### 5 MCP Tools
+### 6 MCP Tools
 
 | Tool | Purpose |
 |------|---------|
@@ -62,6 +62,7 @@ Revoke, Reclaim Rent, Dust Consolidator, Staking Ticket Finder, LP Fee Harvester
 | `scan_token_approvals` | Find all dApp spending approvals, rated by risk |
 | `build_revoke_transactions` | Build unsigned tx to revoke token approvals |
 | `build_recovery_transaction` | Build unsigned tx to recover SOL from zero-balance accounts |
+| `preview_recovery` | Explicit fee preview before building — recoverable SOL, fee, net amount, network cost |
 | `discover_platform_features` | Cross-sell web platform capabilities |
 
 ### Priority Areas (MCP)
@@ -179,7 +180,7 @@ return { error: `Tool execution failed: ${e.message}`, code: 'EXECUTION_ERROR', 
 | Dimension | Criteria |
 |-----------|----------|
 | PWA | Strict TypeScript (no `any`), input validation at all entry points, retry logic, simulation before send |
-| MCP | All 5 tools implemented, JSON-RPC + direct format, typed errors, rate limit headers |
+| MCP | All 6 tools implemented, JSON-RPC + direct format, typed errors, rate limit headers |
 | Skill | Synced with MCP schema, 3+ examples per tool, safety notes |
 | TWA | Deep links verified, shortcuts configured, offline-capable |
 

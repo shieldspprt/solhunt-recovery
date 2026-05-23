@@ -232,7 +232,7 @@ function validateToolArgs(name: ToolName, args: RawToolArgs): ToolArgs | null {
 // These are what agents see when they load SolHunt as an MCP tool
 // Write descriptions as if explaining to an AI agent — precise, actionable
 
-// SolHunt MCP — 7 tools:
+// SolHunt MCP — 6 tools:
 // get_wallet_report: understand the wallet
 // scan_token_approvals: security scan for token approvals
 // build_revoke_transactions: revoke token approvals
