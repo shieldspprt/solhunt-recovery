@@ -33,8 +33,9 @@ export const TicketRow = memo(function TicketRow({ ticket }: TicketRowProps) {
                 <a
                     href={SOLSCAN_ACCOUNT_URL(ticket.ticketAccountAddress)}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 hover:text-shield-text transition-colors"
+                    aria-label="View staking ticket on Solscan (opens in new tab)"
                 >
                     {formattedValues.shortAddress}
                     <ExternalLink className="h-3 w-3" />

@@ -52,9 +52,10 @@ export const MEVClaimRow = memo(function MEVClaimRow({ item, isSelected, onToggl
                     <a
                         href={SOLSCAN_ACCOUNT_URL(item.stakeAccount)}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 hover:text-shield-text transition-colors"
                         onClick={(e) => e.stopPropagation()}
+                        aria-label="View stake account on Solscan (opens in new tab)"
                     >
                         {shortenAddress(item.stakeAccount, 4)}
                         <ExternalLink className="h-3 w-3" />
