@@ -310,7 +310,7 @@ export function StatsDisplay() {
           <div className="flex items-center gap-2">
             <CopyButton text={today.x_draft} label="Copy post" />
             <a
-              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(today.x_draft)}`}
+              href={`https://x.com/intent/tweet?text=${encodeURIComponent(today.x_draft)}`}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Post draft to X (opens in new tab)"
