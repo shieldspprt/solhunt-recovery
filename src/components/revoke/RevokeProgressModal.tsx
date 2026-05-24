@@ -92,7 +92,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                     {revokeStatus === 'complete' && revokeResult?.success && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500">
                             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-shield-success/10">
-                                <CheckCircle2 className="h-12 w-12 text-shield-success" />
+                                <CheckCircle2 className="h-12 w-12 text-shield-success" aria-hidden="true" />
                             </div>
                             <h2 className="text-2xl font-bold text-shield-text mb-2">Protected!</h2>
                             <p className="text-shield-muted mb-6">

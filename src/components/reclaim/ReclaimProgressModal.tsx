@@ -110,7 +110,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                                         rel="noopener noreferrer"
                                         className="inline-flex items-center gap-2 text-sm font-medium text-shield-success hover:text-white transition-colors"
                                     >
-                                        View on Solscan <ExternalLink className="h-4 w-4" />
+                                        View on Solscan <ExternalLink className="h-4 w-4" aria-hidden="true" />
                                     </a>
                                 )}
 
