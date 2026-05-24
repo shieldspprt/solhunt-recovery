@@ -43,6 +43,8 @@ interface BuildRevokeTransactionsArgs {
   token_accounts: TokenAccountItem[];
   batch_number?: number;
   fee_percent?: number;
+  /** Maximum number of revocations per transaction (default: 15, Solana hard limit). */
+  max_revoke_batch_size?: number;
 }
 
 /** Arguments for build_recovery_transaction tool */
@@ -167,6 +169,13 @@ function validateBuildRevokeTransactionsArgs(args: RawToolArgs): BuildRevokeTran
       return bn;
     })(),
     fee_percent: typeof feePercent === 'number' ? feePercent : undefined,
+    max_revoke_batch_size: (() => {
+      const m = args.max_revoke_batch_size;
+      if (m === undefined) return undefined;
+      // Must be a positive integer between 1 and 15 (Solana tx size limit)
+      if (typeof m !== 'number' || !Number.isFinite(m) || m < 1 || m > 15 || !Number.isInteger(m)) return undefined;
+      return m;
+    })(),
   };
 }
 
