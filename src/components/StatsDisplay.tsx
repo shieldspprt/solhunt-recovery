@@ -96,7 +96,8 @@ const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: strin
         document.body.removeChild(el);
         setCopied(true);
       } catch (_fallbackErr: unknown) {
-        // execCommand fallback failed silently — clipboard remains inaccessible
+        // execCommand fallback failed — log via production-safe logger, don't silently swallow
+        logger.warn('Clipboard execCommand fallback failed:', _fallbackErr instanceof Error ? _fallbackErr.message : String(_fallbackErr));
       }
       setTimeout(() => setCopied(false), 2000);
     }
