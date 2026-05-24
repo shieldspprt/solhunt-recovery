@@ -150,9 +150,9 @@ self.addEventListener('beforeinstallprompt', ((event: BeforeInstallPromptEvent) 
                     type: 'INSTALL_AVAILABLE',
                     data: { available: true }
                 });
-            } catch (e: unknown) {
-                // Client may have disconnected, ignore
-                logger.warn('Failed to notify client of install availability:', e instanceof Error ? e.message : String(e));
+            } catch (_e: unknown) {
+                // Client may have disconnected, ignore — non-critical postMessage failure
+                logger.warn('Failed to notify client of install availability:', _e instanceof Error ? _e.message : String(_e));
             }
         });
     }).catch((err: unknown) => {

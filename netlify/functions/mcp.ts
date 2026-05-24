@@ -933,6 +933,9 @@ export const handler: Handler = async (event) => {
   // Helper to build headers with rate limit info
   const buildHeaders = (includeRateLimit = true): Record<string, string> => {
     if (!includeRateLimit) return headers;
+    // Use wallet address as bucket key when available, else fall back to IP.
+    // This lets API clients track their per-wallet quota even when sharing an IP.
+    const bucketKey = (rateLimit.source === 'wallet' && walletAddress) ? walletAddress : clientIp;
     const base: Record<string, string> = {
       ...headers,
       'X-RateLimit-Limit': String(RATE_LIMIT),
@@ -940,6 +943,7 @@ export const handler: Handler = async (event) => {
       'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
       'X-RateLimit-Window': String(Math.floor(RATE_WINDOW_MS / 1000)),
       'X-RateLimit-Source': rateLimit.source,
+      'X-RateLimit-Bucket': bucketKey,
       'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
     };
     // Include per-wallet headers when wallet rate limiting is active
