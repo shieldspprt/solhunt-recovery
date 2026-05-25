@@ -1035,7 +1035,9 @@ export const handler: Handler = async (event) => {
       // JSON-RPC format
       const params = body.params as Record<string, unknown>;
       toolName = params.name as string;
-      toolArgs = (params.arguments as Record<string, unknown>) || {};
+      // toolArgs is cast to Record<string, unknown> since it flows into validateToolArgs
+      // which narrows and validates all fields before use — no unsafe any usage.
+      toolArgs = (params.arguments as Record<string, unknown>) || {} as Record<string, unknown>;
     } else if (body.tool) {
       // Direct format
       toolName = body.tool as string;
