@@ -21,13 +21,13 @@ export function MEVClaimConfirmModal() {
 
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-            <div
-                className="absolute inset-0 bg-shield-bg/80 backdrop-blur-sm"
+            <button
+                className="absolute inset-0 cursor-pointer bg-shield-bg/80 backdrop-blur-sm"
                 onClick={cancelClaim}
                 onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') cancelClaim(); }}
-                role="button"
-                tabIndex={0}
                 aria-label="Close MEV claim confirmation"
+                tabIndex={0}
+                type="button"
             />
 
             <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">

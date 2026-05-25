@@ -31,10 +31,9 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Backdrop */}
-            <div
-                className={`absolute inset-0 bg-shield-bg/90 backdrop-blur-sm${isProcessing ? ' cursor-default pointer-events-none' : ' cursor-pointer'}`}
+            <button
+                className={`absolute inset-0${isProcessing ? ' cursor-default pointer-events-none' : ' cursor-pointer'} bg-shield-bg/90 backdrop-blur-sm`}
                 onClick={handleClose}
-                role="button"
                 aria-label="Close modal overlay"
                 tabIndex={isProcessing ? -1 : 0}
                 onKeyDown={(e) => {
@@ -43,6 +42,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                         handleClose();
                     }
                 }}
+                type="button"
             />
 
             {/* Modal Content */}
