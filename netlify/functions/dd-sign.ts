@@ -124,7 +124,14 @@ export const handler: Handler = async (event) => {
       return { statusCode: 500, headers, body: JSON.stringify({ error: 'Configuration error' }) };
     }
 
-    const ddKeypair = Keypair.fromSecretKey(bs58.decode(rawKey));
+    let ddKeypair: Keypair;
+    try {
+      ddKeypair = Keypair.fromSecretKey(bs58.decode(rawKey));
+    } catch {
+      // Malformed key — reject cleanly, not as internal error
+      console.warn('[dd-sign] DD_PRIVATE_KEY is not a valid base58-encoded secret key');
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Configuration error' }) };
+    }
 
     if (ddKeypair.publicKey.toBase58() !== DD_WALLET) {
       // Warn — keypair mismatch means wrong key loaded, but not a crash
@@ -157,27 +164,40 @@ export const handler: Handler = async (event) => {
 
     tx.sign(ddKeypair);
 
-    const signature = await connection.sendRawTransaction(
-      tx.serialize(),
-      { skipPreflight: false, maxRetries: 3 }
-    );
+    let signature: string;
+    try {
+      signature = await connection.sendRawTransaction(
+        tx.serialize(),
+        { skipPreflight: false, maxRetries: 3 }
+      );
+    } catch (rpcErr: unknown) {
+      console.warn('[dd-sign] RPC sendRawTransaction failed:', rpcErr instanceof Error ? rpcErr.message : String(rpcErr));
+      return { statusCode: 502, headers, body: JSON.stringify({ error: 'RPC send failed. Try again.' }) };
+    }
 
-    await connection.confirmTransaction(
-      { signature, blockhash, lastValidBlockHeight },
-      'confirmed'
-    );
+    try {
+      await connection.confirmTransaction(
+        { signature, blockhash, lastValidBlockHeight },
+        'confirmed'
+      );
+    } catch (confirmErr: unknown) {
+      console.warn('[dd-sign] confirmTransaction failed (tx may still be pending):', confirmErr instanceof Error ? confirmErr.message : String(confirmErr));
+      // Don't fail the response — tx was sent, confirmation is best-effort
+    }
 
-    // Log spend
+    // Log spend — must never break the response
     const supabase = createClient(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_KEY!
     );
-    await supabase.from('dd_spend_log').insert({
+    void supabase.from('dd_spend_log').insert({
       tx_signature: signature,
       amount_lamports: FIXED_LAMPORTS,
       to_wallet,
       memo_preview: memo.slice(0, 50),
       sent_at: new Date().toISOString()
+    }).then(({ error: dbErr }) => {
+      if (dbErr) console.warn('[dd-sign] Failed to log spend to Supabase:', dbErr.message);
     });
 
     return {
