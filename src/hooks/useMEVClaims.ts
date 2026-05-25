@@ -92,6 +92,7 @@ export function useMEVClaims() {
         if (selectedItems.length === 0) return null;
         const totalLamports = selectedItems.reduce((s, i) => s + i.totalLamports, 0);
         const totalSOL = totalLamports / LAMPORTS_PER_SOL;
+        const totalUSD = selectedItems.reduce((s, i) => s + i.estimatedValueUSD, 0);
         const serviceFeeLamports = Math.floor(
             (totalLamports * MEV_SERVICE_FEE_PERCENT) / Math.max(1, MEV_SERVICE_FEE_DENOMINATOR)
         );
@@ -100,7 +101,7 @@ export function useMEVClaims() {
         return {
             selectedCount: selectedItems.length,
             totalClaimSOL: totalSOL,
-            totalClaimUSD: totalSOL * 150, // Hardcoded estimate
+            totalClaimUSD: totalUSD,
             serviceFeeSOL: serviceFeeLamports / LAMPORTS_PER_SOL,
             serviceFeeLamports,
             networkFeeSOL: txCount * 0.000005,
