@@ -2,7 +2,7 @@ import { useParams, Navigate, Link } from 'react-router-dom';
 import { ArrowLeft, Shield, FileCode, CheckCircle2, Lock, Cpu, Server, Sparkles, AlertTriangle, Code2 } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { ENGINE_METADATA } from '@/config/constants';
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 
 interface EngineDetails {
     title: string;
@@ -395,6 +395,8 @@ export function EngineHowItWorksPage() {
         const ogDesc = document.querySelector('meta[property="og:description"]');
         if (ogTitle) ogTitle.setAttribute('content', title);
         if (ogDesc && metaDesc) ogDesc.setAttribute('content', metaDesc.getAttribute('content') || title);
+        const ogImage = document.querySelector('meta[property="og:image"]');
+        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
     }, [id]);
 
     // Route validation
