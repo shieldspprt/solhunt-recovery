@@ -28,7 +28,7 @@ export function RecoveryModal({ status, estimate, result, error, executeRecovery
                 <div className="p-6 sm:p-8 relative z-10">
                     {/* Header */}
                     <div className="flex items-center gap-3 mb-6 border-b border-shield-border/30 pb-4">
-                        <span className="text-3xl">
+                        <span className="text-3xl" aria-hidden="true">
                             {isAwaiting && '🪦'}
                             {isRecovering && '⏳'}
                             {isComplete && '✅'}
