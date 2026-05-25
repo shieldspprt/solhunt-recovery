@@ -12,6 +12,8 @@ export function NotFoundPage() {
         const ogDesc = document.querySelector('meta[property="og:description"]');
         if (ogTitle) ogTitle.setAttribute('content', '404 Not Found | SolHunt');
         if (ogDesc) ogDesc.setAttribute('content', 'Page not found. SolHunt helps you recover locked SOL from your Solana wallet — safely, client-side, and non-custodially.');
+        const ogImage = document.querySelector('meta[property="og:image"]');
+        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
     }, []);
 
     return (

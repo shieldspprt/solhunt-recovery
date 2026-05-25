@@ -12,6 +12,8 @@ export function LicensePage() {
         const ogDesc = document.querySelector('meta[property="og:description"]');
         if (ogTitle) ogTitle.setAttribute('content', 'License | SolHunt');
         if (ogDesc) ogDesc.setAttribute('content', 'SolHunt is open source software. Learn about our license, third-party open source dependencies, and your rights to use, modify, and distribute the code.');
+        const ogImage = document.querySelector('meta[property="og:image"]');
+        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
     }, []);
 
     return (

@@ -20,6 +20,8 @@ export function TicketFinderPage() {
         const ogDesc = document.querySelector('meta[property="og:description"]');
         if (ogTitle) ogTitle.setAttribute('content', 'Ticket Finder | SolHunt');
         if (ogDesc) ogDesc.setAttribute('content', 'Find and claim unclaimed staking tickets from Marinade, Jito, and other Solana staking protocols using SolHunt\'s Ticket Finder — fully client-side.');
+        const ogImage = document.querySelector('meta[property="og:image"]');
+        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
         // Prevent search engines from indexing wallet-specific scan results
         const metaRobots = document.querySelector('meta[name="robots"]');
         if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');

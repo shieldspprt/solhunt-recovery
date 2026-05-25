@@ -12,6 +12,8 @@ export function CopyrightPage() {
         const ogDesc = document.querySelector('meta[property="og:description"]');
         if (ogTitle) ogTitle.setAttribute('content', 'Copyright | SolHunt');
         if (ogDesc) ogDesc.setAttribute('content', 'SolHunt copyright notice and intellectual property information. All rights reserved for SolHunt and its associated trademarks and technology.');
+        const ogImage = document.querySelector('meta[property="og:image"]');
+        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
     }, []);
 
     return (

@@ -18,8 +18,11 @@ import type { AppError } from '@/types';
 
 // ─── Jito Configuration ──────────────────────────────────────
 
-/** Jito Block Engine URL for mainnet */
-export const JITO_BLOCK_ENGINE_URL = 'https://mainnet.block-engine.jito.wtf';
+/** Jito Block Engine URL for mainnet — falls back to env var or default */
+export const JITO_BLOCK_ENGINE_URL = (() => {
+    const envUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_JITO_BLOCK_ENGINE_URL;
+    return envUrl || 'https://mainnet.block-engine.jito.wtf';
+})();
 
 /** Jito tip accounts — pick one at random per session */
 export const JITO_TIP_ACCOUNTS = [

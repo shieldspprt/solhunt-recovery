@@ -20,6 +20,8 @@ export function LpFeeHarvesterPage() {
         const ogDesc = document.querySelector('meta[property="og:description"]');
         if (ogTitle) ogTitle.setAttribute('content', 'LP Fee Harvester | SolHunt');
         if (ogDesc) ogDesc.setAttribute('content', 'Harvest unclaimed LP fees from Raydium, Orca, and other Solana DEXs using SolHunt\'s LP Fee Harvester — reclaim value earned but not collected.');
+        const ogImage = document.querySelector('meta[property="og:image"]');
+        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
         // Prevent search engines from indexing wallet-specific scan results
         const metaRobots = document.querySelector('meta[name="robots"]');
         if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
