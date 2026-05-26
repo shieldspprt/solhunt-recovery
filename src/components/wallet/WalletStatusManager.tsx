@@ -20,6 +20,7 @@ interface WalletError {
 
 export function WalletStatusManager() {
     const { connected, disconnecting, publicKey } = useWallet();
+    // Initialize with actual connected value to track true prior state
     const previousConnected = useRef(connected);
 
     // Handle connection state changes
