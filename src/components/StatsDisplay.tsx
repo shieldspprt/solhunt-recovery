@@ -150,7 +150,6 @@ const StatBox = memo(function StatBox({
       <p className="text-xs text-gray-400 mb-1" aria-hidden="true">{label}</p>
       <p
         className={`text-2xl font-black ${accent ? 'text-purple-300' : 'text-white'}`}
-        aria-label={`${label} value: ${value}`}
       >
         {value}
       </p>
