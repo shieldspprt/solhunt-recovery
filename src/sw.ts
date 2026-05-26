@@ -135,29 +135,22 @@ self.addEventListener('activate', (event: ActivateEvent) => {
 // 7. PWA Install Prompt Capture
 //    Defer the native install prompt for better UX timing
 // ──────────────────────────────────────────────────────
-self.addEventListener('beforeinstallprompt', ((event: BeforeInstallPromptEvent): void => {
-    // Prevent the mini-infobar from appearing on mobile
-    event.preventDefault();
-    // Store the event in both places:
-    //   1. capturedInstallPrompt — used by the postMessage logic below
-    //   2. self.deferredInstallPrompt — read by the app via SW registration
-    self.deferredInstallPrompt = event;
-    // Notify any listening clients that install is available
-    self.clients.matchAll({ type: 'window' }).then(clients => {
-        clients.forEach(client => {
-            try {
-                client.postMessage({
-                    type: 'INSTALL_AVAILABLE',
-                    data: { available: true }
-                });
-            } catch (_e: unknown) {
-                // Client may have disconnected, ignore — non-critical postMessage failure
-                logger.warn('Failed to notify client of install availability:', _e instanceof Error ? _e.message : String(_e));
-            }
+// Convert the BeforeInstallPromptEvent to the expected EventListener signature.
+    // The handler extracts the event parameter via the scoped variable above.
+    const handleBeforeInstallPrompt = (event: Event): void => {
+        const installEvent = event as BeforeInstallPromptEvent;
+        installEvent.preventDefault();
+        self.deferredInstallPrompt = installEvent;
+        self.clients.matchAll({ type: 'window' }).then(clients => {
+            clients.forEach(client => {
+                try {
+                    client.postMessage({ type: 'INSTALL_AVAILABLE', data: { available: true } });
+                } catch (_e: unknown) {
+                    logger.warn('Failed to notify client of install availability:', _e instanceof Error ? _e.message : String(_e));
+                }
+            });
+        }).catch((err: unknown) => {
+            logger.warn('Failed to match clients for install notification:', err instanceof Error ? err.message : String(err));
         });
-    }).catch((err: unknown) => {
-        // Service worker clients API may not be available in all contexts
-        logger.warn('Failed to match clients for install notification:', err instanceof Error ? err.message : String(err));
-    });
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-}) as unknown as EventListener);
+    };
+    self.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
