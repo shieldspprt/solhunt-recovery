@@ -10,8 +10,13 @@ import { confirmTransactionRobust } from '@/lib/withTimeout';
 import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 import { DECOMMISSION_SERVICE_FEE_PERCENT, DECOMMISSION_FEE_SOL_MIN } from '../constants';
 import { logger } from '@/lib/logger';
-
-const logEvent = (..._args: unknown[]) => { };
+import {
+    logDecommissionScanStarted,
+    logDecommissionScanComplete,
+    logDecommissionScanFailed,
+    logDecommissionRecoveryComplete,
+    logDecommissionRecoveryFailed,
+} from '@/lib/analytics';
 
 export function useDecommissionScanner() {
     const { publicKey, signTransaction, sendTransaction } = useWallet();
@@ -23,7 +28,7 @@ export function useDecommissionScanner() {
         store.reset();
         store.setScanStatus('scanning');
 
-        logEvent('decommission_scan_started');
+        logDecommissionScanStarted();
 
         try {
             const result = await scanForDeadProtocolPositions(
@@ -39,10 +44,10 @@ export function useDecommissionScanner() {
                 result.items.filter(i => i.canRecover).map(i => i.tokenAccountAddress)
             );
 
-            logEvent('decommission_scan_complete', {
+            logDecommissionScanComplete({
                 positionsFound: result.positionsFound,
                 recoverableCount: result.recoverableCount,
-                totalValueUSD: result.totalRecoverableUSD,
+                totalRecoverableUSD: result.totalRecoverableUSD,
                 windingDownCount: result.windingDownCount,
             });
 
@@ -50,7 +55,7 @@ export function useDecommissionScanner() {
             const appError = createAppError('SCAN_FAILED', err instanceof Error ? err.message : String(err));
             store.setScanStatus('error');
             store.setScanError(appError.message);
-            logEvent('decommission_scan_failed', { error: appError.technicalDetail });
+            logDecommissionScanFailed(appError.code);
         }
     }, [publicKey, connection, store]);
 
@@ -180,10 +185,10 @@ export function useDecommissionScanner() {
 
             store.setRecoveryStatus('complete');
 
-            logEvent('decommission_recovery_complete', {
-                recovered: resultItems.filter(r => r.success).length,
-                redirect: resultItems.filter(r => r.redirectUrl).length,
-                failed: resultItems.filter(r => !r.success && !r.redirectUrl).length,
+            logDecommissionRecoveryComplete({
+                recoveredCount: resultItems.filter(r => r.success).length,
+                redirectCount: resultItems.filter(r => r.redirectUrl && !r.success).length,
+                failedCount: resultItems.filter(r => !r.success && !r.redirectUrl).length,
             });
 
         } catch (err: unknown) {
@@ -194,7 +199,7 @@ export function useDecommissionScanner() {
             const appError = createAppError('DECOMMISSION_RECOVERY_FAILED', err instanceof Error ? err.message : String(err));
             store.setRecoveryStatus('error');
             store.setRecoveryError(`${appError.message}${appError.technicalDetail ? `: ${appError.technicalDetail}` : ''}`);
-            logEvent('decommission_recovery_failed', { error: appError.technicalDetail });
+            logDecommissionRecoveryFailed(appError.code);
         }
     }, [publicKey, signTransaction, sendTransaction, selectedItems, connection, store]);
 

@@ -38,7 +38,13 @@ type AnalyticsEventName =
     | 'mev_claim_complete'
     | 'buffer_scan_complete'
     | 'buffer_close_initiated'
-    | 'buffer_close_complete';
+    | 'buffer_close_complete'
+    | 'decommission_scan_started'
+    | 'decommission_scan_complete'
+    | 'decommission_scan_failed'
+    | 'decommission_recovery_initiated'
+    | 'decommission_recovery_complete'
+    | 'decommission_recovery_failed';
 
 /**
  * Safely logs an analytics event. No-op if Firebase is not configured.
@@ -345,4 +351,40 @@ export function logBufferCloseComplete(data: {
     reclaimedSOL: number;
 }): void {
     logEvent('buffer_close_complete', data);
+}
+
+// ─── Engine 8 Events (Decommission Scanner) ────────────────────────
+
+export function logDecommissionScanStarted(): void {
+    logEvent('decommission_scan_started', { timestamp: Date.now() });
+}
+
+export function logDecommissionScanComplete(data: {
+    positionsFound: number;
+    recoverableCount: number;
+    totalRecoverableUSD: number | null;
+    windingDownCount: number;
+}): void {
+    logEvent('decommission_scan_complete', {
+        positionsFound: data.positionsFound,
+        recoverableCount: data.recoverableCount,
+        totalRecoverableUSD: data.totalRecoverableUSD ?? 0,
+        windingDownCount: data.windingDownCount,
+    });
+}
+
+export function logDecommissionScanFailed(errorCode: string): void {
+    logEvent('decommission_scan_failed', { errorCode, timestamp: Date.now() });
+}
+
+export function logDecommissionRecoveryComplete(data: {
+    recoveredCount: number;
+    redirectCount: number;
+    failedCount: number;
+}): void {
+    logEvent('decommission_recovery_complete', data);
+}
+
+export function logDecommissionRecoveryFailed(errorCode: string): void {
+    logEvent('decommission_recovery_failed', { errorCode, timestamp: Date.now() });
 }
