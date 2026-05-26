@@ -57,6 +57,7 @@ export const Header = memo(function Header() {
                             href={link.url}
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-label={`${link.label} (opens in new tab)`}
                             className="rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors text-shield-muted hover:text-shield-text hover:bg-shield-card focus:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent/50 focus-visible:ring-offset-1"
                         >
                             {link.label}
