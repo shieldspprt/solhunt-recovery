@@ -137,21 +137,25 @@ const StatBox = memo(function StatBox({
   accent?: boolean;
 }) {
   return (
-    <div className={[
+    <div
+      className={[
         'rounded-xl p-4 text-center',
         accent
           ? 'bg-purple-900/50 border border-purple-500/30'
           : 'bg-gray-800/70 border border-gray-700/50'
       ].join(' ')}
-        role="figure"
-        aria-label={`${label}: ${value}${sub ? `, ${sub}` : ''}`}
+      role="figure"
+      aria-label={`${label}: ${value}${sub ? `, ${sub}` : ''}`}
+    >
+      <p className="text-xs text-gray-400 mb-1" aria-hidden="true">{label}</p>
+      <p
+        className={`text-2xl font-black ${accent ? 'text-purple-300' : 'text-white'}`}
+        aria-label={`${label} value: ${value}`}
       >
-        <p className="text-xs text-gray-400 mb-1" aria-hidden="true">{label}</p>
-        <p className={`text-2xl font-black ${accent ? 'text-purple-300' : 'text-white'}`}>
-          {value}
-        </p>
-        {sub && <p className="text-xs text-gray-500 mt-1" aria-hidden="true">{sub}</p>}
-      </div>
+        {value}
+      </p>
+      {sub && <p className="text-xs text-gray-500 mt-1" aria-hidden="true">{sub}</p>}
+    </div>
   );
 });
 
