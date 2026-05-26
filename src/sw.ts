@@ -135,7 +135,7 @@ self.addEventListener('activate', (event: ActivateEvent) => {
 // 7. PWA Install Prompt Capture
 //    Defer the native install prompt for better UX timing
 // ──────────────────────────────────────────────────────
-self.addEventListener('beforeinstallprompt', ((event: BeforeInstallPromptEvent) => {
+self.addEventListener('beforeinstallprompt', ((event: BeforeInstallPromptEvent): void => {
     // Prevent the mini-infobar from appearing on mobile
     event.preventDefault();
     // Store the event in both places:
@@ -159,4 +159,5 @@ self.addEventListener('beforeinstallprompt', ((event: BeforeInstallPromptEvent) 
         // Service worker clients API may not be available in all contexts
         logger.warn('Failed to match clients for install notification:', err instanceof Error ? err.message : String(err));
     });
-}) as EventListener);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+}) as unknown as EventListener);
