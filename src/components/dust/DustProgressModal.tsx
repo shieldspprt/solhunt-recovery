@@ -43,7 +43,7 @@ export function DustProgressModal() {
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <button
                 type="button"
-                aria-label="Close dialog"
+                aria-label="Close dialog by clicking backdrop"
                 className="absolute inset-0 bg-shield-bg/90 backdrop-blur-sm cursor-default"
                 onClick={handleClose}
             />
