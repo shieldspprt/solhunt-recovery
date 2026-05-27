@@ -108,16 +108,16 @@ export const DustCard = memo(function DustCard() {
                     <button
                         type="button"
                         onClick={selectAll}
-                        aria-label="Select all dust tokens"
-                        className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
+                        aria-label="Select all tokens for consolidation"
+                        className="rounded-lg border border-shield-border/50 bg-shield-bg px-3 py-1.5 text-xs font-medium text-shield-text hover:bg-shield-border/30 transition-colors"
                     >
                         Select All
                     </button>
                     <button
                         type="button"
                         onClick={deselectAll}
-                        aria-label="Deselect all dust tokens"
-                        className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
+                        aria-label="Deselect all tokens"
+                        className="rounded-lg border border-shield-border/50 bg-shield-bg px-3 py-1.5 text-xs font-medium text-shield-text hover:bg-shield-border/30 transition-colors"
                     >
                         Deselect All
                     </button>
