@@ -58,6 +58,12 @@ def twaManifest = [
             url: 'https://solhunt.dev/?engine=reclaim',
             icon: 'ic_shortcut_rent',
         ],
+        [
+            name: 'Fleet Manager',
+            short_name: 'Fleet',
+            url: 'https://solhunt.dev/?engine=fleet',
+            icon: 'ic_shortcut_fleet',
+        ],
     ],
     // The duration of fade out animation in milliseconds to be played when removing splash screen.
     splashScreenFadeOutDuration: 300,
