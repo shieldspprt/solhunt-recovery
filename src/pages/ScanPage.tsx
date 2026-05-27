@@ -31,6 +31,8 @@ export const ScanPage = memo(function ScanPage() {
         const ogDesc = document.querySelector('meta[property="og:description"]');
         if (ogTitle) ogTitle.setAttribute('content', 'Scan | SolHunt');
         if (ogDesc) ogDesc.setAttribute('content', 'Scan your Solana wallet for recoverable SOL, token approvals, and hidden value across 9 recovery engines — instantly and client-side.');
+        const ogImage = document.querySelector('meta[property="og:image"]');
+        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
     }, []);
 
     // Memoize the hash value to prevent unnecessary effect re-runs
