@@ -23,8 +23,9 @@ export function CopyrightPage() {
                     <Link
                         to="/"
                         className="inline-flex items-center gap-2 text-sm text-shield-muted hover:text-shield-accent transition-colors mb-6"
+                        aria-label="Back to SolHunt"
                     >
-                        <ArrowLeft className="h-4 w-4" />
+                        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                         Back to SolHunt
                     </Link>
                     <div className="flex items-center gap-3 mb-4">
