@@ -173,7 +173,10 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    console.error('scan-wallet error:', errorMessage);
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+    if (!isProduction) {
+      console.error('scan-wallet error:', errorMessage);
+    }
     return {
       statusCode: 500,
       headers,
