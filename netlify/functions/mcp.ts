@@ -1076,7 +1076,8 @@ export const handler: Handler = async (event) => {
             },
             serverInfo: {
               name: "solhunt",
-              version: "1.0.0"
+              version: "1.0.0",
+              instructions: "To recover SOL: 1) Call get_wallet_report. 2) If recoverable, call build_recovery_transaction. 3) Sign the unsigned tx with your wallet and submit to Solana RPC."
             }
           }
         })
