@@ -249,7 +249,7 @@ export const LPHarvesterCard = memo(function LPHarvesterCard() {
                             type="button"
                             onClick={initiateHarvest}
                             disabled={selectedPositions.length === 0}
-                            aria-label={`Harvest ${selectedPositions.length} positions`}
+                            aria-label={selectedPositions.length === 1 ? 'Harvest 1 position' : `Harvest ${selectedPositions.length} positions`}
                             className="w-full rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             Harvest {selectedPositions.length} Position{selectedPositions.length === 1 ? '' : 's'}
