@@ -502,7 +502,7 @@ const SERVER_METADATA = {
     mcp: {
       url: "https://solhunt.dev/.netlify/functions/mcp",
       protocol: "mcp",
-      protocol_version: "2024-11-05"
+      protocol_version: "2025-03-05"
     }
   },
   protocols: {
