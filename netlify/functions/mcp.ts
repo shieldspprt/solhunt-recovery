@@ -442,20 +442,11 @@ Does NOT build or return any transaction bytes.`,
   },
   {
     name: "discover_platform_features",
-    description: `Discover additional SolHunt platform capabilities available on the web interface (https://solhunt.dev).
+    description: `Explore SolHunt web platform capabilities — LP Fee Harvester, Staking Ticket Finder, cNFT Cleaner, MEV/Priority Fee Claims, Fleet Manager, Token Swap Hub, and more.
 
-Platform tools not available via MCP:
-- LP Fee Harvester: Harvest unclaimed LP fees from Orca, Raydium, Meteora
-- Staking Ticket Finder: Find and close SPL staking accounts
-- cNFT Cleaner: Clean up compression NFT accounts
-- MEV/Priority Fee Claims: Claim priority fees from MEV opportunities
-- Fleet Manager: Monitor up to 50 agent wallets in real-time
-- Token Swap Hub: Jupiter and Raydium swap integrations for recovered dust
+Use feature_category to filter by 'recovery', 'security', 'harvesting', 'agents', or 'analytics'. Defaults to all.
 
-Parameters:
-- feature_category: Filter by 'recovery', 'security', 'harvesting', 'agents', or 'analytics'. Defaults to all.
-
-Returns descriptions of available tools. Visit https://solhunt.dev to access these features.`,
+Returns tool descriptions. Full platform at https://solhunt.dev.`,
     inputSchema: {
       type: "object",
       properties: {
@@ -466,7 +457,7 @@ Returns descriptions of available tools. Visit https://solhunt.dev to access the
         }
       }
     },
-    instructions: `Step 1: Call discover_platform_features with an optional feature_category.\nStep 2: Parse the response — it includes a list of web-only tools available at https://solhunt.dev.\nStep 3: Visit https://solhunt.dev to access the full platform (LP Fee Harvester, Staking Ticket Finder, cNFT Cleaner, MEV/Priority Fee Claims, Fleet Manager, Token Swap Hub).\nStep 4: For programmatic access, use the SolHunt MCP tools for wallet recovery and token approval management.`
+    instructions: `Step 1: Call discover_platform_features with an optional feature_category filter.\nStep 2: Parse the response — it includes a list of web-only tools at https://solhunt.dev.\nStep 3: Visit https://solhunt.dev to access the full platform.\nStep 4: For programmatic wallet recovery and token approvals, use the other SolHunt MCP tools.`
   }
 ];
 
@@ -477,7 +468,7 @@ const SERVER_METADATA = {
   schema_version: "1.0",
   name: "solhunt",
   display_name: "SolHunt Wallet Intelligence",
-  description: "Solana wallet recovery intelligence. Six tools: get_wallet_report (full wallet analysis), scan_token_approvals (security scan for dApp spending rights), build_revoke_transactions (revoke risky token approvals), build_recovery_transaction (unsigned recovery transaction ready to sign), preview_recovery (explicit fee preview before building), discover_platform_features (explore SolHunt web platform capabilities). No bloat. Just recovery.",
+  description: "Solana wallet recovery intelligence. Six tools: get_wallet_report (full wallet analysis), scan_token_approvals (security scan for dApp spending rights), build_revoke_transactions (revoke risky token approvals), build_recovery_transaction (unsigned recovery transaction ready to sign), preview_recovery (explicit fee preview before building), discover_platform_features (explore SolHunt web platform capabilities).",
   version: "1.0.0",
   homepage: "https://solhunt.dev",
   icon: "https://solhunt.dev/icons/icon-192.png",
