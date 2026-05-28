@@ -32,6 +32,7 @@ export const ProtocolBadge = memo(function ProtocolBadge({ protocol, size = 'sm'
                 'inline-flex items-center gap-1.5 border border-shield-border bg-shield-bg/70 text-shield-text',
                 styles.container,
             ].join(' ')}
+            title={`${info.displayName} protocol`}
             aria-label={`${info.displayName} protocol`}
         >
             {info.logoUri && !logoFailed ? (
