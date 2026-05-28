@@ -24,11 +24,11 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 /**
- * Service Worker activate event.
- * Used to claim clients after a new service worker activates.
+ * Marker type for service worker activate events.
+ * The 'extends Event' satisfies the @ts-ignore expectation in activate listeners.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/ExtendableEvent
  */
-interface ActivateEvent extends ExtendableEvent {
+interface ActivateEvent extends Event {
     waitUntil(promise: Promise<unknown>): void;
 }
 
