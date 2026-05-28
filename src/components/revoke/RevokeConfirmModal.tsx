@@ -195,8 +195,9 @@ export const RevokeConfirmModal = memo(function RevokeConfirmModal({ delegations
                             type="button"
                             onClick={() => revoke(delegations)}
                             disabled={!feeConsent}
-                            aria-label={`Revoke ${delegations.length} token permission${delegations.length !== 1 ? 's' : ''}`}
-                            className="flex-1 rounded-xl bg-shield-danger px-4 py-3 font-semibold text-white shadow-lg shadow-shield-danger/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none hover:bg-shield-danger/90 aria-disabled:opacity-40 aria-disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-shield-danger/50"
+                            aria-label={`Revoke ${delegations.length} token permission${delegations.length !== 1 ? 's' : ''}${!feeConsent ? ' — consent to fee required' : ''}`}
+                            aria-disabled={!feeConsent}
+                            className="flex-1 rounded-xl bg-shield-danger px-4 py-3 font-semibold text-white shadow-lg shadow-shield-danger/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none hover:bg-shield-danger/90 focus:outline-none focus:ring-2 focus:ring-shield-danger/50"
                         >
                             Revoke {delegations.length} Permissions
                         </button>

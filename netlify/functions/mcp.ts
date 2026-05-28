@@ -367,7 +367,7 @@ Safety: Revoking is always safe — it only removes permissions, never adds them
         }
       }
     },
-    instructions: `Step 1: Call scan_token_approvals with a Solana wallet address.\nStep 2: Parse the response — collect HIGH and MEDIUM risk token account addresses to revoke.\nStep 3: Call build_revoke_transactions with the wallet address and the token accounts list.\nStep 4: Sign the resulting unsigned transaction with your wallet and submit to Solana RPC.\nStep 5: Confirm the revocation succeeded on-chain.`
+    instructions: `Step 1: Call scan_token_approvals with a Solana wallet address.\nStep 2: Parse the response — collect HIGH and MEDIUM risk token account addresses to revoke.\nStep 3: Call build_revoke_transactions with the wallet address and the token accounts list.\nStep 4: Sign the resulting unsigned transaction with your wallet and submit to Solana RPC.\nStep 5: Confirm the revocation succeeded on-chain — call scan_token_approvals again to verify all approvals were removed.`,
   },
   {
     name: "build_recovery_transaction",
@@ -408,7 +408,7 @@ Fee: 15% of recovered SOL by default. Override with fee_percent (0-100).`,
         }
       }
     },
-    instructions: `Step 1: Call get_wallet_report with a Solana wallet address.\nStep 2: Parse the response — it includes recoverable_sol, estimated_batches, and net_recoverable_sol.\nStep 3: If net_recoverable_sol > 0.001, call build_recovery_transaction with wallet_address, destination_wallet, and batch_number=1.\nStep 4: Sign the resulting unsigned transaction with the user's wallet and submit to Solana RPC.\nStep 5: Repeat for each batch until all recoverable SOL is collected.`
+    instructions: `Step 1: Call get_wallet_report with a Solana wallet address.\nStep 2: Parse the response — it includes recoverable_sol, estimated_batches, and net_recoverable_sol.\nStep 3: If net_recoverable_sol > 0.001, call build_recovery_transaction with wallet_address, destination_wallet, and batch_number=1.\nStep 4: Sign the resulting unsigned transaction with the user's wallet and submit to Solana RPC.\nStep 5: Repeat for each batch until all recoverable SOL is collected.\nStep 6: Call get_wallet_report again to verify recovery — health score should improve and recoverable_sol should be near zero.`,
   },
   {
     name: "preview_recovery",
@@ -438,7 +438,7 @@ Does NOT build or return any transaction bytes.`,
         }
       }
     },
-    instructions: `Step 1: Call preview_recovery with a Solana wallet address.\nStep 2: Parse the response — it includes recoverable_sol, fee_sol, net_recoverable_sol, and worth_recovering.\nStep 3: If worth_recovering is true, call build_recovery_transaction to get unsigned transaction bytes.\nStep 4: Show the user the fee preview before asking them to sign anything.`
+    instructions: `Step 1: Call preview_recovery with a Solana wallet address.\nStep 2: Parse the response — it includes recoverable_sol, fee_sol, net_recoverable_sol, and worth_recovering.\nStep 3: If worth_recovering is true, call build_recovery_transaction to get unsigned transaction bytes.\nStep 4: Show the user the fee preview before asking them to sign anything.\nStep 5: After recovery is complete, call get_wallet_report to verify — recoverable_sol should be near zero and health score improved.`,
   },
   {
     name: "discover_platform_features",
