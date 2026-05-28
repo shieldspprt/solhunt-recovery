@@ -1053,6 +1053,15 @@ export const handler: Handler = async (event) => {
       // Standard MCP initialization — include rate limit headers so clients
       // know the current quota even on the initial handshake response
       const initParams = body.params as Record<string, unknown> || {};
+      const INITIALIZE_INSTRUCTIONS = `SolHunt is a non-custodial Solana wallet recovery platform. Six tools are available:
+- get_wallet_report: full wallet health analysis (recoverable SOL, fee preview, batch count)
+- scan_token_approvals: find dApp token spending approvals rated by risk (HIGH/MEDIUM/LOW)
+- build_revoke_transactions: build unsigned tx to revoke token approvals (user signs)
+- build_recovery_transaction: build unsigned tx to recover SOL from zero-balance accounts (user signs)
+- preview_recovery: explicit fee preview before building any transaction
+- discover_platform_features: explore SolHunt web-only tools (LP Harvester, Fleet Manager, etc.)
+
+Workflow: 1) Call get_wallet_report. 2) If recoverable SOL > 0.001, call preview_recovery for full fee transparency. 3) Call build_recovery_transaction to get unsigned tx bytes. 4) User signs and submits to Solana RPC. SolHunt never has custody.`;
       return {
         statusCode: 200,
         headers: buildHeaders(),
@@ -1068,8 +1077,8 @@ export const handler: Handler = async (event) => {
             serverInfo: {
               name: "solhunt",
               version: "1.0.0",
-              instructions: "To recover SOL: 1) Call get_wallet_report. 2) If recoverable, call build_recovery_transaction. 3) Sign the unsigned tx with your wallet and submit to Solana RPC."
-            }
+            },
+            instructions: INITIALIZE_INSTRUCTIONS
           }
         })
       };
