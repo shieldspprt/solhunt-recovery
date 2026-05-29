@@ -115,7 +115,6 @@ const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: strin
             : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
         ].join(' ')}
         aria-label={copied ? 'Copied!' : label}
-        aria-live="polite"
       >
         {label}
       </button>
@@ -182,8 +181,9 @@ const MiniChart = memo(function MiniChart({ history }: { history: DayStat[] }) {
               <div
                 className="w-full rounded-t bg-purple-500/60 hover:bg-purple-400/80 transition-colors cursor-default"
                 style={{ height: barHeight }}
+                aria-hidden="true"
               />
-              <span className="text-gray-600 text-xs">
+              <span className="text-gray-600 text-xs" aria-label={`${d.total_recoverable_sol.toFixed(4)} SOL on ${new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}>
                 {new Date(d.date).getDate()}
               </span>
             </div>
