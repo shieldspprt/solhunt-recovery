@@ -177,13 +177,14 @@ const MiniChart = memo(function MiniChart({ history }: { history: DayStat[] }) {
             <div
               key={d.date}
               className="flex-1 flex flex-col items-center gap-1"
+              aria-label={`${d.total_recoverable_sol.toFixed(4)} SOL on ${new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
             >
               <div
                 className="w-full rounded-t bg-purple-500/60 hover:bg-purple-400/80 transition-colors cursor-default"
                 style={{ height: barHeight }}
                 aria-hidden="true"
               />
-              <span className="text-gray-600 text-xs" aria-label={`${d.total_recoverable_sol.toFixed(4)} SOL on ${new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}>
+              <span className="text-gray-600 text-xs">
                 {new Date(d.date).getDate()}
               </span>
             </div>

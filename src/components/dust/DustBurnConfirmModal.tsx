@@ -29,7 +29,11 @@ export function DustBurnConfirmModal() {
                 aria-label="Close dialog by clicking backdrop"
             />
 
-            <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="dust-burn-modal-title"
+            >
                 <button
                     type="button"
                     onClick={cancelBurnReclaim}
@@ -44,7 +48,7 @@ export function DustBurnConfirmModal() {
                         <Flame className="h-8 w-8 text-shield-warning" aria-hidden="true" />
                     </div>
 
-                    <h2 className="text-xl font-bold text-center text-shield-text mb-4">
+                    <h2 id="dust-burn-modal-title" className="text-xl font-bold text-center text-shield-text mb-4">
                         Burn Dust Tokens & Reclaim Rent?
                     </h2>
 
