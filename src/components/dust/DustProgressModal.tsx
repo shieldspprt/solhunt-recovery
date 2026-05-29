@@ -53,7 +53,7 @@ export function DustProgressModal() {
                     <button
                         type="button"
                         onClick={handleClose}
-                        aria-label="Close dialog"
+                        aria-label="Close dust consolidation dialog"
                         className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     >
                         <X className="h-5 w-5" aria-hidden="true" />
@@ -135,7 +135,7 @@ export function DustProgressModal() {
                                 <button
                                     type="button"
                                     onClick={clearDust}
-                                    aria-label="Done"
+                                    aria-label="Dismiss dust consolidation and return to scanner"
                                     className="w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                                 >
                                     Done

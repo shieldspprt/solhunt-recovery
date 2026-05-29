@@ -45,7 +45,7 @@ export function DustBurnProgressModal() {
                     <button
                         type="button"
                         onClick={handleClose}
-                        aria-label="Close dialog"
+                        aria-label="Close account burn dialog"
                         className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     >
                         <X className="h-5 w-5" aria-hidden="true" />
