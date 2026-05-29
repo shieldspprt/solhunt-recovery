@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Link, useLocation } from 'react-router-dom';
-import { Zap } from 'lucide-react';
+import { Zap, LogOut } from 'lucide-react';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { shortenAddress } from '@/lib/formatting';
 import { useReliableDisconnect } from '@/components/wallet/WalletStatusManager';
@@ -80,7 +80,7 @@ export const Header = memo(function Header() {
                                 className="text-xs text-shield-muted hover:text-shield-danger transition-colors px-2 py-1 rounded-md hover:bg-shield-danger/10 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-shield-danger/50 focus-visible:ring-offset-1"
                                 aria-label="Disconnect wallet"
                             >
-                                {isDisconnecting ? '...' : '✕'}
+                                {isDisconnecting ? '...' : <LogOut className="h-3.5 w-3.5" aria-hidden="true" />}
                             </button>
                         </div>
                     ) : (
