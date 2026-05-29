@@ -41,7 +41,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
             <div
                 className="absolute inset-0 bg-shield-bg/90 backdrop-blur-sm"
                 onClick={handleClose}
-                aria-hidden="true"
+                aria-label="Close dialog by clicking backdrop"
             />
 
             {/* Modal Content */}
