@@ -25,6 +25,8 @@ export function DustBurnConfirmModal() {
             <div
                 className="absolute inset-0 bg-shield-bg/80 backdrop-blur-sm"
                 onClick={cancelBurnReclaim}
+                role="presentation"
+                aria-label="Close dialog by clicking backdrop"
             />
 
             <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
