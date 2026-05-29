@@ -965,10 +965,12 @@ export const handler: Handler = async (event) => {
     // Rate limit headers are already set — preserve them in the body response too
     const retryAfterSec = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
     const retryAt = new Date(rateLimit.resetAt).toISOString();
+    // Return typed error + rate limit detail for programmatic clients
     return {
       statusCode: 429,
       headers: buildHeaders(true),
       body: JSON.stringify({
+          ...createMCPError('RATE_LIMITED', `Rate limit exceeded. Try again in ${retryAfterSec} seconds.`, undefined, `source=${rateLimit.source}`),
           retry_after_seconds: retryAfterSec,
           rate_limit: {
             limit: RATE_LIMIT,
