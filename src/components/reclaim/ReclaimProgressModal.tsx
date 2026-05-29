@@ -108,6 +108,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                                         href={SOLSCAN_TX_URL(reclaimResult.signature)}
                                         target="_blank"
                                         rel="noopener noreferrer"
+                                        aria-label="View transaction on Solscan (opens in new tab)"
                                         className="inline-flex items-center gap-2 text-sm font-medium text-shield-success hover:text-white transition-colors"
                                     >
                                         View on Solscan <ExternalLink className="h-4 w-4" aria-hidden="true" />
