@@ -27,7 +27,7 @@ function isValidSolanaAddress(address: string): boolean {
   try {
     new PublicKey(address);
     return true;
-  } catch {
+  } catch (_err: unknown) {
     return false;
   }
 }

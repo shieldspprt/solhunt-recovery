@@ -76,7 +76,7 @@ export const handler: Handler = async (event) => {
   let body: DDSignRequest;
   try {
     body = JSON.parse(event.body || '{}') as DDSignRequest;
-  } catch {
+  } catch (_err: unknown) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON' }) };
   }
 
@@ -102,7 +102,7 @@ export const handler: Handler = async (event) => {
   let recipientPubkey: PublicKey;
   try {
     recipientPubkey = new PublicKey(to_wallet);
-  } catch {
+  } catch (_err: unknown) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid wallet address' }) };
   }
 
@@ -127,7 +127,7 @@ export const handler: Handler = async (event) => {
     let ddKeypair: Keypair;
     try {
       ddKeypair = Keypair.fromSecretKey(bs58.decode(rawKey));
-    } catch {
+    } catch (_err: unknown) {
       // Malformed key — reject cleanly, not as internal error
       console.warn('[dd-sign] DD_PRIVATE_KEY is not a valid base58-encoded secret key');
       return { statusCode: 500, headers, body: JSON.stringify({ error: 'Configuration error' }) };

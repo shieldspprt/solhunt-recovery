@@ -60,7 +60,7 @@ export const handler: Handler = async (event) => {
   try {
     transactions = JSON.parse(event.body || '[]');
     if (!Array.isArray(transactions)) throw new Error('expected array');
-  } catch {
+  } catch (_err: unknown) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid body' }) };
   }
 
