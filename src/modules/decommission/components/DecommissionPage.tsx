@@ -59,7 +59,7 @@ export function DecommissionPage() {
                         <button
                             type="button"
                             onClick={scanner.startScan}
-                            aria-label="Scan wallet again"
+                            aria-label="Scan wallet for dead protocol positions"
                             className="inline-flex items-center gap-2 rounded-xl bg-shield-accent px-6 py-3 font-semibold text-shield-bg hover:bg-shield-highlight transition-all"
                         >
                             Scan Again

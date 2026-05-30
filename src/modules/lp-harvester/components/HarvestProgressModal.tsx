@@ -50,7 +50,7 @@ export function HarvestProgressModal({
                     <button
                         type="button"
                         onClick={onClose}
-                        aria-label="Close"
+                        aria-label="Close LP harvest progress"
                         className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     >
                         <X className="h-5 w-5" aria-hidden="true" />
