@@ -383,7 +383,9 @@ get_wallet_report is exactly what gets executed — no surprises.
 IMPORTANT: Transactions expire after about 90 seconds on Solana.
 The unsigned transaction needs to be signed and submitted quickly after building!
 
-Fee: 15% of recovered SOL by default. Override with fee_percent (0-100).`,
+Fee: 15% of recovered SOL by default (built atomically into the transaction).
+Override with fee_percent (0-100, default: 15). Set to 0 to disable the fee.
+destination_wallet is the wallet that receives the recovered SOL (can be the same as the source wallet).`,
     inputSchema: {
       type: "object",
       required: ["wallet_address", "destination_wallet"],
