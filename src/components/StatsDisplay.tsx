@@ -116,7 +116,7 @@ const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: strin
         ].join(' ')}
         aria-label={copied ? 'Copied!' : label}
       >
-        {label}
+        {copied ? 'Copied!' : label}
       </button>
     </span>
   );
