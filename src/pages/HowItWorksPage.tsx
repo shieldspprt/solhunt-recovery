@@ -15,6 +15,9 @@ export const HowItWorksPage = memo(function HowItWorksPage() {
         if (ogDesc) ogDesc.setAttribute('content', 'A transparent technical breakdown of Solana rent, client-side transaction building, and SolHunt\'s non-custodial security model for recovering locked SOL.');
         const ogImage = document.querySelector('meta[property="og:image"]');
         if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
+        // Prevent search engines from indexing informational pages
+        const metaRobots = document.querySelector('meta[name="robots"]');
+        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
     }, []);
 
     return (
