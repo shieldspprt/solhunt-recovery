@@ -374,7 +374,10 @@ export function EngineHowItWorksPage() {
         if (ogDesc && metaDesc) ogDesc.setAttribute('content', metaDesc.getAttribute('content') || title);
         const ogImage = document.querySelector('meta[property="og:image"]');
         if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
-    }, [id]);
+        // Prevent search engines from indexing informational pages
+        const metaRobots = document.querySelector('meta[name="robots"]');
+        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
+    }, []);
 
     // Route validation
     if (!id || !ENGINE_DETAILS_MAP[id]) {

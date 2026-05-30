@@ -39,6 +39,9 @@ export const HomePage = memo(function HomePage() {
         if (ogDesc) ogDesc.setAttribute('content', 'Recover locked and recoverable SOL from your Solana wallet with 9 client-side recovery engines — revoke token approvals, reclaim rent, harvest LP fees, and more. Non-custodial and open-source.');
         const ogImage = document.querySelector('meta[property="og:image"]');
         if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
+        // Prevent search engines from indexing informational pages
+        const metaRobots = document.querySelector('meta[name="robots"]');
+        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
     }, []);
 
     useEffect(() => {
