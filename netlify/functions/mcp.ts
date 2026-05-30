@@ -455,7 +455,8 @@ Returns tool descriptions. Full platform at https://solhunt.dev.`,
           description: "Optional category: 'recovery', 'security', 'harvesting', 'agents', or 'analytics'. Defaults to all.",
           enum: ["recovery", "security", "harvesting", "agents", "analytics"]
         }
-      }
+      },
+      additionalProperties: false
     },
     instructions: `Step 1: Call discover_platform_features with an optional feature_category filter.\nStep 2: Parse the response — it includes a list of web-only tools at https://solhunt.dev.\nStep 3: Visit https://solhunt.dev to access the full platform.\nStep 4: For programmatic wallet recovery and token approvals, use the other SolHunt MCP tools.`
   }
