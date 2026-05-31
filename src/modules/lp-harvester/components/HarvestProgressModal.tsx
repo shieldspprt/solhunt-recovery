@@ -43,6 +43,7 @@ export function HarvestProgressModal({
                 onClick={() => {
                     if (!processing) onClose();
                 }}
+                aria-hidden="true"
             />
 
             <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
