@@ -14,6 +14,8 @@ export function TermsPage() {
         if (ogDesc) ogDesc.setAttribute('content', 'SolHunt is a non-custodial Solana wallet recovery tool. Read our terms of service, fee structure, and liability disclosures before using the platform.');
         const ogImage = document.querySelector('meta[property="og:image"]');
         if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
+        const metaRobots = document.querySelector('meta[name="robots"]');
+        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
     }, []);
 
     return (

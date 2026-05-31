@@ -14,6 +14,8 @@ export function PrivacyPage() {
         if (ogDesc) ogDesc.setAttribute('content', 'SolHunt is a client-side, non-custodial wallet recovery tool. We never access your private keys, hold your assets, or store your wallet data on any server.');
         const ogImage = document.querySelector('meta[property="og:image"]');
         if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
+        const metaRobots = document.querySelector('meta[name="robots"]');
+        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
     }, []);
 
     return (
