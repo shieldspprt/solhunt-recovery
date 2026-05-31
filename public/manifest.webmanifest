@@ -89,10 +89,38 @@
       ]
     },
     {
-      "name": "Fleet Manager",
-      "short_name": "Fleet",
-      "description": "Monitor up to 50 agent wallets in real-time",
-      "url": "/?engine=fleet",
+      "name": "LP Fee Harvester",
+      "short_name": "LP Fees",
+      "description": "Harvest unclaimed LP fees from Orca, Raydium, Meteora",
+      "url": "/?engine=lp-fees",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any"
+        }
+      ]
+    },
+    {
+      "name": "Buffer Recovery",
+      "short_name": "Buffers",
+      "description": "Recover SOL from closed program buffer accounts",
+      "url": "/?engine=buffers",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any"
+        }
+      ]
+    },
+    {
+      "name": "Ticket Finder",
+      "short_name": "Tickets",
+      "description": "Find and close SPL staking accounts",
+      "url": "/?engine=tickets",
       "icons": [
         {
           "src": "/icons/icon-192.png",
@@ -102,6 +130,5 @@
         }
       ]
     }
-  ],
-  "dir_handle": "rw"
+  ]
 }
