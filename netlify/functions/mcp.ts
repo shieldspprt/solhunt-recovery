@@ -1063,7 +1063,7 @@ export const handler: Handler = async (event) => {
     } else if (body.method === 'initialize') {
       // Standard MCP initialization — include rate limit headers so clients
       // know the current quota even on the initial handshake response
-      const initParams = body.params as Record<string, unknown> || {};
+      const initParams = (body.params as Record<string, unknown>) ?? {};
       const INITIALIZE_INSTRUCTIONS = `SolHunt is a non-custodial Solana wallet recovery platform. Six tools are available:
 - get_wallet_report: full wallet health analysis (recoverable SOL, fee preview, batch count)
 - scan_token_approvals: find dApp token spending approvals rated by risk (HIGH/MEDIUM/LOW)
