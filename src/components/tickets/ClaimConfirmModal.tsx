@@ -99,8 +99,9 @@ export function ClaimConfirmModal() {
 
                     {/* Fee Disclosure & Consent */}
                     <div className="rounded-xl border border-shield-accent/30 bg-shield-accent/5 p-4 mb-6">
-                        <label className="flex items-start gap-3 cursor-pointer select-none">
+                        <label htmlFor="ticket-fee-consent" className="flex items-start gap-3 cursor-pointer select-none">
                             <input
+                                id="ticket-fee-consent"
                                 type="checkbox"
                                 checked={feeConsent}
                                 onChange={(e) => setFeeConsent(e.target.checked)}
