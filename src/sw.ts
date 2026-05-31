@@ -135,22 +135,20 @@ self.addEventListener('activate', (event: ActivateEvent) => {
 // 7. PWA Install Prompt Capture
 //    Defer the native install prompt for better UX timing
 // ──────────────────────────────────────────────────────
-// Convert the BeforeInstallPromptEvent to the expected EventListener signature.
-    // The handler extracts the event parameter via the scoped variable above.
-    const handleBeforeInstallPrompt = (event: Event): void => {
-        const installEvent = event as BeforeInstallPromptEvent;
-        installEvent.preventDefault();
-        self.deferredInstallPrompt = installEvent;
-        self.clients.matchAll({ type: 'window' }).then(clients => {
-            clients.forEach(client => {
-                try {
-                    client.postMessage({ type: 'INSTALL_AVAILABLE', data: { available: true } });
-                } catch (_e: unknown) {
-                    logger.warn('Failed to notify client of install availability:', _e instanceof Error ? _e.message : String(_e));
-                }
-            });
-        }).catch((err: unknown) => {
-            logger.warn('Failed to match clients for install notification:', err instanceof Error ? err.message : String(err));
+const handleBeforeInstallPrompt = (event: Event): void => {
+    const installEvent = event as BeforeInstallPromptEvent;
+    installEvent.preventDefault();
+    self.deferredInstallPrompt = installEvent;
+    self.clients.matchAll({ type: 'window' }).then(clients => {
+        clients.forEach(client => {
+            try {
+                client.postMessage({ type: 'INSTALL_AVAILABLE', data: { available: true } });
+            } catch (_e: unknown) {
+                logger.warn('Failed to notify client of install availability:', _e instanceof Error ? _e.message : String(_e));
+            }
         });
-    };
-    self.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    }).catch((err: unknown) => {
+        logger.warn('Failed to match clients for install notification:', err instanceof Error ? err.message : String(err));
+    });
+};
+self.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
