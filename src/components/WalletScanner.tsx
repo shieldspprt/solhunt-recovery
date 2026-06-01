@@ -427,7 +427,7 @@ export function WalletScanner() {
             Scanning wallet on Solana mainnet...
           </div>
           {isSlow && (
-            <p className="text-yellow-400 text-xs pl-7">
+            <div className="text-yellow-400 text-xs pl-7">
               Still scanning... Solana RPC may be experiencing high load.
               <button
                 onClick={() => { cleanupScan(); setState('idle'); setIsSlow(false); }}
@@ -437,7 +437,7 @@ export function WalletScanner() {
               >
                 Cancel
               </button>
-            </p>
+            </div>
           )}
         </div>
       )}
