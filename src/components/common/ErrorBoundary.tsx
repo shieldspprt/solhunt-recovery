@@ -68,9 +68,9 @@ export class ErrorBoundary extends PureComponent<ErrorBoundaryProps, ErrorBounda
                         </p>
                         <button
                             onClick={this.handleReset}
-                            className="inline-flex items-center gap-2 rounded-xl bg-shield-accent px-6 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors focus:outline-none focus:ring-2 focus:ring-shield-accent focus:ring-offset-2"
                             type="button"
                             aria-label="Refresh and try again"
+                            className="inline-flex items-center gap-2 rounded-xl bg-shield-accent px-6 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors focus:outline-none focus:ring-2 focus:ring-shield-accent focus:ring-offset-2"
                         >
                             <RefreshCw className="h-4 w-4" aria-hidden="true" />
                             Try Again
