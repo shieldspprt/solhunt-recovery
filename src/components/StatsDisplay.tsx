@@ -214,7 +214,7 @@ export function StatsDisplay() {
         else setError('Failed to load stats');
       })
       .catch((err: unknown) => {
-        if ((err as Error).name === 'AbortError') return;
+        if (err instanceof Error && err.name === 'AbortError') return;
         logger.warn('Stats fetch failed:', err instanceof Error ? err.message : String(err));
         setError('Failed to load stats');
       })

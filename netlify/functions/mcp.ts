@@ -37,6 +37,9 @@ interface TokenAccountItem {
   programId?: string;
 }
 
+/** Platform features grouped by category for discover_platform_features tool */
+type FeaturesByCategory = Record<string, string[]>;
+
 /** Arguments for build_revoke_transactions tool */
 interface BuildRevokeTransactionsArgs {
   wallet_address: string;
@@ -757,11 +760,7 @@ async function executeTool(
       case 'discover_platform_features': {
         const category = (args as DiscoverPlatformFeaturesArgs).feature_category || 'all';
 
-        interface FeatureMap {
-          [key: string]: string[];
-        }
-
-        const allFeatures: FeatureMap = {
+        const allFeatures: FeaturesByCategory = {
           recovery: [
             'LP Fee Harvester: Harvest unclaimed LP fees from Orca, Raydium, Meteora.',
             'Staking Ticket Finder: Find and close SPL staking accounts.',
