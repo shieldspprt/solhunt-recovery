@@ -695,7 +695,9 @@ async function executeTool(
           const detail = await parseResponseDetail(res);
           return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name, detail);
         }
-        return res.json().catch((e: unknown) => { throw new Error(`Build revoke response parse failed: ${e instanceof Error ? e.message : String(e)}`); });
+        return res.json().catch((e: unknown) =>
+          createMCPError('EXECUTION_ERROR', `Build revoke response parse failed: ${e instanceof Error ? e.message : String(e)}`, name)
+        );
       }
 
       case 'build_recovery_transaction': {
@@ -712,7 +714,9 @@ async function executeTool(
           const detail = await parseResponseDetail(res);
           return createMCPError('EXECUTION_ERROR', `API error ${res.status}: ${detail}`, name, detail);
         }
-        return res.json().catch((e: unknown) => { throw new Error(`Build recovery response parse failed: ${e instanceof Error ? e.message : String(e)}`); });
+        return res.json().catch((e: unknown) =>
+          createMCPError('EXECUTION_ERROR', `Build recovery response parse failed: ${e instanceof Error ? e.message : String(e)}`, name)
+        );
       }
 
       case 'preview_recovery': {
