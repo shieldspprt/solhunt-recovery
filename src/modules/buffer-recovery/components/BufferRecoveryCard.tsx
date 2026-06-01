@@ -189,6 +189,7 @@ export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
                             </div>
                         </div>
                         <button
+                            type="button"
                             onClick={() => setIsConfirmModalOpen(true)}
                             disabled={selectedCount === 0 || isClosing}
                             data-agent-target="close-buffers-btn"
