@@ -263,7 +263,7 @@ export function StatsDisplay() {
       </div>
 
       {/* Today's 4 key stats */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4" role="group" aria-label="Today's key scan statistics">
         <StatBox
           label="Wallets Scanned"
           value={today.wallets_scanned.toLocaleString()}

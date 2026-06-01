@@ -1074,7 +1074,7 @@ export const handler: Handler = async (event) => {
 Workflow: 1) Call get_wallet_report. 2) If recoverable SOL > 0.001, call preview_recovery for full fee transparency. 3) Call build_recovery_transaction to get unsigned tx bytes. 4) User signs and submits to Solana RPC. SolHunt never has custody.`;
       return {
         statusCode: 200,
-        headers: buildHeaders(),
+        headers: buildHeaders(true),
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: body.id,
