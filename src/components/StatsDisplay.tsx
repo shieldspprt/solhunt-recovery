@@ -306,7 +306,8 @@ export function StatsDisplay() {
               className="h-4 w-4 text-gray-400"
               viewBox="0 0 24 24"
               fill="currentColor"
-              aria-hidden="true"
+              aria-label="X (formerly Twitter) social media platform"
+              role="img"
             >
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.733-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
             </svg>
@@ -318,7 +319,7 @@ export function StatsDisplay() {
               href={`https://x.com/intent/tweet?text=${encodeURIComponent(today.x_draft)}`}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Post draft to X (opens in new tab)"
+              aria-label={`Post draft to X (opens in new tab): "${today.x_draft.slice(0, 50)}${today.x_draft.length > 50 ? '…' : ''}"`}
               className="text-xs px-3 py-1.5 rounded-md font-medium bg-black hover:bg-gray-900 text-white border border-gray-700 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent"
             >
               Post to X →
@@ -331,7 +332,7 @@ export function StatsDisplay() {
           </p>
         </div>
         <div className="px-4 py-2 border-t border-gray-700/60">
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-gray-600" aria-label={`Post length: ${today.x_draft.length} characters${today.x_draft.length > 280 ? '. Warning: over 280 character limit for X posts' : ''}`}>
             {today.x_draft.length} characters
             {today.x_draft.length > 280 && (
               <span className="text-yellow-600 ml-2">
