@@ -521,7 +521,7 @@ async function parseResponseDetail(res: Response): Promise<string> {
   try {
     const json = JSON.parse(await res.clone().text());
     return json?.error ?? json?.message ?? json?.detail ?? res.statusText;
-  } catch (_parseErr: unknown) {
+  } catch (parseErr: unknown) {
     return res.statusText;
   }
 }
