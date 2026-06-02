@@ -1056,7 +1056,7 @@ export const handler: Handler = async (event) => {
       // Tool list request in JSON-RPC format
       return {
         statusCode: 200,
-        headers: buildHeaders(),
+        headers: buildHeaders(true),
         body: JSON.stringify({
           jsonrpc: "2.0",
           id: body.id,
