@@ -17,7 +17,7 @@ const FALLBACK_SOL_PRICE_USD = 150;
  * Fetch the current SOL price in USD from Jupiter.
  * Returns fallback price on any error (network, non-200, parse).
  */
-async function fetchSOLPriceUSD(): Promise<number> {
+export async function fetchSOLPriceUSD(): Promise<number> {
     try {
         const res = await withTimeout(
             fetch(`${JUPITER_PRICE_API}?ids=SOL`),

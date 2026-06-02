@@ -4,6 +4,7 @@
 
 import { useState, useEffect, memo, useCallback } from 'react';
 import { logger } from '@/lib/logger';
+import { fetchSOLPriceUSD } from '@/lib/mevScanner';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -201,6 +202,12 @@ export function StatsDisplay() {
   const [data, setData] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [solPriceUSD, setSolPriceUSD] = useState<number | null>(null);
+
+  useEffect(() => {
+    // Fetch real SOL price from Jupiter for accurate USD estimates
+    fetchSOLPriceUSD().then(price => setSolPriceUSD(price)).catch(() => null);
+  }, []);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -277,7 +284,7 @@ export function StatsDisplay() {
         <StatBox
           label="Total Recoverable"
           value={`${today.total_recoverable_sol.toFixed(2)} SOL`}
-          sub={`~$${(today.total_recoverable_sol * 150).toFixed(0)}`}
+          sub={solPriceUSD ? `~$${(today.total_recoverable_sol * solPriceUSD).toFixed(0)} at $${solPriceUSD}/SOL` : `~$${(today.total_recoverable_sol * 150).toFixed(0)}`}
           accent
         />
         <StatBox
