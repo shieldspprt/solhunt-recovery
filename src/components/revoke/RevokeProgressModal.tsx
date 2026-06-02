@@ -116,7 +116,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                                 <button
                                     type="button"
                                     onClick={clearRevoke}
-                                    aria-label="Done"
+                                    aria-label="Done — return to scan results"
                                     className="w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors mt-4"
                                 >
                                     Done
