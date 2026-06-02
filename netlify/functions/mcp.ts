@@ -1086,7 +1086,8 @@ Workflow: 1) Call get_wallet_report. 2) If recoverable SOL > 0.001, call preview
             protocolVersion: initParams.protocolVersion || "2025-03-05",
             capabilities: {
               tools: {},
-              resources: {}
+              resources: {},
+              prompts: {}
             },
             serverInfo: {
               name: "solhunt",
