@@ -15,6 +15,8 @@ import {
     MEV_SERVICE_FEE_PERCENT,
     MEV_SERVICE_FEE_DENOMINATOR,
     MEV_MAX_CLAIMS_PER_TX,
+    ERROR_CODES,
+    ERROR_MESSAGES,
 } from '@/config/constants';
 import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 import type { MEVScanResult, MEVClaimEstimate, MEVClaimResultItem } from '@/types';
@@ -212,8 +214,8 @@ export function useMEVClaims() {
             const errMessage = err instanceof Error ? err.message : String(err);
             setMEVClaimStatus('error');
             setMEVClaimError({
-                code: 'MEV_CLAIM_FAILED',
-                message: 'Claim failed. Your rewards were not affected.',
+                code: ERROR_CODES.MEV_CLAIM_FAILED,
+                message: ERROR_MESSAGES.MEV_CLAIM_FAILED,
                 technicalDetail: errMessage,
             });
             logMEVClaimComplete({
