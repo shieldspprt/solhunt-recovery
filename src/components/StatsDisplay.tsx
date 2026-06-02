@@ -206,7 +206,11 @@ export function StatsDisplay() {
 
   useEffect(() => {
     // Fetch real SOL price from Jupiter for accurate USD estimates
-    fetchSOLPriceUSD().then(price => setSolPriceUSD(price)).catch(() => null);
+    fetchSOLPriceUSD()
+      .then(price => setSolPriceUSD(price))
+      .catch((err: unknown) => {
+        logger.warn('SOL price fetch failed:', err instanceof Error ? err.message : String(err));
+      });
   }, []);
 
   useEffect(() => {
