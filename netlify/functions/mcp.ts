@@ -469,44 +469,20 @@ Returns tool descriptions. Full platform at https://solhunt.dev.`,
 
 // ── Server Metadata ───────────────────────────────────────────────────────────
 // Smithery.ai MCP server card format - https://smithery.ai/docs/build/publish
-
+// Schema: serverInfo (required), authentication, tools, resources, prompts
+// per MCP spec foundation types from @modelcontextprotocol/sdk/types.js
 const SERVER_METADATA = {
-  schema_version: "1.0",
-  name: "solhunt",
-  display_name: "SolHunt Wallet Intelligence",
-  description: "Solana wallet recovery intelligence. Six tools: get_wallet_report (full wallet analysis), scan_token_approvals (security scan for dApp spending rights), build_revoke_transactions (revoke risky token approvals), build_recovery_transaction (unsigned recovery transaction ready to sign), preview_recovery (explicit fee preview before building), discover_platform_features (explore SolHunt web platform capabilities).",
-  version: "1.0.0",
-  homepage: "https://solhunt.dev",
-  icon: "https://solhunt.dev/icons/icon-192.png",
-  category: "blockchain",
-  tags: ["solana", "wallet", "defi", "recovery", "agent"],
-  pricing: {
-    type: "free",
-    detail: "Completely free to use. 15% fee only on successful SOL recovery."
+  serverInfo: {
+    name: "solhunt",
+    version: "1.0.0"
   },
-  // Config schema tells users what configuration this server needs
-  config_schema: {
-    type: "object",
-    properties: {
-      api_key: {
-        type: "string",
-        description: "Optional SolHunt API key for higher rate limits. Get yours at https://solhunt.dev/api-keys",
-        required: false
-      }
-    }
+  authentication: {
+    required: false,
+    schemes: []
   },
-  endpoints: {
-    mcp: {
-      url: "https://solhunt.dev/.netlify/functions/mcp",
-      protocol: "mcp",
-      protocol_version: "2025-03-05"
-    }
-  },
-  protocols: {
-    mcp: {
-      tools: TOOLS
-    }
-  }
+  tools: TOOLS,
+  resources: [],
+  prompts: []
 };
 
 // ── JSON Response Helper ───────────────────────────────────────────────────────
