@@ -185,8 +185,8 @@ export function useReclaimRent() {
                 err && typeof err === 'object' && 'code' in err
                     ? (err as AppError)
                     : {
-                        code: ERROR_CODES.TX_FAILED,
-                        message: ERROR_CODES.RECLAIM_TX_FAILED,
+                        code: ERROR_CODES.RECLAIM_TX_FAILED,
+                        message: ERROR_MESSAGES.RECLAIM_TX_FAILED,
                         technicalDetail: err instanceof Error ? err.message : String(err),
                     };
 
