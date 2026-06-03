@@ -44,7 +44,20 @@ function extractMemo(tx: HeliusTransaction): string | null {
 }
 
 export const handler: Handler = async (event) => {
-  const headers = { 'Content-Type': 'application/json' };
+  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
+  const origin = event.headers.origin || event.headers.Origin || '';
+  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
+
+  const headers = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': corsOrigin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Cache-Control': 'no-store',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+  };
 
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'POST only' }) };

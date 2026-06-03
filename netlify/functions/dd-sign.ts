@@ -55,7 +55,13 @@ export const handler: Handler = async (event) => {
 
   const headers = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin
+    'Access-Control-Allow-Origin': corsOrigin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Cache-Control': 'no-store',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
   };
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
@@ -213,7 +219,7 @@ export const handler: Handler = async (event) => {
   } catch (e: unknown) {
     const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
     if (!isProduction) {
-      console.error('dd-sign error:', e instanceof Error ? e.message : String(e));
+      console.warn('dd-sign error:', e instanceof Error ? e.message : String(e));
     }
     return {
       statusCode: 500,
