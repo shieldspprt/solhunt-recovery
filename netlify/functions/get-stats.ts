@@ -25,10 +25,15 @@ export const handler: Handler = async (event) => {
   const origin = event.headers.origin || event.headers.Origin || '';
   const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
 
-  const headers = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': corsOrigin,
-    'Cache-Control': 'public, max-age=3600' // cache for 1 hour
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Cache-Control': 'public, max-age=3600',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
   };
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
