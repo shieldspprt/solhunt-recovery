@@ -125,7 +125,7 @@ function isOptionalNumber(value: unknown): value is number | undefined {
 function isValidBase58Pubkey(value: unknown): value is string {
   if (!isString(value)) return false;
   // Solana pubkeys are 32-44 base58 characters
-  if (value.length < 32 || value.length > 44) return false;
+  if (value?.length < 32 || value?.length > 44) return false;
   // Base58 charset excludes ambiguous chars: 0, O, I, l
   return /^[1-9A-HJ-NP-Za-km-z]+$/.test(value);
 }

@@ -346,14 +346,16 @@ export function StatsDisplay() {
           </p>
         </div>
         <div className="px-4 py-2 border-t border-gray-700/60">
-          <p className="text-xs text-gray-600" aria-label={`Post length: ${today.x_draft.length} characters${today.x_draft.length > 280 ? '. Warning: over 280 character limit for X posts' : ''}`}>
-            {today.x_draft.length} characters
-            {today.x_draft.length > 280 && (
-              <span className="text-yellow-600 ml-2">
-                ⚠ Over 280 chars — trim before posting
-              </span>
-            )}
-          </p>
+          <span role="status" aria-live="polite" aria-atomic="true">
+            <span className="text-xs text-gray-600">
+              {today.x_draft.length} characters
+              {today.x_draft.length > 280 && (
+                <span className="text-yellow-600 ml-2">
+                  ⚠ Over 280 chars — trim before posting
+                </span>
+              )}
+            </span>
+          </span>
         </div>
       </div>
 
