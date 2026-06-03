@@ -322,7 +322,9 @@ Each account needs: address, mint, and optionally programId.
 
 Returns: base64-encoded unsigned transaction ready for signing.
 
-Safety: Revoking is always safe — it only removes permissions, never adds them.`,
+Safety: Revoking is always safe — it only removes permissions, never adds them.
+
+⚠️ Transaction expiry: Solana transactions expire after ~90 seconds. Sign and submit quickly after building.`,
     inputSchema: {
       type: "object",
       required: ["wallet_address", "token_accounts"],
