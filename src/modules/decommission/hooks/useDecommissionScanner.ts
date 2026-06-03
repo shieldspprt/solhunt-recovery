@@ -192,10 +192,8 @@ export function useDecommissionScanner() {
             });
 
         } catch (err: unknown) {
-            // Log full error for debugging before creating user-friendly message
-            // (warn since error is handled gracefully and surfaced to user)
-            logger.warn('Decommission recovery failed:', err instanceof Error ? err.message : String(err));
-            // Properly handle and log the error for debugging
+            // Translate to user-facing error — avoid double-logging since inner txErr
+            // is already logged at the per-transaction level (line ~163)
             const appError = createAppError('DECOMMISSION_RECOVERY_FAILED', err instanceof Error ? err.message : String(err));
             store.setRecoveryStatus('error');
             store.setRecoveryError(`${appError.message}${appError.technicalDetail ? `: ${appError.technicalDetail}` : ''}`);
