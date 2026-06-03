@@ -254,12 +254,15 @@ export function StatsDisplay() {
   const { today, history, totals } = data;
 
   return (
-    <section className="w-full max-w-2xl mx-auto px-4 py-8">
+    <section
+      className="w-full max-w-2xl mx-auto px-4 py-8"
+      aria-labelledby="daily-scan-heading"
+    >
 
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-lg font-bold text-white">Daily Wallet Scan</h2>
+          <h2 id="daily-scan-heading" className="text-lg font-bold text-white">Daily Wallet Scan</h2>
           <p className="text-xs text-gray-500">
             {new Date(today.date).toLocaleDateString('en-US', {
               weekday: 'long', month: 'long', day: 'numeric'
