@@ -346,8 +346,8 @@ export function StatsDisplay() {
           </p>
         </div>
         <div className="px-4 py-2 border-t border-gray-700/60">
-          <span role="status" aria-live="polite" aria-atomic="true">
-            <span className="text-xs text-gray-600">
+          <span role="status" aria-atomic="true">
+            <span className="text-xs text-gray-600" aria-live="polite">
               {today.x_draft.length} characters
               {today.x_draft.length > 280 && (
                 <span className="text-yellow-600 ml-2">
