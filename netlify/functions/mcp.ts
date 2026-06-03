@@ -539,9 +539,10 @@ async function executeTool(
   apiKey?: string
 ): Promise<unknown> {
   // Log structured analytics for monitoring (safe: no wallet balance/tx details logged)
-  const typedArgs = args;
-  const walletAddress = ('wallet_address' in typedArgs && typedArgs.wallet_address) ||
-                        ('destination_wallet' in typedArgs && typedArgs.destination_wallet) ||
+  // Extract wallet address for rate limiting and logging.
+  // ToolArgs is a union; we use property checks to safely narrow which field is present.
+  const walletAddress = ('wallet_address' in args && args.wallet_address) ||
+                        ('destination_wallet' in args && args.destination_wallet) ||
                         'N/A';
   const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
   if (!isProduction) {
