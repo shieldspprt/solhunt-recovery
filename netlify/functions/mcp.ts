@@ -85,7 +85,10 @@ interface MCPErrorResponse {
   detail?: string;
 }
 
-/** Raw tool arguments from request - validated before use */
+/** Raw tool arguments from request — untyped at runtime (parsed from JSON).
+ * RawToolArgs is consumed exclusively by validate* functions that narrow it to
+ * concrete ToolArgs subtypes via exhaustive type guards (isValidBase58Pubkey, etc.).
+ * All args are validated before use in any RPC call or external API. */
 type RawToolArgs = Record<string, unknown>;
 
 /** Type guard to check if a string is a valid ToolName */

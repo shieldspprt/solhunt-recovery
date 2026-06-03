@@ -121,8 +121,11 @@ export async function fetchMEVClaims(
                         rewards = [...rewards, ...pageRewards];
                     }
                 } catch (_pageErr: unknown) {
-                    // pageErr intentionally unused — network failures are non-fatal (logged above)
-                    logger.warn(`fetchMEVClaims page ${page} failed: ${_pageErr instanceof Error ? _pageErr.message : String(_pageErr)}`);
+                    // Intentionally discard page-level errors — individual page failures
+                    // are non-fatal for the overall MEV claim scan. Log the error message
+                    // only since the outer try/catch handles the overall failure case.
+                    const msg = _pageErr instanceof Error ? _pageErr.message : String(_pageErr);
+                    logger.warn(`fetchMEVClaims page ${page} failed: ${msg}`);
                 }
             }
         }
