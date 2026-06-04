@@ -18,7 +18,7 @@ import { getLatestBlockhashWithRetry } from '@/lib/rpcRetry';
  * This is totally client-side using data already fetched by the scanner.
  */
 export function getCloseableAccounts(scanResult: ScanResult | null): CloseableAccount[] {
-    if (!scanResult || !scanResult.emptyAccounts) return [];
+    if (!scanResult || !Array.isArray(scanResult.emptyAccounts)) return [];
 
     // Re-map the raw empty accounts into our enriched CloseableAccount type
     return scanResult.emptyAccounts.map((account) => ({
