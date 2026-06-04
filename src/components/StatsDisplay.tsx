@@ -2,7 +2,7 @@
 // Shows today's scan stats and the ready-to-post X draft
 // Displays on solhunt.dev homepage or /stats page
 
-import { useState, useEffect, memo, useCallback } from 'react';
+import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { logger } from '@/lib/logger';
 import { fetchSOLPriceUSD } from '@/lib/mevScanner';
 
@@ -77,12 +77,29 @@ const StatsSkeleton = memo(function StatsSkeleton() {
 
 const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: string }) => {
   const [copied, setCopied] = useState(false);
+  // Track the "Copied!" reset timer so it can be cleared on unmount or re-click.
+  // Previously the timer was fire-and-forget, which triggered setState-after-unmount
+  // warnings if the user navigated within 2s of copying and let rapid re-clicks race.
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleCopy = useCallback(async () => {
+    // Cancel any pending reset so overlapping clicks restart the 2s window cleanly
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    const triggerCopiedState = (): void => {
+      setCopied(true);
+      timeoutRef.current = setTimeout(() => {
+        setCopied(false);
+        timeoutRef.current = null;
+      }, 2000);
+    };
+
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      triggerCopiedState();
     } catch (err: unknown) {
       const fallbackErr = err instanceof Error ? err.message : String(err);
       logger.warn('Clipboard write failed:', fallbackErr);
@@ -95,14 +112,23 @@ const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: strin
         el.select();
         document.execCommand('copy');
         document.body.removeChild(el);
-        setCopied(true);
+        triggerCopiedState();
       } catch (_fallbackErr: unknown) {
         // execCommand fallback failed — log via production-safe logger, don't silently swallow
         logger.warn('Clipboard execCommand fallback failed:', _fallbackErr instanceof Error ? _fallbackErr.message : String(_fallbackErr));
       }
-      setTimeout(() => setCopied(false), 2000);
     }
   }, [text]);
+
+  // Clear pending reset on unmount to avoid setState-after-unmount warnings
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, []);
 
   return (
     <span>

@@ -3,7 +3,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletScanner } from '@/hooks/useWalletScanner';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { shortenAddress, copyToClipboard } from '@/lib/formatting';
-import { useState, useEffect, memo } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import toast from 'react-hot-toast';
 import { Copy, Check } from 'lucide-react';
 import { useWalletStatus } from '@/hooks/useStoreSelectors';
@@ -16,6 +16,10 @@ export const ScannerCard = memo(function ScannerCard() {
     const { scan, isScanning, isOnCooldown } = useWalletScanner();
     const [copied, setCopied] = useState(false);
     const [scanStatusText, setScanStatusText] = useState('');
+    // Track the "Copied!" reset timeout so it can be cleared on unmount or re-click.
+    // Without this, navigating away within 2s of a copy triggers a state update on an
+    // unmounted component (React warning) and overlapping clicks can clobber the timer.
+    const copyResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Cycle through status messages during scan
     useEffect(() => {
@@ -40,13 +44,30 @@ export const ScannerCard = memo(function ScannerCard() {
         return () => clearInterval(interval);
     }, [isScanning]);
 
+    // Clear pending copy-reset timer on unmount to avoid setState-after-unmount warnings
+    useEffect(() => {
+        return () => {
+            if (copyResetTimeoutRef.current) {
+                clearTimeout(copyResetTimeoutRef.current);
+                copyResetTimeoutRef.current = null;
+            }
+        };
+    }, []);
+
     const handleCopy = async () => {
         if (!publicKey) return;
         const success = await copyToClipboard(publicKey.toBase58());
         if (success) {
             setCopied(true);
             toast.success('Address copied!');
-            setTimeout(() => setCopied(false), 2000);
+            // Cancel any in-flight reset so overlapping clicks restart the 2s window cleanly
+            if (copyResetTimeoutRef.current) {
+                clearTimeout(copyResetTimeoutRef.current);
+            }
+            copyResetTimeoutRef.current = setTimeout(() => {
+                setCopied(false);
+                copyResetTimeoutRef.current = null;
+            }, 2000);
         }
     };
 
