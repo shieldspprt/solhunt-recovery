@@ -29,12 +29,18 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
     }, [isProcessing, clearReclaim]);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reclaim-progress-title"
+        >
             {/* Backdrop */}
             <button
                 className={`absolute inset-0${isProcessing ? ' cursor-default pointer-events-none' : ' cursor-pointer'} bg-shield-bg/90 backdrop-blur-sm`}
                 onClick={handleClose}
                 aria-label="Close modal overlay"
+                aria-hidden="true"
                 tabIndex={isProcessing ? -1 : 0}
                 onKeyDown={(e) => {
                     if ((e.key === 'Enter' || e.key === ' ') && !isProcessing) {
@@ -64,7 +70,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                     {reclaimStatus === 'building_transaction' && (
                         <>
                             <LoadingSpinner size="lg" className="mb-6" />
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Building Transaction</h2>
+                            <h2 id="reclaim-progress-title" className="text-xl font-bold text-shield-text mb-2">Building Transaction</h2>
                             <p className="text-shield-muted text-sm">Preparing to close {closeableAccounts.length} accounts...</p>
                         </>
                     )}
@@ -75,7 +81,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                                 <div className="absolute inset-0 bg-shield-success/20 rounded-full animate-ping" />
                                 <LoadingSpinner size="lg" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Waiting for Signature</h2>
+                            <h2 id="reclaim-progress-title" className="text-xl font-bold text-shield-text mb-2">Waiting for Signature</h2>
                             <p className="text-shield-muted text-sm px-4">
                                 Please check your wallet extension and approve the transaction.
                             </p>
@@ -85,7 +91,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                     {reclaimStatus === 'confirming' && (
                         <>
                             <LoadingSpinner size="lg" className="mb-6" />
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Confirming on Solana</h2>
+                            <h2 id="reclaim-progress-title" className="text-xl font-bold text-shield-text mb-2">Confirming on Solana</h2>
                             <p className="text-shield-muted text-sm">This usually takes a few seconds...</p>
                         </>
                     )}
@@ -96,7 +102,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-shield-success/10 border border-shield-success/20">
                                 <CheckCircle2 className="h-12 w-12 text-shield-success" aria-hidden="true" />
                             </div>
-                            <h2 className="text-2xl font-bold text-shield-text mb-2">SOL Reclaimed!</h2>
+                            <h2 id="reclaim-progress-title" className="text-2xl font-bold text-shield-text mb-2">SOL Reclaimed!</h2>
                             <p className="text-shield-muted mb-6">
                                 Successfully closed {reclaimResult.closedCount} accounts and reclaimed{' '}
                                 <span className="font-mono text-shield-text font-bold">~{formatSOLValue(reclaimResult.reclaimedSOL)}</span>.
@@ -133,7 +139,7 @@ export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-danger/10">
                                 <XCircle className="h-8 w-8 text-shield-danger" aria-hidden="true" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Reclaim Failed</h2>
+                            <h2 id="reclaim-progress-title" className="text-xl font-bold text-shield-text mb-2">Reclaim Failed</h2>
 
                             <div className="rounded-lg bg-shield-danger/10 border border-shield-danger/20 p-4 mb-6 mt-4 text-left">
                                 <p className="text-sm font-medium text-shield-danger mb-1">{reclaimError.message}</p>

@@ -36,12 +36,18 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
     }, [isProcessing, clearRevoke]);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="revoke-progress-title"
+        >
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-shield-bg/90 backdrop-blur-sm"
                 onClick={handleClose}
                 aria-label="Close dialog by clicking backdrop"
+                aria-hidden="true"
             />
 
             {/* Modal Content */}
@@ -63,7 +69,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                     {revokeStatus === 'building_transaction' && (
                         <>
                             <LoadingSpinner size="lg" className="mb-6" />
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Building Transaction</h2>
+                            <h2 id="revoke-progress-title" className="text-xl font-bold text-shield-text mb-2">Building Transaction</h2>
                             <p className="text-shield-muted text-sm">Preparing to revoke {delegations.length} permissions...</p>
                         </>
                     )}
@@ -74,7 +80,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                                 <div className="absolute inset-0 bg-shield-accent/20 rounded-full animate-ping" />
                                 <LoadingSpinner size="lg" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Waiting for Signature</h2>
+                            <h2 id="revoke-progress-title" className="text-xl font-bold text-shield-text mb-2">Waiting for Signature</h2>
                             <p className="text-shield-muted text-sm px-4">
                                 Please check your wallet extension and approve the transaction.
                             </p>
@@ -84,7 +90,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                     {revokeStatus === 'confirming' && (
                         <>
                             <LoadingSpinner size="lg" className="mb-6" />
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Confirming on Solana</h2>
+                            <h2 id="revoke-progress-title" className="text-xl font-bold text-shield-text mb-2">Confirming on Solana</h2>
                             <p className="text-shield-muted text-sm">This usually takes a few seconds...</p>
                         </>
                     )}
@@ -95,7 +101,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-shield-success/10">
                                 <CheckCircle2 className="h-12 w-12 text-shield-success" aria-hidden="true" />
                             </div>
-                            <h2 className="text-2xl font-bold text-shield-text mb-2">Protected!</h2>
+                            <h2 id="revoke-progress-title" className="text-2xl font-bold text-shield-text mb-2">Protected!</h2>
                             <p className="text-shield-muted mb-6">
                                 Successfully revoked {revokeResult.revokedCount} permission(s).
                             </p>
@@ -131,7 +137,7 @@ export const RevokeProgressModal = memo(function RevokeProgressModal({ delegatio
                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-danger/10">
                                 <XCircle className="h-8 w-8 text-shield-danger" aria-hidden="true" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Revocation Failed</h2>
+                            <h2 id="revoke-progress-title" className="text-xl font-bold text-shield-text mb-2">Revocation Failed</h2>
 
                             <div className="rounded-lg bg-shield-danger/10 border border-shield-danger/20 p-4 mb-6 mt-4 text-left">
                                 <p className="text-sm font-medium text-shield-danger mb-1">{revokeError.message}</p>

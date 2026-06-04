@@ -40,10 +40,17 @@ export function DustProgressModal() {
     }, [failedMints.length, clearDust, startBurnForMints]);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dust-progress-title"
+        >
             <button
                 type="button"
                 aria-label="Close dialog by clicking backdrop"
+                aria-hidden="true"
+                tabIndex={-1}
                 className="absolute inset-0 bg-shield-bg/90 backdrop-blur-sm cursor-default"
                 onClick={handleClose}
             />
@@ -66,7 +73,7 @@ export function DustProgressModal() {
                             <div className="flex items-center justify-center mb-4">
                                 <LoadingSpinner size="md" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text text-center mb-2">
+                            <h2 id="dust-progress-title" className="text-xl font-bold text-shield-text text-center mb-2">
                                 Swapping Dust Tokens to SOL
                             </h2>
                             <p className="text-sm text-shield-muted text-center mb-5">
@@ -95,7 +102,7 @@ export function DustProgressModal() {
                             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-shield-success/10 border border-shield-success/20">
                                 <CheckCircle2 className="h-12 w-12 text-shield-success" aria-hidden="true" />
                             </div>
-                            <h2 className="text-2xl font-bold text-shield-text mb-2">
+                            <h2 id="dust-progress-title" className="text-2xl font-bold text-shield-text mb-2">
                                 Dust Consolidation Complete
                             </h2>
                             <p className="text-shield-muted mb-3">
@@ -155,7 +162,7 @@ export function DustProgressModal() {
                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-danger/10">
                                 <XCircle className="h-8 w-8 text-shield-danger" aria-hidden="true" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text text-center mb-2">Dust Swap Failed</h2>
+                            <h2 id="dust-progress-title" className="text-xl font-bold text-shield-text text-center mb-2">Dust Swap Failed</h2>
 
                             <div className="rounded-lg bg-shield-danger/10 border border-shield-danger/20 p-4 mb-6 mt-4">
                                 <p className="text-sm font-medium text-shield-danger mb-1">{dustError.message}</p>

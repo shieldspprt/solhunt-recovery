@@ -17,11 +17,17 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
     const transactionCount = Math.max(1, Math.ceil(closeableAccounts.length / MAX_CLOSE_PER_TX));
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reclaim-modal-title"
+        >
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-shield-bg/80 backdrop-blur-sm"
                 onClick={clearReclaim}
+                aria-hidden="true"
             />
 
             {/* Modal Content */}
@@ -40,7 +46,7 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
                         <Coins className="h-8 w-8 text-shield-success" aria-hidden="true" />
                     </div>
 
-                    <h2 className="text-xl font-bold text-center text-shield-text mb-6">
+                    <h2 id="reclaim-modal-title" className="text-xl font-bold text-center text-shield-text mb-6">
                         Reclaim Rent SOL?
                     </h2>
 

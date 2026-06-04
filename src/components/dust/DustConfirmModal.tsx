@@ -23,10 +23,17 @@ export const DustConfirmModal = memo(function DustConfirmModal() {
     const hiddenCount = Math.max(selectedTokens.length - previewTokens.length, 0);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dust-modal-title"
+        >
+            {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-shield-bg/80 backdrop-blur-sm"
                 onClick={cancelDustSwap}
+                aria-hidden="true"
             />
 
             <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
@@ -44,7 +51,7 @@ export const DustConfirmModal = memo(function DustConfirmModal() {
                         <ArrowRightLeft className="h-8 w-8 text-shield-accent" aria-hidden="true" />
                     </div>
 
-                    <h2 className="text-xl font-bold text-center text-shield-text mb-4">
+                    <h2 id="dust-modal-title" className="text-xl font-bold text-center text-shield-text mb-4">
                         Consolidate Dust to SOL?
                     </h2>
 
