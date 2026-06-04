@@ -294,7 +294,12 @@ Check free at solhunt.dev ↓`;
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 export const handler: Handler = async (event) => {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = { 
+    'Content-Type': 'application/json',
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
+  };
 
   // Security: only allow internal calls or Netlify scheduler
   const secret = event.headers?.['x-internal-secret'] || event.queryStringParameters?.secret;
