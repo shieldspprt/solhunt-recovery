@@ -263,7 +263,12 @@ export const handler: Handler = async (event) => {
 
   } catch (error: unknown) {
     const message = getErrorMessage(error);
-    console.error('scan-token-approvals error:', message);
+    // Production log silence — matches the pattern in scan-wallet.ts,
+    // dd-sign.ts, and wallet-opportunities.ts.
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+    if (!isProduction) {
+      console.error('scan-token-approvals error:', message);
+    }
     return {
       statusCode: 500,
       headers,

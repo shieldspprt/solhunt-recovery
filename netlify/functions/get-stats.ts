@@ -80,11 +80,17 @@ export const handler: Handler = async (event) => {
       })
     };
   } catch (e: unknown) {
-    console.error('get-stats error:', e instanceof Error ? e.message : String(e));
+    const message = e instanceof Error ? e.message : String(e);
+    // Production log silence — matches the pattern in scan-wallet.ts,
+    // dd-sign.ts, wallet-opportunities.ts, and scan-token-approvals.ts.
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+    if (!isProduction) {
+      console.error('get-stats error:', message);
+    }
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ success: false, error: e instanceof Error ? e.message : String(e) })
+      body: JSON.stringify({ success: false, error: message })
     };
   }
 };

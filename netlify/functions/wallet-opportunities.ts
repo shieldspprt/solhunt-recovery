@@ -120,7 +120,13 @@ export const handler: Handler = async (event) => {
     };
   } catch (error: unknown) {
     const message = getErrorMessage(error);
-    console.error('wallet-opportunities error:', message);
+    // Netlify Functions: production logs are routed to a paid log drain,
+    // so suppressing in prod avoids noise. The same `isProduction` pattern is
+    // used across scan-wallet.ts and dd-sign.ts.
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+    if (!isProduction) {
+      console.error('wallet-opportunities error:', message);
+    }
     return {
       statusCode: 500,
       headers,

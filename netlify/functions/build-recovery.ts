@@ -172,7 +172,12 @@ export const handler: Handler = async (event) => {
     };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error('build-recovery error:', errorMessage);
+    // Production log silence — matches the pattern in scan-wallet.ts,
+    // dd-sign.ts, wallet-opportunities.ts, and scan-token-approvals.ts.
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+    if (!isProduction) {
+      console.error('build-recovery error:', errorMessage);
+    }
     return {
       statusCode: 500,
       headers,
