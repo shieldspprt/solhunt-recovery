@@ -62,7 +62,10 @@ async function getRecentActiveWallets(limit: number): Promise<ActiveWallet[]> {
         );
 
         if (!response.ok) {
-          console.error(`Error fetching from Helius: ${response.status} ${response.statusText}`);
+          const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+          if (!isProduction) {
+            console.error(`Error fetching from Helius: ${response.status} ${response.statusText}`);
+          }
           return;
         }
         
@@ -84,7 +87,10 @@ async function getRecentActiveWallets(limit: number): Promise<ActiveWallet[]> {
           }
         }
       } catch (e: unknown) {
-        console.error(`Failed to fetch transactions for ${program}:`, e instanceof Error ? e.message : String(e));
+        const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+        if (!isProduction) {
+          console.error(`Failed to fetch transactions for ${program}:`, e instanceof Error ? e.message : String(e));
+        }
       }
     })
   );
@@ -104,7 +110,10 @@ async function getRecentActiveWallets(limit: number): Promise<ActiveWallet[]> {
     .slice(0, limit)
     .map(([address, sourceProject]) => ({ address, sourceProject }));
 
-  console.log(`Found ${wallets.length} unique active wallets (shuffled)`);
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+  if (!isProduction) {
+    console.log(`Found ${wallets.length} unique active wallets (shuffled)`);
+  }
   return wallets;
 }
 
@@ -164,7 +173,10 @@ async function scanAllWallets(wallets: ActiveWallet[]): Promise<{
         .filter(r => !r.error && r.recoverable_sol >= MIN_RECOVERABLE_SOL)
     );
 
-    console.log(`Scanned ${Math.min(i + SCAN_BATCH_SIZE, wallets.length)}/${wallets.length}`);
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+    if (!isProduction) {
+      console.log(`Scanned ${Math.min(i + SCAN_BATCH_SIZE, wallets.length)}/${wallets.length}`);
+    }
 
     // Rate limit delay between batches
     if (i + SCAN_BATCH_SIZE < wallets.length) {
@@ -201,9 +213,12 @@ function computeStats(
   // Pick the first wallet NOT in the exclusion set, fall back to absolute worst
   const worst = sorted.find(w => !excludeWorstWallets.has(w.address)) || sorted[0];
 
-  if (excludeWorstWallets.size > 0) {
-    console.log(`Excluding ${excludeWorstWallets.size} recent worst wallets:`, Array.from(excludeWorstWallets));
-    console.log(`Selected worst wallet: ${worst?.address || 'none'} (${worst?.recoverable_sol.toFixed(4) || 0} SOL)`);
+  const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+  if (!isProduction) {
+    if (excludeWorstWallets.size > 0) {
+      console.log(`Excluding ${excludeWorstWallets.size} recent worst wallets:`, Array.from(excludeWorstWallets));
+      console.log(`Selected worst wallet: ${worst?.address || 'none'} (${worst?.recoverable_sol.toFixed(4) || 0} SOL)`);
+    }
   }
 
   const projectStats = new Map<string, number>();
@@ -244,7 +259,10 @@ async function generateXDraft(stats: ReturnType<typeof computeStats>, date: stri
       }
     }
   } catch (e: unknown) {
-    console.warn('Failed to fetch SOL price from Jupiter:', e instanceof Error ? e.message : String(e));
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+    if (!isProduction) {
+      console.warn('Failed to fetch SOL price from Jupiter:', e instanceof Error ? e.message : String(e));
+    }
   }
 
   const totalUsd = (stats.total_recoverable_sol * solPrice).toFixed(0);
@@ -329,7 +347,10 @@ export const handler: Handler = async (event) => {
   // }
 
   try {
-    console.log('Starting daily stats run for', today);
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+    if (!isProduction) {
+      console.log('Starting daily stats run for', today);
+    }
     const isFast = !!event.queryStringParameters?.fast;
 
     // Step 1: Get wallets
@@ -377,7 +398,9 @@ export const handler: Handler = async (event) => {
 
     if (dbError) throw new Error(`DB error: ${dbError.message}`);
 
-    console.log('Daily stats saved:', stats);
+    if (!isProduction) {
+      console.log('Daily stats saved:', stats);
+    }
 
     return {
       statusCode: 200,
@@ -390,7 +413,10 @@ export const handler: Handler = async (event) => {
       })
     };
   } catch (e: unknown) {
-    console.error('Daily stats failed:', e instanceof Error ? e.message : String(e));
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+    if (!isProduction) {
+      console.error('Daily stats failed:', e instanceof Error ? e.message : String(e));
+    }
     return {
       statusCode: 500,
       headers,
