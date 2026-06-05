@@ -18,7 +18,7 @@ export const EmptyAccountsInfo = memo(function EmptyAccountsInfo({
         <div className="rounded-xl border border-shield-border bg-shield-card/50 p-4 sm:p-5">
             <div className="flex items-start gap-3">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-shield-accent/10 flex-shrink-0">
-                    <Wallet className="h-4 w-4 text-shield-accent" />
+                    <Wallet className="h-4 w-4 text-shield-accent" aria-hidden="true" />
                 </div>
                 <div>
                     <h3 className="text-sm font-semibold text-shield-text mb-1">
@@ -33,7 +33,7 @@ export const EmptyAccountsInfo = memo(function EmptyAccountsInfo({
                         in locked rent.
                     </p>
                     <div className="flex items-center gap-1.5 text-xs text-shield-success/80">
-                        <CheckCircle2 className="h-3 w-3" />
+                        <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
                         <span>Ready for reclaim via Engine 2</span>
                     </div>
                 </div>
