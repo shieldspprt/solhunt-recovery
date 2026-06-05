@@ -7,6 +7,17 @@ import {
 } from '@solana/web3.js';
 import bs58 from 'bs58';
 
+// ── Production-aware logging ──────────────────────────────────────────────────
+// Netlify routes all console.* to server stderr; a paid log drain can ingest
+// that stream. To prevent wallet / config metadata leaking to the drain in
+// production, route warns through `safeLogWarn` which silences in prod but
+// preserves dev visibility. Mirrors the pattern used in scan-wallet.ts,
+// build-recovery.ts, etc.
+const IS_PRODUCTION = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+function safeLogWarn(...args: unknown[]): void {
+  if (!IS_PRODUCTION) console.warn(...args);
+}
+
 // ── Hard limits — in code, not config ────────────────────────────────────────
 const DD_WALLET          = 'DD4AdYKVcV6kgpmiCEeASRmJyRdKgmaRAbsjKucx8CvY';
 const FIXED_LAMPORTS     = 1000;    // 0.000001 SOL. Always. No exceptions.
@@ -126,7 +137,7 @@ export const handler: Handler = async (event) => {
     const rawKey = process.env.DD_PRIVATE_KEY;
     if (!rawKey) {
       // Warn — config issue, recoverable with restart
-      console.warn('[dd-sign] DD_PRIVATE_KEY not set — check Netlify env vars');
+      safeLogWarn('[dd-sign] DD_PRIVATE_KEY not set — check Netlify env vars');
       return { statusCode: 500, headers, body: JSON.stringify({ error: 'Configuration error' }) };
     }
 
@@ -135,13 +146,13 @@ export const handler: Handler = async (event) => {
       ddKeypair = Keypair.fromSecretKey(bs58.decode(rawKey));
     } catch (_err: unknown) {
       // Malformed key — reject cleanly, not as internal error
-      console.warn('[dd-sign] DD_PRIVATE_KEY is not a valid base58-encoded secret key');
+      safeLogWarn('[dd-sign] DD_PRIVATE_KEY is not a valid base58-encoded secret key');
       return { statusCode: 500, headers, body: JSON.stringify({ error: 'Configuration error' }) };
     }
 
     if (ddKeypair.publicKey.toBase58() !== DD_WALLET) {
       // Warn — keypair mismatch means wrong key loaded, but not a crash
-      console.warn('[dd-sign] Keypair public key does not match DD_WALLET constant');
+      safeLogWarn('[dd-sign] Keypair public key does not match DD_WALLET constant');
       return { statusCode: 500, headers, body: JSON.stringify({ error: 'Internal error' }) };
     }
 
@@ -177,7 +188,7 @@ export const handler: Handler = async (event) => {
         { skipPreflight: false, maxRetries: 3 }
       );
     } catch (rpcErr: unknown) {
-      console.warn('[dd-sign] RPC sendRawTransaction failed:', rpcErr instanceof Error ? rpcErr.message : String(rpcErr));
+      safeLogWarn('[dd-sign] RPC sendRawTransaction failed:', rpcErr instanceof Error ? rpcErr.message : String(rpcErr));
       return { statusCode: 502, headers, body: JSON.stringify({ error: 'RPC send failed. Try again.' }) };
     }
 
@@ -187,7 +198,7 @@ export const handler: Handler = async (event) => {
         'confirmed'
       );
     } catch (confirmErr: unknown) {
-      console.warn('[dd-sign] confirmTransaction failed (tx may still be pending):', confirmErr instanceof Error ? confirmErr.message : String(confirmErr));
+      safeLogWarn('[dd-sign] confirmTransaction failed (tx may still be pending):', confirmErr instanceof Error ? confirmErr.message : String(confirmErr));
       // Don't fail the response — tx was sent, confirmation is best-effort
     }
 
@@ -203,7 +214,7 @@ export const handler: Handler = async (event) => {
       memo_preview: memo.slice(0, 50),
       sent_at: new Date().toISOString()
     }).then(({ error: dbErr }) => {
-      if (dbErr) console.warn('[dd-sign] Failed to log spend to Supabase:', dbErr.message);
+      if (dbErr) safeLogWarn('[dd-sign] Failed to log spend to Supabase:', dbErr.message);
     });
 
     return {
@@ -217,10 +228,7 @@ export const handler: Handler = async (event) => {
     };
 
   } catch (e: unknown) {
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
-    if (!isProduction) {
-      console.warn('dd-sign error:', e instanceof Error ? e.message : String(e));
-    }
+    safeLogWarn('dd-sign error:', e instanceof Error ? e.message : String(e));
     return {
       statusCode: 500,
       headers,
