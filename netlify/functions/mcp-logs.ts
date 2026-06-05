@@ -58,6 +58,15 @@ export const handler: Handler = async (event) => {
       
       return { statusCode: 200, headers, body: JSON.stringify({ logged: true }) };
     } catch (err: unknown) {
+      // Production log silence — matches the pattern in scan-wallet.ts,
+      // scan-token-approvals.ts, build-recovery.ts, build-revoke.ts,
+      // preview-recovery.ts, get-stats.ts, dd-sign.ts, daily-stats.ts,
+      // dd-payment.ts. Suppresses in prod to avoid leaking malformed
+      // payload contents (which can include wallet addresses) to server stderr.
+      const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+      if (!isProduction) {
+        console.error('mcp-logs error:', err instanceof Error ? err.message : String(err));
+      }
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid log data' }) };
     }
   }

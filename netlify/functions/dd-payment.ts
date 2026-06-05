@@ -147,6 +147,14 @@ export const handler: Handler = async (event) => {
       }
     } catch (e: unknown) {
       const message = e instanceof Error ? e.message : typeof e === 'string' ? e : String(e ?? 'Unknown error');
+      // Production log silence — matches the pattern in scan-wallet.ts,
+      // scan-token-approvals.ts, build-recovery.ts, build-revoke.ts,
+      // preview-recovery.ts, get-stats.ts, dd-sign.ts, daily-stats.ts.
+      // Suppresses in prod to keep sender wallet/amount data off Netlify server stderr.
+      const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+      if (!isProduction) {
+        console.error('dd-payment error:', message);
+      }
       return {
         statusCode: 500,
         headers,

@@ -109,6 +109,13 @@ export const handler: Handler = async (event) => {
     };
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
+    // Production log silence — matches the pattern in scan-wallet.ts,
+    // scan-token-approvals.ts, build-recovery.ts, build-revoke.ts,
+    // wallet-opportunities.ts, get-stats.ts, dd-sign.ts, daily-stats.ts.
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+    if (!isProduction) {
+      console.error('preview-recovery error:', message);
+    }
     return {
       statusCode: 500,
       headers,
