@@ -20,7 +20,12 @@ export function MEVClaimConfirmModal() {
     const hidden = Math.max(selectedItems.length - preview.length, 0);
 
     return (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <div
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mev-claim-modal-title"
+        >
             <button
                 className="absolute inset-0 cursor-pointer bg-shield-bg/80 backdrop-blur-sm"
                 onClick={cancelClaim}
@@ -45,7 +50,7 @@ export function MEVClaimConfirmModal() {
                         <Zap className="h-8 w-8 text-shield-accent" fill="currentColor" />
                     </div>
 
-                    <h2 className="text-xl font-bold text-center text-shield-text mb-4">
+                    <h2 id="mev-claim-modal-title" className="text-xl font-bold text-center text-shield-text mb-4">
                         Claim {claimEstimate.selectedCount} MEV Reward{claimEstimate.selectedCount === 1 ? '' : 's'}?
                     </h2>
 

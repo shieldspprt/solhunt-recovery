@@ -20,7 +20,12 @@ export function ClaimConfirmModal() {
     const hidden = Math.max(ticketScanResult.claimableTickets.length - preview.length, 0);
 
     return (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <div
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="claim-modal-title"
+        >
             <button
                 className="absolute inset-0 cursor-pointer bg-shield-bg/80 backdrop-blur-sm"
                 onClick={cancelClaim}
@@ -45,7 +50,7 @@ export function ClaimConfirmModal() {
                         <Ticket className="h-8 w-8 text-shield-accent" />
                     </div>
 
-                    <h2 className="text-xl font-bold text-center text-shield-text mb-4">
+                    <h2 id="claim-modal-title" className="text-xl font-bold text-center text-shield-text mb-4">
                         Claim {ticketScanResult.claimableTickets.length} Staking Ticket{ticketScanResult.claimableTickets.length === 1 ? '' : 's'}?
                     </h2>
 

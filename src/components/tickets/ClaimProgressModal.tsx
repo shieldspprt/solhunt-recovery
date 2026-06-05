@@ -26,21 +26,34 @@ export const ClaimProgressModal = memo(() => {
     const isError = ticketClaimStatus === 'error';
 
     return (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-shield-bg/85 backdrop-blur-sm" />
+        <div
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="claim-progress-title"
+        >
+            <button
+                className="absolute inset-0 cursor-pointer bg-shield-bg/85 backdrop-blur-sm"
+                onClick={cancelClaim}
+                aria-label="Close claim progress overlay"
+                aria-hidden="true"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') cancelClaim(); }}
+                type="button"
+            />
 
             <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 <div className="p-6 sm:p-8">
                     {!isComplete && !isError && (
                         <>
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Claiming staking tickets...</h2>
+                            <h2 id="claim-progress-title" className="text-xl font-bold text-shield-text mb-2">Claiming staking tickets...</h2>
                             <p className="text-sm text-shield-muted mb-4">Do not close this window.</p>
                         </>
                     )}
 
                     {isComplete && ticketClaimResult && (
                         <>
-                            <h2 className="text-xl font-bold text-shield-success mb-4">
+                            <h2 id="claim-progress-title" className="text-xl font-bold text-shield-success mb-4">
                                 {ticketClaimResult.failedTickets.length === 0 ? 'All tickets claimed' : 'Partial success'}
                             </h2>
                             <div className="rounded-xl border border-shield-border bg-shield-bg p-4 mb-4">
