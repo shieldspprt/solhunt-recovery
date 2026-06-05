@@ -92,7 +92,7 @@ export function DustBurnProgressModal() {
                     {dustBurnStatus === 'complete' && dustBurnResult && (
                         <div className="text-center animate-in slide-in-from-bottom-4 duration-500">
                             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-shield-success/10 border border-shield-success/20">
-                                <CheckCircle2 className="h-12 w-12 text-shield-success" />
+                                <CheckCircle2 className="h-12 w-12 text-shield-success" aria-hidden="true" />
                             </div>
                             <h2 id="dust-burn-progress-title" className="text-2xl font-bold text-shield-text mb-2">
                                 Burn & Reclaim Complete

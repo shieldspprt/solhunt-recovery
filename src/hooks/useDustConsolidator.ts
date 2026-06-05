@@ -132,6 +132,10 @@ export function useDustConsolidator() {
                         err instanceof Error ? err.message : String(err)
                     );
             setDustError(appError);
+            // Reset status back to idle so the DustCard spinner doesn't stay
+            // stuck on 'fetching_prices' forever. The error is surfaced via
+            // dustStatus === 'error' downstream (and the dustError store entry).
+            setDustStatus('idle');
         }
     }, [
         scanResult,
