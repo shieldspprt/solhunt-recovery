@@ -137,7 +137,8 @@ export const DustConfirmModal = memo(function DustConfirmModal() {
                             type="button"
                             onClick={executeDustSwap}
                             disabled={!feeConsent}
-                            aria-label="Confirm token swap"
+                            aria-label={`Confirm token swap${!feeConsent ? ' — consent to fee required' : ''}`}
+                            aria-disabled={!feeConsent}
                             className="flex-1 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white shadow-lg shadow-shield-accent/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none hover:bg-shield-accent/90"
                         >
                             Swap {selectedTokens.length} Tokens

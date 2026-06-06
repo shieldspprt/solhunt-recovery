@@ -140,7 +140,8 @@ export function DustBurnConfirmModal() {
                             type="button"
                             onClick={executeBurnReclaim}
                             disabled={!feeConsent}
-                            aria-label="Confirm burn and reclaim"
+                            aria-label={`Confirm burn and reclaim${!feeConsent ? ' — consent to fee required' : ''}`}
+                            aria-disabled={!feeConsent}
                             className="flex-1 rounded-xl bg-shield-warning text-shield-bg px-4 py-3 font-semibold hover:bg-shield-warning/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-shield-warning/20 disabled:shadow-none"
                         >
                             Burn & Reclaim
