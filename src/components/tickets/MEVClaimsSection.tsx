@@ -52,7 +52,7 @@ export const MEVClaimsSection = memo(function MEVClaimsSection() {
             <div className="mt-8 border-t border-shield-border pt-6 space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                        <Zap className="h-4 w-4 text-shield-accent" fill="currentColor" />
+                        <Zap className="h-4 w-4 text-shield-accent" fill="currentColor" aria-hidden="true" />
                         <h3 className="text-sm font-bold text-shield-text">Claimable MEV & Priority Fees</h3>
                     </div>
                     {mevScanResult.items.length > 1 && (

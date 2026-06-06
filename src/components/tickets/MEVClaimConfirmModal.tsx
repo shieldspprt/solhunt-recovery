@@ -47,7 +47,7 @@ export function MEVClaimConfirmModal() {
 
                 <div className="p-6 sm:p-8">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-accent/10 border border-shield-accent/20">
-                        <Zap className="h-8 w-8 text-shield-accent" fill="currentColor" />
+                        <Zap className="h-8 w-8 text-shield-accent" fill="currentColor" aria-hidden="true" />
                     </div>
 
                     <h2 id="mev-claim-modal-title" className="text-xl font-bold text-center text-shield-text mb-4">

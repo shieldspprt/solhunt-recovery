@@ -67,13 +67,13 @@ export function HarvestProgressModal({
 
                     {status === 'complete' && (
                         <div className="mb-3 flex items-center justify-center">
-                            <CheckCircle2 className="h-9 w-9 text-shield-success" />
+                            <CheckCircle2 className="h-9 w-9 text-shield-success" aria-hidden="true" />
                         </div>
                     )}
 
                     {status === 'error' && (
                         <div className="mb-3 flex items-center justify-center">
-                            <XCircle className="h-9 w-9 text-shield-danger" />
+                            <XCircle className="h-9 w-9 text-shield-danger" aria-hidden="true" />
                         </div>
                     )}
 

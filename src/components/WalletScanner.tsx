@@ -47,11 +47,21 @@ function formatSol(sol: number): string {
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 const ScoreBar = memo(function ScoreBar({ score }: { score: number }) {
+  // Clamp to [0, 100] so assistive tech never hears an out-of-range value
+  const clampedScore = Math.max(0, Math.min(100, Math.round(score)));
   return (
-    <div className="w-full bg-gray-700 rounded-full h-2">
+    <div
+      className="w-full bg-gray-700 rounded-full h-2"
+      role="progressbar"
+      aria-valuenow={clampedScore}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-label={`Wallet health score: ${clampedScore} out of 100`}
+    >
       <div
-        className={`h-2 rounded-full transition-all duration-700 ${scoreBarColor(score)}`}
-        style={{ width: `${score}%` }}
+        className={`h-2 rounded-full transition-all duration-700 ${scoreBarColor(clampedScore)}`}
+        style={{ width: `${clampedScore}%` }}
+        aria-hidden="true"
       />
     </div>
   );

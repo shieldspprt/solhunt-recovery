@@ -38,7 +38,7 @@ export const MEVClaimRow = memo(function MEVClaimRow({ item, isSelected, onToggl
 
             <div className="flex flex-1 flex-col">
                 <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-shield-accent" fill="currentColor" />
+                    <Zap className="h-4 w-4 text-shield-accent" fill="currentColor" aria-hidden="true" />
                     <span className="text-sm font-semibold text-shield-text">
                         Jito MEV Reward
                     </span>
