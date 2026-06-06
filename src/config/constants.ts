@@ -70,6 +70,10 @@ export const ERROR_CODES = {
     // Engine 9: Decommission Scanner
     DECOMMISSION_SCAN_FAILED: 'DECOMMISSION_SCAN_FAILED',
     DECOMMISSION_RECOVERY_FAILED: 'DECOMMISSION_RECOVERY_FAILED',
+
+    // Engine 6: Buffer Account Recovery
+    BUFFER_SCAN_FAILED: 'BUFFER_SCAN_FAILED',
+    BUFFER_CLOSE_FAILED: 'BUFFER_CLOSE_FAILED',
 } as const;
 
 export const ERROR_MESSAGES: Record<keyof typeof ERROR_CODES, string> = {
@@ -119,6 +123,10 @@ export const ERROR_MESSAGES: Record<keyof typeof ERROR_CODES, string> = {
     // Engine 9
     DECOMMISSION_SCAN_FAILED: 'Could not scan for dead protocol positions. Please try again.',
     DECOMMISSION_RECOVERY_FAILED: 'Recovery from dead protocol failed. No changes were made.',
+
+    // Engine 6
+    BUFFER_SCAN_FAILED: 'Could not scan for program buffer accounts. Please try again.',
+    BUFFER_CLOSE_FAILED: 'Could not close buffer accounts. No changes were made.',
 };
 
 // ─── Known Safe Delegate Addresses ──────────────────────────────

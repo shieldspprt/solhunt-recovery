@@ -6,6 +6,7 @@ import { scanForBuffers } from '../lib/bufferScanner';
 import { createCloseBufferInstructions } from '../lib/bufferCloser';
 import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
+import { createAppError } from '@/lib/errors';
 import {
     logBufferScanComplete,
     logBufferCloseInitiated,
@@ -67,13 +68,8 @@ export function useBufferRecovery() {
             });
         } catch (error: unknown) {
             logger.warn('Buffer scan failed:', error instanceof Error ? error.message : error);
-            const message = error instanceof Error ? error.message : 'Failed to scan for program buffers';
             const technicalDetail = error instanceof Error ? error.toString() : String(error);
-            setBufferScanError({
-                code: 'BUFFER_SCAN_FAILED',
-                message,
-                technicalDetail
-            });
+            setBufferScanError(createAppError('BUFFER_SCAN_FAILED', technicalDetail));
         }
     }, [targetWallet, connection, setBufferScanStatus, setBufferScanResult, setBufferScanError]);
 
@@ -128,14 +124,8 @@ export function useBufferRecovery() {
             await runScan();
         } catch (error: unknown) {
             logger.warn('Buffer close failed:', error instanceof Error ? error.message : error);
-            const message = error instanceof Error ? error.message : 'Failed to close buffer accounts';
             const technicalDetail = error instanceof Error ? error.toString() : String(error);
-            const appError = {
-                code: 'BUFFER_CLOSE_FAILED',
-                message,
-                technicalDetail
-            };
-            setBufferCloseError(appError);
+            setBufferCloseError(createAppError('BUFFER_CLOSE_FAILED', technicalDetail));
             logBufferCloseComplete({
                 success: false,
                 closedCount: 0,
