@@ -33,12 +33,12 @@ export function LpFeeHarvesterPage() {
                 <div className="mb-6 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
-                            <Layers3 className="h-5 w-5 text-shield-accent" />
+                            <Layers3 className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-shield-text">{ENGINE.name}</h1>
                             <div className="flex items-center gap-2 mt-0.5">
-                                <TrendingUp className="h-3 w-3 text-shield-accent" />
+                                <TrendingUp className="h-3 w-3 text-shield-accent" aria-hidden="true" />
                                 <span className="text-xs text-shield-muted">
                                     Avg. user recovers <span className="text-shield-accent font-semibold">~{ENGINE.avgRecoverySOL} SOL</span>
                                 </span>
@@ -47,9 +47,10 @@ export function LpFeeHarvesterPage() {
                     </div>
                     <Link
                         to="/"
+                        aria-label="Back to home"
                         className="inline-flex items-center gap-1 rounded-lg border border-shield-border px-3 py-2 text-xs text-shield-muted hover:text-shield-text hover:bg-shield-card transition-colors"
                     >
-                        <ArrowLeft className="h-3.5 w-3.5" />
+                        <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
                         Home
                     </Link>
                 </div>
