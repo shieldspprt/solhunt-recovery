@@ -392,9 +392,10 @@ export function EngineHowItWorksPage() {
             <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
                 <Link
                     to="/"
+                    aria-label="Back to dashboard"
                     className="inline-flex items-center gap-2 text-sm text-shield-muted hover:text-shield-text transition-colors mb-8"
                 >
-                    <ArrowLeft className="h-4 w-4" />
+                    <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                     Back to Dashboard
                 </Link>
 

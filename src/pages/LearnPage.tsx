@@ -115,7 +115,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '4': {
         title: 'Claim Stakes',
         description: 'Understand Delayed Unstaking and state tickets for LST protocols.',
-        icon: <Server className="h-5 w-5" />,
+        icon: <Server className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -151,7 +151,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '5': {
         title: 'Harvest LP Fees',
         description: 'Extract unclaimed yields from Concentrated Liquidity Market Makers.',
-        icon: <Zap className="h-5 w-5" />,
+        icon: <Zap className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -218,7 +218,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '9': {
         title: 'Dead Protocol Rescue',
         description: 'Salvage trapped liquidity from sunset DeFi protocols using Anchor IDLs.',
-        icon: <Code2 className="h-5 w-5" />,
+        icon: <Code2 className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -253,7 +253,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '10': {
         title: 'Recover Program Buffers',
         description: 'Understand the Upgradable BPF Loader and how to salvage failed deployments.',
-        icon: <FileText className="h-5 w-5" />,
+        icon: <FileText className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
