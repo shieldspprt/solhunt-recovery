@@ -547,10 +547,7 @@ async function executeTool(
   const walletAddress = ('wallet_address' in args && args.wallet_address) ||
                         ('destination_wallet' in args && args.destination_wallet) ||
                         'N/A';
-  const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
-  if (!isProduction) {
-    console.log(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
-  }
+  safeLogInfo(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
 
   // Fire-and-forget analytics logging — must never break tool execution
   void fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
@@ -805,6 +802,17 @@ const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 // Per-wallet rate limiting for fair resource distribution
 const walletRateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const WALLET_RATE_LIMIT = 50; // stricter limit per wallet (50/hour vs 100/hour per IP)
+
+// ── Production-aware logging ──────────────────────────────────────────────────
+// Netlify routes all console.* to server stderr; a paid log drain can ingest
+// that stream. To prevent wallet / config metadata leaking to the drain in
+// production, route logs through `safeLogInfo` which silences in prod but
+// preserves dev visibility. Mirrors the pattern used in dd-sign.ts,
+// scan-wallet.ts, build-recovery.ts, etc.
+const IS_PRODUCTION = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
+function safeLogInfo(...args: unknown[]): void {
+  if (!IS_PRODUCTION) console.log(...args);
+}
 
 interface RateLimitResult {
   allowed: boolean;
