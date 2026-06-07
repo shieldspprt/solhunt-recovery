@@ -30,9 +30,9 @@ export const MEVClaimRow = memo(function MEVClaimRow({ item, isSelected, onToggl
             />
             <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-shield-muted transition-colors hover:text-shield-primary">
                 {isSelected ? (
-                    <CheckSquare className="h-5 w-5 text-shield-primary" />
+                    <CheckSquare className="h-5 w-5 text-shield-primary" aria-hidden="true" />
                 ) : (
-                    <Square className="h-5 w-5" />
+                    <Square className="h-5 w-5" aria-hidden="true" />
                 )}
             </div>
 
@@ -58,7 +58,7 @@ export const MEVClaimRow = memo(function MEVClaimRow({ item, isSelected, onToggl
                         aria-label="View stake account on Solscan (opens in new tab)"
                     >
                         {shortenAddress(item.stakeAccount, 4)}
-                        <ExternalLink className="h-3 w-3" />
+                        <ExternalLink className="h-3 w-3" aria-hidden="true" />
                     </a>
                 </div>
             </div>

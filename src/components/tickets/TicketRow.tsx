@@ -38,7 +38,7 @@ export const TicketRow = memo(function TicketRow({ ticket }: TicketRowProps) {
                     aria-label="View staking ticket on Solscan (opens in new tab)"
                 >
                     {formattedValues.shortAddress}
-                    <ExternalLink className="h-3 w-3" />
+                    <ExternalLink className="h-3 w-3" aria-hidden="true" />
                 </a>
             </div>
 
