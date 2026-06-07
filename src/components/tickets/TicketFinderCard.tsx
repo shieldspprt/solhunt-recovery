@@ -35,7 +35,7 @@ export const TicketFinderCard = memo(function TicketFinderCard() {
         <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full">
             <div className="flex items-center gap-3 mb-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
-                    <Ticket className="h-5 w-5 text-shield-accent" />
+                    <Ticket className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                 </div>
                 <div>
                     <h2 className="text-xl font-bold text-shield-text">Staking Ticket Finder</h2>
@@ -65,7 +65,7 @@ export const TicketFinderCard = memo(function TicketFinderCard() {
         <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full">
             <div className="flex items-center gap-3 mb-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
-                    <Loader2 className="h-5 w-5 text-shield-accent animate-spin" />
+                    <Loader2 className="h-5 w-5 text-shield-accent animate-spin" aria-hidden="true" />
                 </div>
                 <div>
                     <h2 className="text-xl font-bold text-shield-text">Scanning Protocols...</h2>
@@ -77,7 +77,7 @@ export const TicketFinderCard = memo(function TicketFinderCard() {
                 {PROTOCOL_LABELS.map((protocol, index) => (
                     <div key={protocol} className="flex items-center gap-2 text-sm">
                         {index === 0 ? (
-                            <Loader2 className="h-3.5 w-3.5 text-shield-accent animate-spin" />
+                            <Loader2 className="h-3.5 w-3.5 text-shield-accent animate-spin" aria-hidden="true" />
                         ) : (
                             <span className="h-2 w-2 rounded-full bg-shield-muted/50" />
                         )}
@@ -117,7 +117,7 @@ export const TicketFinderCard = memo(function TicketFinderCard() {
                 <div className="flex items-center justify-between gap-3 mb-4">
                     <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
-                            <Ticket className="h-5 w-5 text-shield-accent" />
+                            <Ticket className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                         </div>
                         <div>
                             <h2 className="text-xl font-bold text-shield-text">Staking Ticket Finder</h2>
