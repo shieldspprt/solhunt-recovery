@@ -1,3 +1,4 @@
+import { useCallback, useEffect } from 'react';
 import { DecommissionRecoveryEstimate, DecommissionRecoveryResult, DecommissionRecoveryStatus } from '../types';
 
 interface Props {
@@ -14,6 +15,24 @@ export function RecoveryModal({ status, estimate, result, error, executeRecovery
     const isRecovering = status === 'recovering';
     const isComplete = status === 'complete';
     const isError = status === 'error';
+
+    // Allow Escape key to cancel during the awaiting, complete, and error states.
+    // While `recovering`, cancelling is disabled (wallet tx is in-flight) —
+    // keyboard dismissal would mislead the user into thinking the tx was aborted.
+    // Listener is only attached while the modal is actually rendered in a
+    // dismissable state to avoid leaking global listeners between opens.
+    const handleEscape = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape' && (isAwaiting || isComplete || isError)) {
+            cancelRecovery();
+        }
+    }, [cancelRecovery, isAwaiting, isComplete, isError]);
+
+    useEffect(() => {
+        // Attach listener only when the modal is in a state where Escape is meaningful.
+        if (!isAwaiting && !isComplete && !isError) return;
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [handleEscape, isAwaiting, isComplete, isError]);
 
     return (
         <div
