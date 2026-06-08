@@ -50,11 +50,11 @@ type AnalyticsEventName =
  * Safely logs an analytics event. No-op if Firebase is not configured.
  * Never logs wallet addresses or identifying information — per spec Section 9.
  */
-function logEvent(eventName: AnalyticsEventName, params: EventParams): void {
+export function logEvent(eventName: string, params: EventParams): void {
     if (!isFirebaseConfigured || !analytics) return;
 
     try {
-        firebaseLogEvent(analytics, eventName, params);
+        firebaseLogEvent(analytics, eventName as AnalyticsEventName, params);
     } catch (err: unknown) {
         // Silently fail — analytics should never break the app
         logger.warn('Analytics event failed:', err instanceof Error ? err.message : String(err));
