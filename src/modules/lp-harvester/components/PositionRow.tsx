@@ -83,7 +83,7 @@ export const PositionRow = memo(function PositionRow({ position, selected, onTog
                                 {position.protocolDisplayName}
                             </span>
                             <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] ${statusBadge.classes}`}>
-                                <StatusIcon className="h-3 w-3" />
+                                <StatusIcon className="h-3 w-3" aria-hidden="true" />
                                 {statusBadge.label}
                             </span>
                         </div>
