@@ -43,7 +43,15 @@ export const DeadProtocolCard = memo(function DeadProtocolCard({ item, isSelecte
                         {isWindingDown && <span className="text-xl animate-pulse" aria-hidden="true">🚨</span>}
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10">
                             {protocol.logoUri ? (
-                                <img src={protocol.logoUri} alt={protocol.name ? `${protocol.name} logo` : 'Protocol logo'} className="h-6 w-6 object-cover" />
+                                <img
+                                    src={protocol.logoUri}
+                                    alt={protocol.name ? `${protocol.name} logo` : 'Protocol logo'}
+                                    width={24}
+                                    height={24}
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="h-6 w-6 object-cover"
+                                />
                             ) : (
                                 <span className="text-xl" aria-hidden="true">🪦</span>
                             )}
