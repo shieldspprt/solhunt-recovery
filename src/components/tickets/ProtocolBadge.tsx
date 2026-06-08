@@ -41,6 +41,8 @@ export const ProtocolBadge = memo(function ProtocolBadge({ protocol, size = 'sm'
                     alt={`${info.displayName} logo`}
                     width={20}
                     height={20}
+                    loading="lazy"
+                    decoding="async"
                     onError={() => setLogoFailed(true)}
                     className={`${styles.icon} rounded-full`}
                 />
