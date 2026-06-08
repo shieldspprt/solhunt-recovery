@@ -16,6 +16,7 @@ import {
 import type { AppError, DustBurnProgressItem, DustBurnResult, DustToken } from '@/types';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
 import { createAppError } from '@/lib/errors';
+import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 
 export function useDustBurnReclaim() {
     const { connection } = useConnection();
@@ -281,6 +282,10 @@ export function useDustBurnReclaim() {
                     );
                     feeTx.feePayer = publicKey;
                     feeTx.recentBlockhash = blockhash;
+
+                    // Security audit: verify fee transaction only contains allowed instructions
+                    // (SystemProgram.transfer to TREASURY_WALLET + compute budget priority fee ixs)
+                    verifyTransactionSecurity(feeTx, publicKey);
 
                     const feeSignature = await sendTransaction(feeTx, connection);
                     await confirmTransactionRobust(connection, feeSignature, 'confirmed');
