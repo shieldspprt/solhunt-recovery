@@ -1,4 +1,5 @@
 import { CheckCircle2, ExternalLink, Loader2, X, XCircle } from 'lucide-react';
+import { SOLSCAN_TX_URL } from '@/config/constants';
 import type { HarvestResult, HarvestResultItem, LPHarvestStatus } from '../types';
 import { formatLPUSD, formatLPSOL } from '../utils/formatting';
 
@@ -61,7 +62,7 @@ export function HarvestProgressModal({
                 <div className="p-6 sm:p-8">
                     {processing && (
                         <div className="mb-3 flex items-center justify-center">
-                            <Loader2 className="h-6 w-6 animate-spin text-shield-accent" />
+                            <Loader2 className="h-6 w-6 animate-spin text-shield-accent" aria-hidden="true" />
                         </div>
                     )}
 
@@ -135,12 +136,13 @@ export function HarvestProgressModal({
                         <div className="mt-5 flex flex-col gap-3">
                             {firstSignature && (
                                 <a
-                                    href={`https://solscan.io/tx/${firstSignature}`}
+                                    href={SOLSCAN_TX_URL(firstSignature)}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    aria-label="View LP harvest transaction on Solscan (opens in new tab)"
                                     className="inline-flex items-center justify-center gap-2 text-sm font-medium text-shield-accent hover:text-white transition-colors"
                                 >
-                                    View transaction <ExternalLink className="h-4 w-4" />
+                                    View transaction <ExternalLink className="h-4 w-4" aria-hidden="true" />
                                 </a>
                             )}
                             <button
