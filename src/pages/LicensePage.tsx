@@ -1,22 +1,14 @@
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Scale } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export function LicensePage() {
-    useEffect(() => {
-        document.title = 'License | SolHunt';
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', 'SolHunt is open source software. Learn about our license, third-party open source dependencies, and your rights to use, modify, and distribute the code.');
-        const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (ogTitle) ogTitle.setAttribute('content', 'License | SolHunt');
-        if (ogDesc) ogDesc.setAttribute('content', 'SolHunt is open source software. Learn about our license, third-party open source dependencies, and your rights to use, modify, and distribute the code.');
-        const ogImage = document.querySelector('meta[property="og:image"]');
-        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
-        const metaRobots = document.querySelector('meta[name="robots"]');
-        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
-    }, []);
+    usePageMeta({
+        title: 'License',
+        description: 'SolHunt is open source software. Learn about our license, third-party open source dependencies, and your rights to use, modify, and distribute the code.',
+        noindex: true,
+    });
 
     return (
         <PageWrapper>

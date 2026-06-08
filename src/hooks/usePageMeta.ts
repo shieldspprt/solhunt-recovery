@@ -1,0 +1,118 @@
+/**
+ * usePageMeta — Centralized SEO meta tag management.
+ *
+ * Every SolHunt page needs the same six meta tags updated on mount:
+ *   - document.title
+ *   - <meta name="description">
+ *   - <meta property="og:title">
+ *   - <meta property="og:description">
+ *   - <meta property="og:image">
+ *   - <meta name="robots">
+ *
+ * Before this hook, every page had the same 8–10 line useEffect duplicating
+ * querySelector/setAttribute calls. That's 14 pages × ~10 lines = ~140 lines
+ * of boilerplate, plus 4 querySelector calls per page (56+ DOM lookups) on
+ * every route change.
+ *
+ * This hook:
+ *   1. Caches the result of each querySelector in module scope (singleton
+ *      per element). The meta tags live in index.html and never change at
+ *      runtime, so a single lookup at module load is enough.
+ *   2. Sets all six tags in one place — guarantees consistency across pages.
+ *   3. Accepts a `noindex` flag so pages with wallet-specific scan results
+ *      stay out of search engines by default.
+ *   4. Updates tags in a single microtask via setAttribute on cached nodes.
+ *
+ * Usage:
+ *   usePageMeta({
+ *     title: 'Buffer Recovery | SolHunt',
+ *     description: 'Recover locked SOL from Solana program buffer accounts…',
+ *     noindex: true,
+ *   });
+ */
+import { useEffect } from 'react';
+
+const DEFAULT_OG_IMAGE = 'https://solhunt.dev/solhunt_og_preview.png';
+
+export interface PageMeta {
+    /** Page title (without "| SolHunt" suffix — added automatically if missing). */
+    title: string;
+    /** Meta description. Falls back to a no-op if omitted. */
+    description?: string;
+    /**
+     * When true, sets <meta name="robots" content="noindex, follow">.
+     * Use for pages that may display wallet-specific content (e.g. /scan).
+     * Defaults to false (indexable).
+     */
+    noindex?: boolean;
+}
+
+// Module-scope cache of the meta tag nodes. They exist from the initial HTML
+// parse and persist for the lifetime of the page, so we only need to look
+// them up once. Each entry is `null` if the corresponding tag is missing.
+let cachedNodes: {
+    description: HTMLMetaElement | null;
+    ogTitle: HTMLMetaElement | null;
+    ogDescription: HTMLMetaElement | null;
+    ogImage: HTMLMetaElement | null;
+    robots: HTMLMetaElement | null;
+} | null = null;
+
+function getNodes() {
+    if (cachedNodes !== null) return cachedNodes;
+    cachedNodes = {
+        description: document.querySelector('meta[name="description"]'),
+        ogTitle: document.querySelector('meta[property="og:title"]'),
+        ogDescription: document.querySelector('meta[property="og:description"]'),
+        ogImage: document.querySelector('meta[property="og:image"]'),
+        robots: document.querySelector('meta[name="robots"]'),
+    };
+    return cachedNodes;
+}
+
+/**
+ * Updates document.title and the standard SEO meta tags for the current page.
+ * Safe to call during SSR (guards document access) and gracefully no-ops when
+ * individual meta tags are missing from the document head.
+ */
+export function setPageMeta(meta: PageMeta): void {
+    if (typeof document === 'undefined') return;
+
+    const normalizedTitle = meta.title.includes('| SolHunt')
+        ? meta.title
+        : `${meta.title} | SolHunt`;
+
+    // Title is special — direct property assignment is the only way.
+    document.title = normalizedTitle;
+
+    const nodes = getNodes();
+
+    if (meta.description !== undefined) {
+        if (nodes.description) nodes.description.setAttribute('content', meta.description);
+        if (nodes.ogTitle) nodes.ogTitle.setAttribute('content', normalizedTitle);
+        if (nodes.ogDescription) nodes.ogDescription.setAttribute('content', meta.description);
+    }
+    if (nodes.ogImage) nodes.ogImage.setAttribute('content', DEFAULT_OG_IMAGE);
+    if (nodes.robots) {
+        nodes.robots.setAttribute('content', meta.noindex ? 'noindex, follow' : 'index, follow');
+    }
+}
+
+/**
+ * React hook wrapper for setPageMeta. Runs once on mount (or when deps change)
+ * and leaves the meta tags in their last state — the next page mount will
+ * overwrite them.
+ *
+ * For pages that need dynamic titles (e.g. EngineHowItWorksPage where the
+ * title depends on the route param), pass the dynamic values directly and
+ * include them in the deps array.
+ */
+export function usePageMeta(
+    meta: PageMeta,
+    deps: ReadonlyArray<unknown> = []
+): void {
+    useEffect(() => {
+        setPageMeta(meta);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, deps);
+}

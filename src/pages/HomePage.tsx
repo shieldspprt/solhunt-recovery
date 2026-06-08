@@ -8,6 +8,7 @@ import { WalletScanner } from '@/components/WalletScanner';
 import { StatsDisplay } from '@/components/StatsDisplay';
 import { ENGINE_METADATA } from '@/config/constants';
 import { useWalletStatus } from '@/hooks/useStoreSelectors';
+import { usePageMeta } from '@/hooks/usePageMeta';
 import { useLocation } from 'react-router-dom';
 
 // Map engine IDs to icons with proper typing
@@ -29,20 +30,11 @@ export const HomePage = memo(function HomePage() {
     const { agentWallet } = useWalletStatus();
     const isAdmin = new URLSearchParams(location.search).get('admin') === 'true';
 
-    useEffect(() => {
-        document.title = 'SolHunt | Recover Locked SOL';
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', 'Recover locked and recoverable SOL from your Solana wallet with 9 client-side recovery engines — revoke token approvals, reclaim rent, harvest LP fees, and more. Non-custodial and open-source.');
-        const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (ogTitle) ogTitle.setAttribute('content', 'SolHunt | Recover Locked SOL');
-        if (ogDesc) ogDesc.setAttribute('content', 'Recover locked and recoverable SOL from your Solana wallet with 9 client-side recovery engines — revoke token approvals, reclaim rent, harvest LP fees, and more. Non-custodial and open-source.');
-        const ogImage = document.querySelector('meta[property="og:image"]');
-        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
-        // Main landing page — must be indexed for SEO and link previews
-        const metaRobots = document.querySelector('meta[name="robots"]');
-        if (metaRobots) metaRobots.setAttribute('content', 'index, follow');
-    }, []);
+    // Main landing page — must be indexed for SEO and link previews
+    usePageMeta({
+        title: 'SolHunt | Recover Locked SOL',
+        description: 'Recover locked and recoverable SOL from your Solana wallet with 9 client-side recovery engines — revoke token approvals, reclaim rent, harvest LP fees, and more. Non-custodial and open-source.',
+    });
 
     useEffect(() => {
         if (agentWallet) {

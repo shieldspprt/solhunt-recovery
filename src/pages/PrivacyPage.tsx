@@ -1,22 +1,14 @@
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export function PrivacyPage() {
-    useEffect(() => {
-        document.title = 'Privacy Policy | SolHunt';
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', 'SolHunt is a client-side, non-custodial wallet recovery tool. We never access your private keys, hold your assets, or store your wallet data on any server.');
-        const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (ogTitle) ogTitle.setAttribute('content', 'Privacy Policy | SolHunt');
-        if (ogDesc) ogDesc.setAttribute('content', 'SolHunt is a client-side, non-custodial wallet recovery tool. We never access your private keys, hold your assets, or store your wallet data on any server.');
-        const ogImage = document.querySelector('meta[property="og:image"]');
-        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
-        const metaRobots = document.querySelector('meta[name="robots"]');
-        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
-    }, []);
+    usePageMeta({
+        title: 'Privacy Policy',
+        description: 'SolHunt is a client-side, non-custodial wallet recovery tool. We never access your private keys, hold your assets, or store your wallet data on any server.',
+        noindex: true,
+    });
 
     return (
         <PageWrapper>

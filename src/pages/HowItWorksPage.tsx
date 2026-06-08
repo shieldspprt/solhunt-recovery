@@ -1,24 +1,16 @@
 import { Shield, Lock, FileCode, Search, HelpCircle, Code2, Cpu, FileJson } from 'lucide-react';
-import { memo, useEffect } from 'react';
+import { memo } from 'react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 // Memoized to prevent unnecessary re-renders when parent state changes
 // This is a static content page with no props
 export const HowItWorksPage = memo(function HowItWorksPage() {
-    useEffect(() => {
-        document.title = 'How It Works | SolHunt';
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', 'A transparent technical breakdown of Solana rent, client-side transaction building, and SolHunt\'s non-custodial security model for recovering locked SOL.');
-        const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (ogTitle) ogTitle.setAttribute('content', 'How It Works | SolHunt');
-        if (ogDesc) ogDesc.setAttribute('content', 'A transparent technical breakdown of Solana rent, client-side transaction building, and SolHunt\'s non-custodial security model for recovering locked SOL.');
-        const ogImage = document.querySelector('meta[property="og:image"]');
-        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
-        // Prevent search engines from indexing informational pages
-        const metaRobots = document.querySelector('meta[name="robots"]');
-        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
-    }, []);
+    usePageMeta({
+        title: 'How It Works',
+        description: 'A transparent technical breakdown of Solana rent, client-side transaction building, and SolHunt\'s non-custodial security model for recovering locked SOL.',
+        noindex: true,
+    });
 
     return (
         <PageWrapper>

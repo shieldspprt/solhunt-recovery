@@ -1,29 +1,21 @@
-import { useEffect } from 'react';
 import { Code2, TrendingUp } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { BufferRecoveryCard } from '@/modules/buffer-recovery/components/BufferRecoveryCard';
 import { ENGINE_METADATA } from '@/config/constants';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export function BufferRecoveryPage() {
     const { connected } = useWallet();
     const config = ENGINE_METADATA.find(e => e.id === 10)!; // Recover Program Buffers
 
-    useEffect(() => {
-        document.title = 'Buffer Recovery | SolHunt';
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', 'Recover locked SOL from Solana program buffer accounts using SolHunt\'s Buffer Recovery engine — safely, client-side.');
-        const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (ogTitle) ogTitle.setAttribute('content', 'Buffer Recovery | SolHunt');
-        if (ogDesc) ogDesc.setAttribute('content', 'Recover locked SOL from Solana program buffer accounts using SolHunt\'s Buffer Recovery engine — safely, client-side.');
-        const ogImage = document.querySelector('meta[property="og:image"]');
-        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
-        // Prevent search engines from indexing wallet-specific scan results
-        const metaRobots = document.querySelector('meta[name="robots"]');
-        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
-    }, []);
+    // Prevent search engines from indexing wallet-specific scan results
+    usePageMeta({
+        title: 'Buffer Recovery',
+        description: 'Recover locked SOL from Solana program buffer accounts using SolHunt\'s Buffer Recovery engine — safely, client-side.',
+        noindex: true,
+    });
 
     return (
         <PageWrapper>

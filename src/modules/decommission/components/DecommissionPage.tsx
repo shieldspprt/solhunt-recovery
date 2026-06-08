@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { useDecommissionScanner } from '../hooks/useDecommissionScanner';
 import { WindingDownBanner } from './WindingDownBanner';
@@ -7,17 +6,14 @@ import { DecommissionResultsList } from './DecommissionResultsList';
 import { SafeToBurnSection } from './SafeToBurnSection';
 import { RecoveryModal } from './RecoveryModal';
 import { DEAD_PROTOCOLS } from '../registry/protocols';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export function DecommissionPage() {
-    useEffect(() => {
-        document.title = 'Decommission Scanner | SolHunt';
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', 'Find and recover funds from decommissioned Solana DeFi protocols using SolHunt\'s Decommission Scanner — safely and client-side.');
-        const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (ogTitle) ogTitle.setAttribute('content', 'Decommission Scanner | SolHunt');
-        if (ogDesc) ogDesc.setAttribute('content', 'Find and recover funds from decommissioned Solana DeFi protocols using SolHunt\'s Decommission Scanner — safely and client-side.');
-    }, []);
+    usePageMeta({
+        title: 'Decommission Scanner',
+        description: 'Find and recover funds from decommissioned Solana DeFi protocols using SolHunt\'s Decommission Scanner — safely and client-side.',
+        noindex: true,
+    });
 
     const scanner = useDecommissionScanner();
     const hasWindingDownProtocols = DEAD_PROTOCOLS.some(p => p.decommissionStatus === 'winding_down');

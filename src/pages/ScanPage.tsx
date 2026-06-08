@@ -7,6 +7,7 @@ import { ScanResults } from '@/components/scanner/ScanResults';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { useWalletScanner } from '@/hooks/useWalletScanner';
 import { useWalletStatus } from '@/hooks/useStoreSelectors';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 // Memoized to prevent unnecessary re-renders when parent state changes
 export const ScanPage = memo(function ScanPage() {
@@ -19,21 +20,12 @@ export const ScanPage = memo(function ScanPage() {
         clearScan
     } = useWalletScanner();
 
-    useEffect(() => {
-        document.title = 'Scan | SolHunt';
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', 'Scan your Solana wallet for recoverable SOL, token approvals, and hidden value across 9 recovery engines — instantly and client-side.');
-        // Prevent search engines from indexing wallet-specific scan results
-        const metaRobots = document.querySelector('meta[name="robots"]');
-        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
-        // Update OG tags so shared links show page-specific content
-        const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (ogTitle) ogTitle.setAttribute('content', 'Scan | SolHunt');
-        if (ogDesc) ogDesc.setAttribute('content', 'Scan your Solana wallet for recoverable SOL, token approvals, and hidden value across 9 recovery engines — instantly and client-side.');
-        const ogImage = document.querySelector('meta[property="og:image"]');
-        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
-    }, []);
+    // noindex: scan results are wallet-specific
+    usePageMeta({
+        title: 'Scan',
+        description: 'Scan your Solana wallet for recoverable SOL, token approvals, and hidden value across 9 recovery engines — instantly and client-side.',
+        noindex: true,
+    });
 
     // Memoize the hash value to prevent unnecessary effect re-runs
     // Extract just the hash to avoid triggering effect when other location properties change

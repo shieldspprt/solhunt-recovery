@@ -2,7 +2,7 @@ import { useParams, Navigate, Link } from 'react-router-dom';
 import { ArrowLeft, Shield, FileCode, Cpu, Server, Sparkles, AlertTriangle, Code2, Search, TrendingUp } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { ENGINE_METADATA } from '@/config/constants';
-import { useEffect } from 'react';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface EngineDetails {
     title: string;
@@ -350,34 +350,28 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
 export function EngineHowItWorksPage() {
     const { id } = useParams<{ id: string }>();
 
-    useEffect(() => {
-        if (!id) return;
+    // Compute the title and description based on the route param. Memoize so
+    // the effect re-runs only when `id` changes, not on every render.
+    const metaTitle = id
+        ? (ENGINE_DETAILS_MAP[id]?.title ?? ENGINE_METADATA.find(e => e.id.toString() === id)?.name ?? 'How It Works')
+        : 'How It Works';
+
+    const metaDescription = (() => {
+        if (!id) return 'Learn how SolHunt recovery engines work — revoke approvals, reclaim rent, sweep dust, harvest LP fees, recover staking tickets, and more — all client-side.';
         const details = ENGINE_DETAILS_MAP[id];
-        const engineInfo = ENGINE_METADATA.find(e => e.id.toString() === id);
-        const title = details
-            ? `${details.title} | SolHunt`
-            : engineInfo
-                ? `${engineInfo.name} | SolHunt`
-                : 'How It Works | SolHunt';
-        document.title = title;
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) {
-            metaDesc.setAttribute('content', details
-                ? `${details.subtitle} ${details.sections.map((section: { heading: string }) => section.heading).join(', ')}.`
-                : engineInfo
-                    ? engineInfo.description
-                    : 'Learn how SolHunt recovery engines work — revoke approvals, reclaim rent, sweep dust, harvest LP fees, recover staking tickets, and more — all client-side.');
+        if (details) {
+            return `${details.subtitle} ${details.sections.map((section: { heading: string }) => section.heading).join(', ')}.`;
         }
-        const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (ogTitle) ogTitle.setAttribute('content', title);
-        if (ogDesc && metaDesc) ogDesc.setAttribute('content', metaDesc.getAttribute('content') || title);
-        const ogImage = document.querySelector('meta[property="og:image"]');
-        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
-        // Prevent search engines from indexing informational pages
-        const metaRobots = document.querySelector('meta[name="robots"]');
-        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
-    }, []);
+        const engineInfo = ENGINE_METADATA.find(e => e.id.toString() === id);
+        return engineInfo?.description ?? 'Learn how SolHunt recovery engines work — revoke approvals, reclaim rent, sweep dust, harvest LP fees, recover staking tickets, and more — all client-side.';
+    })();
+
+    // Prevent search engines from indexing informational pages
+    usePageMeta({
+        title: metaTitle,
+        description: metaDescription,
+        noindex: true,
+    }, [id]);
 
     // Route validation
     if (!id || !ENGINE_DETAILS_MAP[id]) {

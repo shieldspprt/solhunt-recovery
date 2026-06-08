@@ -1,31 +1,23 @@
 import { Link } from 'react-router-dom';
 import { Ticket, ArrowLeft, TrendingUp } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useEffect } from 'react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { TicketFinderCard } from '@/components/tickets/TicketFinderCard';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { ENGINE_METADATA } from '@/config/constants';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const ENGINE = ENGINE_METADATA[5]; // Claim Stakes (Engine 4)
 
 export function TicketFinderPage() {
     const { connected } = useWallet();
 
-    useEffect(() => {
-        document.title = 'Ticket Finder | SolHunt';
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', 'Find and claim unclaimed staking tickets from Marinade, Jito, and other Solana staking protocols using SolHunt\'s Ticket Finder — fully client-side.');
-        const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (ogTitle) ogTitle.setAttribute('content', 'Ticket Finder | SolHunt');
-        if (ogDesc) ogDesc.setAttribute('content', 'Find and claim unclaimed staking tickets from Marinade, Jito, and other Solana staking protocols using SolHunt\'s Ticket Finder — fully client-side.');
-        const ogImage = document.querySelector('meta[property="og:image"]');
-        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
-        // Prevent search engines from indexing wallet-specific scan results
-        const metaRobots = document.querySelector('meta[name="robots"]');
-        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
-    }, []);
+    // Prevent search engines from indexing wallet-specific scan results
+    usePageMeta({
+        title: 'Ticket Finder',
+        description: 'Find and claim unclaimed staking tickets from Marinade, Jito, and other Solana staking protocols using SolHunt\'s Ticket Finder — fully client-side.',
+        noindex: true,
+    });
 
     return (
         <PageWrapper>

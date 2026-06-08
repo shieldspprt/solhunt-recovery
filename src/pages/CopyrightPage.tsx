@@ -1,22 +1,14 @@
-import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Copyright } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export function CopyrightPage() {
-    useEffect(() => {
-        document.title = 'Copyright | SolHunt';
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', 'SolHunt copyright notice and intellectual property information. All rights reserved for SolHunt and its associated trademarks and technology.');
-        const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (ogTitle) ogTitle.setAttribute('content', 'Copyright | SolHunt');
-        if (ogDesc) ogDesc.setAttribute('content', 'SolHunt copyright notice and intellectual property information. All rights reserved for SolHunt and its associated trademarks and technology.');
-        const ogImage = document.querySelector('meta[property="og:image"]');
-        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
-        const metaRobots = document.querySelector('meta[name="robots"]');
-        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
-    }, []);
+    usePageMeta({
+        title: 'Copyright',
+        description: 'SolHunt copyright notice and intellectual property information. All rights reserved for SolHunt and its associated trademarks and technology.',
+        noindex: true,
+    });
 
     return (
         <PageWrapper>

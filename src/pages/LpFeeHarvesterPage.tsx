@@ -1,31 +1,23 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Layers3, TrendingUp } from 'lucide-react';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { useEffect } from 'react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { LPHarvesterCard } from '@/modules/lp-harvester';
 import { ENGINE_METADATA } from '@/config/constants';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const ENGINE = ENGINE_METADATA[4]; // Harvest LP Fees
 
 export function LpFeeHarvesterPage() {
     const { connected } = useWallet();
 
-    useEffect(() => {
-        document.title = 'LP Fee Harvester | SolHunt';
-        const metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.setAttribute('content', 'Harvest unclaimed LP fees from Raydium, Orca, and other Solana DEXs using SolHunt\'s LP Fee Harvester — reclaim value earned but not collected.');
-        const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (ogTitle) ogTitle.setAttribute('content', 'LP Fee Harvester | SolHunt');
-        if (ogDesc) ogDesc.setAttribute('content', 'Harvest unclaimed LP fees from Raydium, Orca, and other Solana DEXs using SolHunt\'s LP Fee Harvester — reclaim value earned but not collected.');
-        const ogImage = document.querySelector('meta[property="og:image"]');
-        if (ogImage) ogImage.setAttribute('content', 'https://solhunt.dev/solhunt_og_preview.png');
-        // Prevent search engines from indexing wallet-specific scan results
-        const metaRobots = document.querySelector('meta[name="robots"]');
-        if (metaRobots) metaRobots.setAttribute('content', 'noindex, follow');
-    }, []);
+    // Prevent search engines from indexing wallet-specific scan results
+    usePageMeta({
+        title: 'LP Fee Harvester',
+        description: 'Harvest unclaimed LP fees from Raydium, Orca, and other Solana DEXs using SolHunt\'s LP Fee Harvester — reclaim value earned but not collected.',
+        noindex: true,
+    });
 
     return (
         <PageWrapper>
