@@ -122,7 +122,7 @@ export const HomePage = memo(function HomePage() {
                                                 className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-shield-accent/10 border border-shield-accent/20 px-3 py-2 text-xs font-semibold text-shield-accent hover:bg-shield-accent hover:text-shield-bg transition-all duration-300 group/btn"
                                             >
                                                 Launch Tool
-                                                <ArrowRight className="h-3.5 w-3.5 group-hover/btn:translate-x-0.5 transition-transform" />
+                                                <ArrowRight className="h-3.5 w-3.5 group-hover/btn:translate-x-0.5 transition-transform" aria-hidden="true" />
                                             </Link>
                                         </div>
                                     </div>

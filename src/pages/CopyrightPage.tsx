@@ -24,7 +24,7 @@ export function CopyrightPage() {
                     </Link>
                     <div className="flex items-center gap-3 mb-4">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
-                            <Copyright className="h-5 w-5 text-shield-accent" />
+                            <Copyright className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                         </div>
                         <h1 className="text-3xl font-bold text-shield-text">Copyright Notice</h1>
                     </div>

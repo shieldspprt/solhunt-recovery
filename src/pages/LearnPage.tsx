@@ -402,7 +402,7 @@ export function LearnPage() {
 
                                     <section>
                                         <h3 className="flex items-center gap-2 text-xl font-bold text-white mb-6 border-b border-shield-border border-dashed pb-3">
-                                            <ExternalLink className="h-5 w-5 text-shield-success" />
+                                            <ExternalLink className="h-5 w-5 text-shield-success" aria-hidden="true" />
                                             Official Documentation
                                         </h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -418,7 +418,7 @@ export function LearnPage() {
                                                         <span className="font-semibold text-shield-text group-hover:text-shield-success transition-colors truncate pr-4">
                                                             {resource.label}
                                                         </span>
-                                                        <ExternalLink className="h-4 w-4 text-shield-muted group-hover:text-shield-success flex-shrink-0" />
+                                                        <ExternalLink className="h-4 w-4 text-shield-muted group-hover:text-shield-success flex-shrink-0" aria-hidden="true" />
                                                     </div>
                                                     <span className="text-xs text-shield-muted mt-1 truncate">
                                                         {new URL(resource.url).hostname}
