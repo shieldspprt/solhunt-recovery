@@ -932,15 +932,34 @@ export const handler: Handler = async (event) => {
     // Use wallet address as bucket key when available, else fall back to IP.
     // This lets API clients track their per-wallet quota even when sharing an IP.
     const bucketKey = (rateLimit.source === 'wallet' && walletAddress) ? walletAddress : clientIp;
+    const windowSec = Math.floor(RATE_WINDOW_MS / 1000);
+    const resetSec = Math.max(0, Math.ceil((rateLimit.resetAt - Date.now()) / 1000));
+
+    // IETF draft-ietf-httpapi-ratelimit-headers-11 structured fields.
+    // RateLimit-Policy is stable across responses — clients use it to plan
+    // request rates without having to discover limits empirically. We expose
+    // BOTH policies (ip and wallet) so clients behind a shared IP can still
+    // see the stricter per-wallet quota advertised.
+    // RateLimit carries the current service limit for the most restrictive
+    // active policy. `r` = remaining quota, `t` = seconds until reset.
+    const rateLimitPolicy = `"ip";q=${RATE_LIMIT};w=${windowSec}, "wallet";q=${WALLET_RATE_LIMIT};w=${windowSec}`;
+    const rateLimitHeader = `"${rateLimit.source}";r=${rateLimit.remaining};t=${resetSec}`;
+
     const base: Record<string, string> = {
       ...headers,
+      // IETF-standard rate limit fields (draft-ietf-httpapi-ratelimit-headers-11)
+      'RateLimit-Policy': rateLimitPolicy,
+      'RateLimit': rateLimitHeader,
+      // Legacy X-RateLimit-* fields — preserved for older clients that
+      // haven't adopted the IETF draft. Will be removed once SolHunt
+      // MCP clients (Claude, Cursor, Windsurf) all support RateLimit-*.
       'X-RateLimit-Limit': String(RATE_LIMIT),
       'X-RateLimit-Remaining': String(rateLimit.remaining),
       'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
-      'X-RateLimit-Window': String(Math.floor(RATE_WINDOW_MS / 1000)),
+      'X-RateLimit-Window': String(windowSec),
       'X-RateLimit-Source': rateLimit.source,
       'X-RateLimit-Bucket': bucketKey,
-      'Retry-After': String(Math.ceil((rateLimit.resetAt - Date.now()) / 1000)),
+      'Retry-After': String(resetSec),
     };
     // Include per-wallet headers when wallet rate limiting is active
     if (rateLimit.source === 'wallet' && walletAddress) {
