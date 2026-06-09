@@ -47,7 +47,7 @@ export const ReclaimCard = memo(function ReclaimCard() {
                     <div className="flex justify-between items-center">
                         <span className="text-shield-text font-medium">You receive:</span>
                         <span className="text-shield-success font-bold font-mono text-lg flex items-center gap-1.5">
-                            <Zap className="h-4 w-4" />
+                            <Zap className="h-4 w-4" aria-hidden="true" />
                             {formatSOLValue(reclaimEstimate?.userReceivesSOL || 0)}
                         </span>
                     </div>
@@ -62,11 +62,11 @@ export const ReclaimCard = memo(function ReclaimCard() {
             >
                 <div className="relative z-10 hidden sm:flex items-center justify-center gap-2">
                     Reclaim My SOL
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
                 </div>
                 <div className="relative z-10 flex sm:hidden items-center justify-center gap-2">
                     Reclaim SOL
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
                 </div>
             </button>
 

@@ -81,7 +81,7 @@ export const ClaimProgressModal = memo(() => {
                     {isError && ticketClaimError && (
                         <div className="rounded-xl border border-shield-danger/30 bg-shield-danger/10 p-4 mb-4">
                             <p className="text-sm text-shield-danger font-medium flex items-start gap-2">
-                                <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
                                 {ticketClaimError.message}
                             </p>
                         </div>

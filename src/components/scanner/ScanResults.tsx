@@ -97,7 +97,7 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
                         </div>
 
                         <div className="mt-4 text-xs text-shield-muted">
-                            <Search className="h-3 w-3 inline mr-1" />
+                            <Search className="h-3 w-3 inline mr-1" aria-hidden="true" />
                             Scanned {totalTokenAccounts} token accounts in {formatDuration(scanDurationMs)}
                         </div>
                     </div>

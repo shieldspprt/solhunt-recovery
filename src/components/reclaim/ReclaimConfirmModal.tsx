@@ -95,7 +95,7 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
                             <div className="flex justify-between items-center font-bold">
                                 <span className="text-shield-text">You Receive:</span>
                                 <span className="text-shield-success font-mono flex items-center gap-1 text-lg">
-                                    <Zap className="h-4 w-4" />
+                                    <Zap className="h-4 w-4" aria-hidden="true" />
                                     ~{formatSOLValue(reclaimEstimate.userReceivesSOL)}
                                     <span className="text-shield-muted font-sans text-xs ml-1 font-normal">
                                         ({estimateUSD(reclaimEstimate.userReceivesSOL)})
@@ -107,7 +107,7 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
 
                     <div className="rounded-xl border border-shield-success/30 bg-shield-success/5 p-4 mb-6">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-shield-success mb-2 flex items-center gap-1">
-                            <Zap className="h-3 w-3" /> Transaction Preview
+                            <Zap className="h-3 w-3" aria-hidden="true" /> Transaction Preview
                         </h3>
                         <p className="text-xs text-shield-text">
                             You are about to sign <span className="font-mono text-shield-success">{transactionCount}</span> transaction containing <span className="font-mono text-shield-success">{closeableAccounts.length}</span> <span className="font-mono bg-shield-border/30 px-1 rounded">closeAccount</span> instructions. No other authority is granted.
