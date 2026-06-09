@@ -886,11 +886,38 @@ export const handler: Handler = async (event) => {
   const origin = event.headers.origin || event.headers.Origin || '';
   const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
 
+  // CORS-safelisted response headers are exposed by default. Custom headers
+  // (X-RateLimit-*, IETF RateLimit-*, Retry-After, security headers) must be
+  // explicitly listed in Access-Control-Expose-Headers or browser-based MCP
+  // clients (Claude, Cursor, Windsurf web UIs) will be unable to read them.
+  // Without this, browser clients can hit rate limits blind — they never see
+  // the remaining quota, reset time, or which policy (ip vs wallet) tripped.
+  // See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Expose-Headers
+  const EXPOSED_HEADERS = [
+    // IETF rate limit fields (draft-ietf-httpapi-ratelimit-headers-11)
+    'RateLimit',
+    'RateLimit-Policy',
+    // Legacy X-RateLimit-* fields (preserved for older clients)
+    'X-RateLimit-Limit',
+    'X-RateLimit-Remaining',
+    'X-RateLimit-Reset',
+    'X-RateLimit-Window',
+    'X-RateLimit-Source',
+    'X-RateLimit-Bucket',
+    'X-RateLimit-Wallet-Limit',
+    'X-RateLimit-Wallet-Remaining',
+    'X-RateLimit-Wallet-Reset',
+    // Standard 429 backoff hint
+    'Retry-After',
+  ].join(', ');
+
   const headers = {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': corsOrigin,
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-MCP-Version',
+    'Access-Control-Expose-Headers': EXPOSED_HEADERS,
+    'Vary': 'Origin',
     'Cache-Control': 'no-store',
     'X-Content-Type-Options': 'nosniff',
     'X-Frame-Options': 'DENY',
@@ -898,7 +925,16 @@ export const handler: Handler = async (event) => {
   };
 
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return {
+      statusCode: 200,
+      headers: {
+        ...headers,
+        // Cache the preflight response for 24h so browsers don't repeat the
+        // preflight on every MCP tool call.
+        'Access-Control-Max-Age': '86400',
+      },
+      body: ''
+    };
   }
 
   // Get the path from various possible sources
