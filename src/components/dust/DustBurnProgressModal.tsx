@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, memo } from 'react';
 import { CheckCircle2, ExternalLink, Flame, RefreshCw, X, XCircle } from 'lucide-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { useDustBurnReclaim } from '@/hooks/useDustBurnReclaim';
@@ -6,7 +6,11 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { SOLSCAN_TX_URL } from '@/config/constants';
 import { formatSOLValue } from '@/lib/formatting';
 
-export function DustBurnProgressModal() {
+// Memoized to prevent re-renders when sibling engines in ScanResults update
+// (Reclaim, Revoke, etc). Same memo pattern as DustProgressModal and
+// ReclaimProgressModal — keeps the dust burn flow responsive while the
+// other engines churn.
+export const DustBurnProgressModal = memo(function DustBurnProgressModal() {
     const {
         dustBurnStatus,
         dustBurnResult,
@@ -184,4 +188,4 @@ export function DustBurnProgressModal() {
             </div>
         </div>
     );
-}
+});

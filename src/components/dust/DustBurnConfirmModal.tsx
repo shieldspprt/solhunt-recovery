@@ -3,9 +3,12 @@ import { useAppStore } from '@/hooks/useAppStore';
 import { useDustBurnReclaim } from '@/hooks/useDustBurnReclaim';
 import { DUST_BURN_RECLAIM_FEE_PERCENT } from '@/config/constants';
 import { estimateUSD, formatSOLValue } from '@/lib/formatting';
-import { useState } from 'react';
+import { useState, memo } from 'react';
 
-export function DustBurnConfirmModal() {
+// Memoized to prevent re-renders when sibling engines in ScanResults update
+// (Reclaim, Revoke, Dust swap, etc). Same memo pattern as the other dust
+// modals — keeps the burn confirmation step snappy while other engines churn.
+export const DustBurnConfirmModal = memo(function DustBurnConfirmModal() {
     const { dustBurnStatus } = useAppStore();
     const {
         burnableTokens,
@@ -151,4 +154,4 @@ export function DustBurnConfirmModal() {
             </div>
         </div>
     );
-}
+});

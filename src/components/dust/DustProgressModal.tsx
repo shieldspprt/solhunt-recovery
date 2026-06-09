@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo, memo } from 'react';
 import { CheckCircle2, ExternalLink, RefreshCw, X, XCircle } from 'lucide-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { useDustConsolidator } from '@/hooks/useDustConsolidator';
@@ -7,10 +7,22 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { SOLSCAN_TX_URL } from '@/config/constants';
 import { formatSOLValue } from '@/lib/formatting';
 
-export function DustProgressModal() {
+// Memoized to prevent re-renders when parent ScanResults updates from sibling engines
+// (Reclaim, Revoke, Ticket Finder, etc). Same pattern as ReclaimProgressModal/DustConfirmModal.
+export const DustProgressModal = memo(function DustProgressModal() {
     const { dustStatus, dustResult, dustProgress, dustError } = useAppStore();
     const { executeDustSwap, cancelDustSwap, clearDust } = useDustConsolidator();
     const { startBurnForMints } = useDustBurnReclaim();
+
+    // Hooks must be called before any early returns (React rules of hooks).
+    // dustProgress is empty when the modal is hidden, so the Set computation
+    // is essentially free in the early-return paths.
+    const failedMints = useMemo(
+        () => Array.from(
+            new Set(dustProgress.filter((item) => item.status === 'failed').map((item) => item.mint))
+        ),
+        [dustProgress]
+    );
 
     if (dustStatus === 'idle' || dustStatus === 'fetching_prices' || dustStatus === 'awaiting_confirmation') {
         return null;
@@ -23,10 +35,8 @@ export function DustProgressModal() {
     }
 
     const isProcessing = dustStatus === 'swapping';
-    const failedMints = Array.from(
-        new Set(dustProgress.filter((item) => item.status === 'failed').map((item) => item.mint))
-    );
-
+    // Note: failedMints is computed above (before early returns) to satisfy
+    // the React rules of hooks. Same Set as before — just hoisted up.
     const handleClose = useCallback(() => {
         if (!isProcessing) {
             clearDust();
@@ -37,7 +47,7 @@ export function DustProgressModal() {
         if (failedMints.length === 0) return;
         clearDust();
         startBurnForMints(failedMints);
-    }, [failedMints.length, clearDust, startBurnForMints]);
+    }, [failedMints, clearDust, startBurnForMints]);
 
     return (
         <div
@@ -206,4 +216,4 @@ export function DustProgressModal() {
             </div>
         </div>
     );
-}
+});
