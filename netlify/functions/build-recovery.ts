@@ -12,6 +12,14 @@ const RENT_PER_ACCOUNT_LAMPORTS = 2039280; // 0.00203928 SOL in lamports
 const MAX_ACCOUNTS_PER_TX = 15;
 const FEE_PERCENT = 15;
 const FEE_WALLET = 'DD4AdYKVcV6kgpmiCEeASRmJyRdKgmaRAbsjKucx8CvY';
+// Configurable fee percentage via env var (default 15%). Allows ops to A/B test
+// or run promotions without redeploying. Must be a finite number in [0, 100].
+const EFFECTIVE_FEE_PERCENT = (() => {
+  const envVal = process.env.SOLHUNT_FEE_PERCENT;
+  if (envVal === undefined) return FEE_PERCENT;
+  const parsed = parseFloat(envVal);
+  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100 ? parsed : FEE_PERCENT;
+})();
 
 function isValidSolanaAddress(address: string): boolean {
   if (!address || typeof address !== 'string') return false;
@@ -57,7 +65,19 @@ export const handler: Handler = async (event) => {
 
   const wallet_address = typeof body.wallet_address === 'string' ? body.wallet_address : '';
   const destination_wallet = typeof body.destination_wallet === 'string' ? body.destination_wallet : '';
-  const batch_number = typeof body.batch_number === 'number' ? body.batch_number : 1;
+  // Validate batch_number: must be a finite positive integer (Solana batches start at 1)
+  const rawBatch = body.batch_number;
+  const batch_number =
+    typeof rawBatch === 'number' && Number.isFinite(rawBatch) && Number.isInteger(rawBatch) && rawBatch >= 1
+      ? rawBatch
+      : 1;
+  // Validate fee_percent: must be a finite number in [0, 100]; clamp invalid values to default
+  const rawFeePercent = body.fee_percent;
+  const fee_percent_override =
+    typeof rawFeePercent === 'number' && Number.isFinite(rawFeePercent) && rawFeePercent >= 0 && rawFeePercent <= 100
+      ? rawFeePercent
+      : null;
+  const effective_fee_percent = fee_percent_override !== null ? fee_percent_override : EFFECTIVE_FEE_PERCENT;
 
   if (!wallet_address || !isValidSolanaAddress(wallet_address)) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid wallet_address' }) };
@@ -104,7 +124,7 @@ export const handler: Handler = async (event) => {
     const batchAccounts = closeable.slice(startIdx, startIdx + MAX_ACCOUNTS_PER_TX);
     
     const recoveryLamports = batchAccounts.length * RENT_PER_ACCOUNT_LAMPORTS;
-    const feeLamports = Math.floor(recoveryLamports * (FEE_PERCENT / 100));
+    const feeLamports = Math.floor(recoveryLamports * (effective_fee_percent / 100));
     const operatorLamports = recoveryLamports - feeLamports;
 
     // Create Transaction
@@ -164,6 +184,7 @@ export const handler: Handler = async (event) => {
         accounts_in_batch: batchAccounts.length,
         recovery_lamports: recoveryLamports,
         fee_lamports: feeLamports,
+        fee_percent: effective_fee_percent,
         operator_lamports: operatorLamports,
         unsigned_transaction: unsignedTransaction,
         instructions_preview: instructionsPreview,
