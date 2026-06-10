@@ -52,6 +52,10 @@ export function useDecommissionScanner() {
             });
 
         } catch (err: unknown) {
+            // Forward structured error to production monitoring (PII-safe, no wallet details).
+            // The analytics event captures the error code; logger.error also pipes to console
+            // in dev. Matches the pattern used by the per-transaction handler below.
+            logger.error('DecommissionScanFailed', err);
             const appError = createAppError('SCAN_FAILED', err instanceof Error ? err.message : String(err));
             store.setScanStatus('error');
             store.setScanError(appError.message);
@@ -192,6 +196,10 @@ export function useDecommissionScanner() {
             });
 
         } catch (err: unknown) {
+            // Forward structured error to production monitoring (PII-safe, no wallet details).
+            // Inner per-transaction errors are already logged at the loop level — this
+            // catches higher-level failures (e.g. buildWithdrawalTransactions throwing).
+            logger.error('DecommissionRecoveryFailed', err);
             // Translate to user-facing error — avoid double-logging since inner txErr
             // is already logged at the per-transaction level (line ~163)
             const appError = createAppError('DECOMMISSION_RECOVERY_FAILED', err instanceof Error ? err.message : String(err));
