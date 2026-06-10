@@ -13,11 +13,6 @@ import toast from 'react-hot-toast';
 import { useAppStore } from '@/hooks/useAppStore';
 import { logger } from '@/lib/logger';
 
-interface WalletError {
-    message: string;
-    code?: string;
-}
-
 export function WalletStatusManager() {
     const { connected, disconnecting, publicKey } = useWallet();
     // Initialize with actual connected value to track true prior state
@@ -48,17 +43,14 @@ const DISCONNECT_RETRY_DELAY_MS = 500;
 interface UseReliableDisconnectReturn {
     disconnect: () => Promise<void>;
     isDisconnecting: boolean;
-    error: WalletError | null;
 }
 
 export function useReliableDisconnect(): UseReliableDisconnectReturn {
     const { disconnect: rawDisconnect, disconnecting } = useWallet();
     const resetAll = useAppStore((s) => s.resetAll);
-    const [error, setError] = useState<WalletError | null>(null);
     const [isDisconnecting, setIsDisconnecting] = useState(false);
 
     const disconnect = useCallback(async () => {
-        setError(null);
         setIsDisconnecting(true);
 
         let lastError: Error | null = null;
@@ -68,10 +60,10 @@ export function useReliableDisconnect(): UseReliableDisconnectReturn {
             try {
                 // Clear all app state first (idempotent)
                 resetAll();
-                
+
                 // Attempt wallet disconnect
                 await rawDisconnect();
-                
+
                 // Show success toast
                 toast.success('Wallet disconnected');
                 setIsDisconnecting(false);
@@ -87,17 +79,16 @@ export function useReliableDisconnect(): UseReliableDisconnectReturn {
             }
         }
 
-        // All retries failed
-        const walletError: WalletError = {
-            code: 'DISCONNECT_FAILED',
-            message: lastError?.message || 'Failed to disconnect wallet after multiple attempts',
-        };
-        setError(walletError);
-        setIsDisconnecting(false);
-        
-        // Show error toast but still clear app state
+        // All retries failed — surface a toast so the user sees the failure
+        // (this hook's return value is consumed by Header.tsx which only
+        // needs `isDisconnecting` for the disabled state; the toast is the
+        // user-facing signal that retry gave up).
+        const message = lastError?.message || 'Failed to disconnect wallet after multiple attempts';
+        logger.warn(`[WalletStatusManager] All ${DISCONNECT_RETRY_ATTEMPTS} disconnect attempts failed:`, message);
         toast.error('Wallet disconnect failed. Please refresh the page if issues persist.');
-        
+
+        setIsDisconnecting(false);
+
         // Force reset app state even if wallet disconnect failed
         resetAll();
     }, [rawDisconnect, resetAll]);
@@ -105,6 +96,5 @@ export function useReliableDisconnect(): UseReliableDisconnectReturn {
     return {
         disconnect,
         isDisconnecting: isDisconnecting || disconnecting,
-        error,
     };
 }
