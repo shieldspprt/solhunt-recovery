@@ -13,6 +13,7 @@ import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 import { toTokenProgramPublicKey } from '@/lib/tokenProgram';
 import { chunk } from '@/lib/arrayUtils';
 import { getLatestBlockhashWithRetry } from '@/lib/rpcRetry';
+import { logger } from '@/lib/logger';
 
 export interface DustBurnBatch {
     transaction: Transaction;
@@ -70,6 +71,7 @@ export async function buildDustBurnReclaimTransactions(
             try {
                 burnAmount = BigInt(token.rawBalance);
             } catch (err: unknown) {
+                logger.warn('Invalid rawBalance for token', { token });
                 continue;
             }
 
