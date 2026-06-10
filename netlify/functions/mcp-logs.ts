@@ -2,7 +2,12 @@
 // Query endpoint for MCP call analytics
 // Returns recent tool calls with wallet, timestamp, and duration
 
-import { Handler } from '@netlify/functions';
+import {
+  type Handler,
+  buildCorsHeaders,
+  getErrorMessage,
+  safeLogError,
+} from './_shared';
 
 // In-memory log buffer (shared across warm instances)
 declare global {
@@ -23,20 +28,7 @@ if (!global.mcpCallLog) {
 const MAX_LOGS = 1000;
 
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'no-store',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
-  };
+  const headers = buildCorsHeaders(event, { methods: 'GET, POST, OPTIONS' });
 
   // Log a call (POST from mcp.ts)
   if (event.httpMethod === 'POST') {
@@ -58,15 +50,10 @@ export const handler: Handler = async (event) => {
       
       return { statusCode: 200, headers, body: JSON.stringify({ logged: true }) };
     } catch (err: unknown) {
-      // Production log silence — matches the pattern in scan-wallet.ts,
-      // scan-token-approvals.ts, build-recovery.ts, build-revoke.ts,
-      // preview-recovery.ts, get-stats.ts, dd-sign.ts, daily-stats.ts,
-      // dd-payment.ts. Suppresses in prod to avoid leaking malformed
-      // payload contents (which can include wallet addresses) to server stderr.
-      const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
-      if (!isProduction) {
-        console.error('mcp-logs error:', err instanceof Error ? err.message : String(err));
-      }
+      const message = getErrorMessage(err);
+      // Suppresses in prod to avoid leaking malformed payload contents
+      // (which can include wallet addresses) to server stderr.
+      safeLogError('mcp-logs error:', message);
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid log data' }) };
     }
   }

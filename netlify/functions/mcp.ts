@@ -4,6 +4,7 @@
 // and any LLM that supports tool use via MCP
 
 import { Handler } from '@netlify/functions';
+import { buildCorsHeaders, safeLogInfo } from './_shared';
 
 // ── Type Definitions ────────────────────────────────────────────────────────────
 
@@ -803,17 +804,6 @@ const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const walletRateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const WALLET_RATE_LIMIT = 50; // stricter limit per wallet (50/hour vs 100/hour per IP)
 
-// ── Production-aware logging ──────────────────────────────────────────────────
-// Netlify routes all console.* to server stderr; a paid log drain can ingest
-// that stream. To prevent wallet / config metadata leaking to the drain in
-// production, route logs through `safeLogInfo` which silences in prod but
-// preserves dev visibility. Mirrors the pattern used in dd-sign.ts,
-// scan-wallet.ts, build-recovery.ts, etc.
-const IS_PRODUCTION = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
-function safeLogInfo(...args: unknown[]): void {
-  if (!IS_PRODUCTION) console.log(...args);
-}
-
 interface RateLimitResult {
   allowed: boolean;
   remaining: number;
@@ -882,10 +872,6 @@ function checkRateLimit(ip: string, walletAddress?: string): RateLimitResult {
 // ── Handler ───────────────────────────────────────────────────────────────────
 
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
   // CORS-safelisted response headers are exposed by default. Custom headers
   // (X-RateLimit-*, IETF RateLimit-*, Retry-After, security headers) must be
   // explicitly listed in Access-Control-Expose-Headers or browser-based MCP
@@ -911,18 +897,11 @@ export const handler: Handler = async (event) => {
     'Retry-After',
   ].join(', ');
 
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-MCP-Version',
-    'Access-Control-Expose-Headers': EXPOSED_HEADERS,
-    'Vary': 'Origin',
-    'Cache-Control': 'no-store',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
-  };
+  const headers = buildCorsHeaders(event, {
+    methods: 'GET, POST, OPTIONS',
+    exposeHeaders: EXPOSED_HEADERS.split(', '),
+    extra: { 'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-API-Key, X-MCP-Version' },
+  });
 
   if (event.httpMethod === 'OPTIONS') {
     return {

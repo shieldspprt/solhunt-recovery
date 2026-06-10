@@ -1,5 +1,12 @@
-import { Handler } from '@netlify/functions';
 import { Connection, PublicKey } from '@solana/web3.js';
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  getErrorMessage,
+  isValidSolanaAddress,
+  safeLogError,
+} from './_shared';
 
 const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
 const RPC_URL = HELIUS_API_KEY
@@ -13,35 +20,11 @@ const FEE_PERCENT = 15;
 const ESTIMATED_TX_COST_SOL = 0.000005; // 5000 lamports base fee, just an estimate
 const FEE_WALLET = 'DD4AdYKVcV6kgpmiCEeASRmJyRdKgmaRAbsjKucx8CvY';
 
-function isValidSolanaAddress(address: string): boolean {
-  if (!address || typeof address !== 'string') return false;
-  if (address.length < 32 || address.length > 44) return false;
-  try {
-    new PublicKey(address);
-    return true;
-  } catch (_err: unknown) {
-    return false;
-  }
-}
-
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'no-store',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
-  };
+  const headers = buildCorsHeaders(event, { methods: 'GET, OPTIONS' });
 
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return corsPreflightResponse(event, { methods: 'GET, OPTIONS' });
   }
 
   const wallet = event.queryStringParameters?.wallet?.trim();
@@ -108,14 +91,8 @@ export const handler: Handler = async (event) => {
       })
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : String(error);
-    // Production log silence — matches the pattern in scan-wallet.ts,
-    // scan-token-approvals.ts, build-recovery.ts, build-revoke.ts,
-    // wallet-opportunities.ts, get-stats.ts, dd-sign.ts, daily-stats.ts.
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
-    if (!isProduction) {
-      console.error('preview-recovery error:', message);
-    }
+    const message = getErrorMessage(error);
+    safeLogError('preview-recovery error:', message);
     return {
       statusCode: 500,
       headers,

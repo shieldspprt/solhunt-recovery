@@ -1,5 +1,11 @@
-import { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
+import {
+  type Handler,
+  buildCorsHeaders,
+  getErrorMessage,
+  methodNotAllowed,
+  safeLogError,
+} from './_shared';
 
 const DD_WALLET   = 'DD4AdYKVcV6kgpmiCEeASRmJyRdKgmaRAbsjKucx8CvY';
 const MEMO_PROG   = 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr';
@@ -44,23 +50,14 @@ function extractMemo(tx: HeliusTransaction): string | null {
 }
 
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Cache-Control': 'no-store',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
-  };
+  const headers = buildCorsHeaders(event, {
+    methods: 'POST, OPTIONS',
+    // dd-payment also accepts `Authorization: Bearer …` for the Helius webhook auth.
+    extra: { 'Access-Control-Allow-Headers': 'Content-Type, Authorization' },
+  });
 
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: 'POST only' }) };
+    return methodNotAllowed(event, 'POST, OPTIONS');
   }
 
   // Helius webhook auth
@@ -146,15 +143,9 @@ export const handler: Handler = async (event) => {
         registered++;
       }
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : typeof e === 'string' ? e : String(e ?? 'Unknown error');
-      // Production log silence — matches the pattern in scan-wallet.ts,
-      // scan-token-approvals.ts, build-recovery.ts, build-revoke.ts,
-      // preview-recovery.ts, get-stats.ts, dd-sign.ts, daily-stats.ts.
+      const message = getErrorMessage(e);
       // Suppresses in prod to keep sender wallet/amount data off Netlify server stderr.
-      const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
-      if (!isProduction) {
-        console.error('dd-payment error:', message);
-      }
+      safeLogError('dd-payment error:', message);
       return {
         statusCode: 500,
         headers,

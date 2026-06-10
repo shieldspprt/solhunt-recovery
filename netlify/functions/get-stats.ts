@@ -1,8 +1,14 @@
 // netlify/functions/get-stats.ts
 // Returns stored daily stats — used by the stats page and by external agents
 
-import { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  getErrorMessage,
+  safeLogError,
+} from './_shared';
 
 interface DayStat {
   date: string;
@@ -21,22 +27,16 @@ const supabase = createClient(
 );
 
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
+  // get-stats is a public read endpoint — cache the response for an hour to
+  // reduce Supabase load. Overridden via the shared header builder.
+  const headers = buildCorsHeaders(event, {
+    methods: 'GET, OPTIONS',
+    cacheControl: 'public, max-age=3600',
+  });
 
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'public, max-age=3600',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
-  };
-
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
+  if (event.httpMethod === 'OPTIONS') {
+    return corsPreflightResponse(event, { methods: 'GET, OPTIONS' });
+  }
 
   // How many days of history to return (default: 7)
   const days = Math.min(
@@ -80,13 +80,8 @@ export const handler: Handler = async (event) => {
       })
     };
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    // Production log silence — matches the pattern in scan-wallet.ts,
-    // dd-sign.ts, wallet-opportunities.ts, and scan-token-approvals.ts.
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
-    if (!isProduction) {
-      console.error('get-stats error:', message);
-    }
+    const message = getErrorMessage(e);
+    safeLogError('get-stats error:', message);
     return {
       statusCode: 500,
       headers,

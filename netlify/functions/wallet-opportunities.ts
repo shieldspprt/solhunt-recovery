@@ -2,8 +2,15 @@
 // Returns specific zero-balance token accounts that can be closed for SOL recovery
 // No auth required. Rate limited by Helius free tier.
 
-import { Handler } from '@netlify/functions';
 import { Connection, PublicKey } from '@solana/web3.js';
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  getErrorMessage,
+  isValidSolanaAddress,
+  safeLogError,
+} from './_shared';
 
 const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
 const RPC_URL = HELIUS_API_KEY
@@ -14,42 +21,11 @@ const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 const RENT_PER_ACCOUNT_SOL = 0.00203928;
 const MAX_ACCOUNTS_PER_TX = 15; // Safe limit for standard transactions
 
-/** Safely extract error message from unknown error type */
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'string') return error;
-  return String(error ?? 'Unknown error');
-}
-
-function isValidSolanaAddress(address: string): boolean {
-  if (!address || typeof address !== 'string') return false;
-  if (address.length < 32 || address.length > 44) return false;
-  try {
-    new PublicKey(address);
-    return true;
-  } catch (_err: unknown) {
-    return false;
-  }
-}
-
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'no-store',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
-  };
+  const headers = buildCorsHeaders(event, { methods: 'GET, OPTIONS' });
 
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return corsPreflightResponse(event, { methods: 'GET, OPTIONS' });
   }
 
   const address = event.queryStringParameters?.wallet?.trim();
@@ -120,13 +96,7 @@ export const handler: Handler = async (event) => {
     };
   } catch (error: unknown) {
     const message = getErrorMessage(error);
-    // Netlify Functions: production logs are routed to a paid log drain,
-    // so suppressing in prod avoids noise. The same `isProduction` pattern is
-    // used across scan-wallet.ts and dd-sign.ts.
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
-    if (!isProduction) {
-      console.error('wallet-opportunities error:', message);
-    }
+    safeLogError('wallet-opportunities error:', message);
     return {
       statusCode: 500,
       headers,

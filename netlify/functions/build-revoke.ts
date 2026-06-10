@@ -2,9 +2,17 @@
 // Builds unsigned transaction(s) to revoke token approvals
 // Fee: 0.001 SOL per batch (first transaction only)
 
-import { Handler } from '@netlify/functions';
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
 import { createRevokeInstruction, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  getErrorMessage,
+  isValidSolanaAddress,
+  methodNotAllowed,
+  safeLogError,
+} from './_shared';
 
 const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
 const RPC_URL = HELIUS_API_KEY
@@ -26,39 +34,15 @@ interface TokenAccountToRevoke {
   programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' | 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 }
 
-function isValidSolanaAddress(address: string): boolean {
-  if (!address || typeof address !== 'string') return false;
-  if (address.length < 32 || address.length > 44) return false;
-  try {
-    new PublicKey(address);
-    return true;
-  } catch (err: unknown) {
-    return false;
-  }
-}
-
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'no-store',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
-  };
+  const headers = buildCorsHeaders(event, { methods: 'POST, OPTIONS' });
 
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return corsPreflightResponse(event, { methods: 'POST, OPTIONS' });
   }
 
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+    return methodNotAllowed(event, 'POST, OPTIONS');
   }
 
   let body: Record<string, unknown>;
@@ -184,13 +168,8 @@ export const handler: Handler = async (event) => {
     };
 
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    // Production log silence — matches the pattern in scan-wallet.ts,
-    // dd-sign.ts, wallet-opportunities.ts, and scan-token-approvals.ts.
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
-    if (!isProduction) {
-      console.error('build-revoke error:', errorMessage);
-    }
+    const errorMessage = getErrorMessage(error);
+    safeLogError('build-revoke error:', errorMessage);
     return {
       statusCode: 500,
       headers,

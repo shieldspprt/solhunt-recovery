@@ -2,8 +2,16 @@
 // Scans a Solana wallet for token approvals/delegations (dApps with spending rights)
 // Returns: list of delegations with risk scores
 
-import { Handler } from '@netlify/functions';
 import { Connection, PublicKey } from '@solana/web3.js';
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  getErrorMessage,
+  isValidSolanaAddress,
+  methodNotAllowed,
+  safeLogError,
+} from './_shared';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -58,26 +66,6 @@ interface ApprovalScanResult {
   recommendation: string;
 }
 
-/** Safely extract error message from unknown error type */
-function getErrorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'string') return error;
-  return String(error ?? 'Unknown error');
-}
-
-// ── Validation ────────────────────────────────────────────────────────────────
-
-function isValidSolanaAddress(address: string): boolean {
-  if (!address || typeof address !== 'string') return false;
-  if (address.length < 32 || address.length > 44) return false;
-  try {
-    new PublicKey(address);
-    return true;
-  } catch (_err: unknown) {
-    return false;
-  }
-}
-
 // ── Risk Assessment ──────────────────────────────────────────────────────────
 
 function assessRisk(
@@ -103,31 +91,14 @@ function assessRisk(
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'no-store',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
-  };
+  const headers = buildCorsHeaders(event, { methods: 'GET, OPTIONS' });
 
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return corsPreflightResponse(event, { methods: 'GET, OPTIONS' });
   }
 
   if (event.httpMethod !== 'GET') {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ success: false, error: 'Method not allowed' })
-    };
+    return methodNotAllowed(event, 'GET, OPTIONS');
   }
 
   const address = event.queryStringParameters?.address?.trim();
@@ -263,12 +234,7 @@ export const handler: Handler = async (event) => {
 
   } catch (error: unknown) {
     const message = getErrorMessage(error);
-    // Production log silence — matches the pattern in scan-wallet.ts,
-    // dd-sign.ts, and wallet-opportunities.ts.
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
-    if (!isProduction) {
-      console.error('scan-token-approvals error:', message);
-    }
+    safeLogError('scan-token-approvals error:', message);
     return {
       statusCode: 500,
       headers,

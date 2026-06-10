@@ -1,4 +1,3 @@
-import { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
 import {
   Connection, Keypair, Transaction,
@@ -6,17 +5,11 @@ import {
   TransactionInstruction
 } from '@solana/web3.js';
 import bs58 from 'bs58';
-
-// ── Production-aware logging ──────────────────────────────────────────────────
-// Netlify routes all console.* to server stderr; a paid log drain can ingest
-// that stream. To prevent wallet / config metadata leaking to the drain in
-// production, route warns through `safeLogWarn` which silences in prod but
-// preserves dev visibility. Mirrors the pattern used in scan-wallet.ts,
-// build-recovery.ts, etc.
-const IS_PRODUCTION = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
-function safeLogWarn(...args: unknown[]): void {
-  if (!IS_PRODUCTION) console.warn(...args);
-}
+import {
+  type Handler,
+  buildCorsHeaders,
+  safeLogWarn,
+} from './_shared';
 
 // ── Hard limits — in code, not config ────────────────────────────────────────
 const DD_WALLET          = 'DD4AdYKVcV6kgpmiCEeASRmJyRdKgmaRAbsjKucx8CvY';
@@ -60,20 +53,10 @@ async function getTodaySpendLamports(): Promise<number> {
 
 // ── Handler ───────────────────────────────────────────────────────────────────
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Cache-Control': 'no-store',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
-  };
+  const headers = buildCorsHeaders(event, {
+    methods: 'POST, OPTIONS',
+    extra: { 'Access-Control-Allow-Headers': 'Content-Type, Authorization' },
+  });
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
   if (event.httpMethod !== 'POST') {

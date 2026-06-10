@@ -2,10 +2,16 @@
 // Scans a Solana wallet for recoverable SOL (locked rent in zero-balance token accounts)
 // No auth required. Public data only. Rate limited by Helius free tier.
 
-import { Handler } from '@netlify/functions';
 import { Connection, PublicKey } from '@solana/web3.js';
-
-// ── Constants ─────────────────────────────────────────────────────────────────
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  getErrorMessage,
+  isValidSolanaAddress,
+  methodNotAllowed,
+  safeLogError,
+} from './_shared';
 
 const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
 const RPC_URL = HELIUS_API_KEY
@@ -16,19 +22,6 @@ const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
 const RENT_PER_ACCOUNT_SOL = 0.00203928; // standard token account rent
 const MAX_ACCOUNTS_PER_TX = 20;
 const TX_FEE_SOL = 0.000005;
-
-// ── Validation ────────────────────────────────────────────────────────────────
-
-function isValidSolanaAddress(address: string): boolean {
-  if (!address || typeof address !== 'string') return false;
-  if (address.length < 32 || address.length > 44) return false;
-  try {
-    new PublicKey(address);
-    return true;
-  } catch (_err: unknown) {
-    return false;
-  }
-}
 
 // ── Score calculation ─────────────────────────────────────────────────────────
 
@@ -58,32 +51,15 @@ function computeScore(closeableCount: number, dustCount: number): {
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'no-store',
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
-  };
+  const headers = buildCorsHeaders(event, { methods: 'GET, OPTIONS' });
 
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return corsPreflightResponse(event, { methods: 'GET, OPTIONS' });
   }
 
   if (event.httpMethod !== 'GET') {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ success: false, error: 'Method not allowed' })
-    };
+    return methodNotAllowed(event, 'GET, OPTIONS');
   }
 
   // Get wallet address from query param
@@ -166,8 +142,8 @@ export const handler: Handler = async (event) => {
     };
   } catch (error: unknown) {
     // Check for known RPC errors with type-safe access
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    
+    const errorMessage = getErrorMessage(error);
+
     if (errorMessage.includes('Invalid public key')) {
       return {
         statusCode: 400,
@@ -176,10 +152,7 @@ export const handler: Handler = async (event) => {
       };
     }
 
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.CONTEXT === 'production';
-    if (!isProduction) {
-      console.error('scan-wallet error:', errorMessage);
-    }
+    safeLogError('scan-wallet error:', errorMessage);
     return {
       statusCode: 500,
       headers,
