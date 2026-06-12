@@ -542,6 +542,12 @@ async function executeTool(
   args: ToolArgs,
   apiKey?: string
 ): Promise<unknown> {
+  // Start the timer before any async work so analytics duration reflects the
+  // full tool execution. Previously this was hardcoded to 0 — the mcp-logs
+  // dashboard had no way to distinguish fast calls from slow ones, so P95
+  // latency, slow-tool alerts, and per-tool SLO tracking were all blind.
+  const startMs = Date.now();
+
   // Log structured analytics for monitoring (safe: no wallet balance/tx details logged)
   // Extract wallet address for rate limiting and logging.
   // ToolArgs is a union; we use property checks to safely narrow which field is present.
@@ -554,7 +560,7 @@ async function executeTool(
   void fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tool: name, wallet: walletAddress, duration: 0, success: true })
+    body: JSON.stringify({ tool: name, wallet: walletAddress, duration: Date.now() - startMs, success: true })
   }).catch((_logErr: unknown) => {
     // Silent fail — analytics logging must never break tool execution
   });
@@ -785,6 +791,17 @@ async function executeTool(
   } catch (e: unknown) {
     // Unexpected errors are server-side bugs, not tool execution failures — tag as INTERNAL_ERROR
     const message = e instanceof Error ? e.message : typeof e === 'string' ? e : String(e ?? 'Unknown error');
+    // Surface the failure to the analytics pipeline so the mcp-logs dashboard
+    // can show error rate per tool. Fire-and-forget — must never break the
+    // already-failing tool call. Safe to log the wallet here because mcp-logs
+    // already truncates it to 8 chars + '...' before storage.
+    void fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tool: name, wallet: walletAddress, duration: Date.now() - startMs, success: false })
+    }).catch((_logErr: unknown) => {
+      // Silent fail — analytics logging must never break error reporting
+    });
     return createMCPError(
       'INTERNAL_ERROR',
       `Internal server error: ${message}`,
