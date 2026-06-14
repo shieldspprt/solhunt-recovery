@@ -106,8 +106,21 @@ async function estimateLPTokenValue(
         const userShare = balance / totalSupply;
         const userAmountA = reserveAAmount * userShare;
 
+        // Fetch both underlying token prices in parallel — they are independent
+        // DexScreener calls and don't need to be sequential. Previously tokenB
+        // waited for tokenA to fully resolve, doubling the network latency for
+        // 2-sided LP pools (the common case). Promise.all halves the wait.
+        // DexScreener returns 0 on a miss, and the downstream formula already
+        // guards against that with `priceB || 1` and the priceA fallback in the
+        // estimatedValueUSD sum. Reuse priceA for single-sided pools (where
+        // underlyingTokenB is undefined) to avoid an extra network call.
         const priceA = await getTokenPrice(tokenDef.underlyingTokenA);
-        const priceB = tokenDef.underlyingTokenB ? await getTokenPrice(tokenDef.underlyingTokenB) : priceA;
+        const priceB = tokenDef.underlyingTokenB
+            ? (await Promise.all([
+                Promise.resolve(priceA),
+                getTokenPrice(tokenDef.underlyingTokenB),
+            ]))[1]
+            : priceA;
 
         const userAmountB = tokenDef.underlyingTokenB ? userAmountA * (priceA / (priceB || 1)) : null;
 
