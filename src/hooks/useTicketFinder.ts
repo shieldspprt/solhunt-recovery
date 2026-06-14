@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { scanForStakingTickets } from '@/lib/ticketScanner';
@@ -20,6 +20,7 @@ import type {
 } from '@/types';
 import { createAppError, isAppError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { fetchSOLPriceUSD, FALLBACK_SOL_PRICE_USD } from '@/lib/solPrice';
 
 export function useTicketFinder() {
     const { connection } = useConnection();
@@ -46,6 +47,30 @@ export function useTicketFinder() {
 
     const { scanMEVClaims } = useMEVClaims();
 
+    // Live SOL/USD price for accurate claim estimate. Falls back to
+    // FALLBACK_SOL_PRICE_USD if the Jupiter price API is unavailable
+    // or returns a non-positive number. Mirrors the pattern in
+    // useDecommissionScanner.ts — previously the USD figure in the
+    // claim modal was hardcoded to 150, so a 2x move in SOL produced
+    // a misleading ~50% wrong "you'll receive" preview.
+    const [solPriceUSD, setSolPriceUSD] = useState<number>(FALLBACK_SOL_PRICE_USD);
+    useEffect(() => {
+        let cancelled = false;
+        fetchSOLPriceUSD()
+            .then((price) => {
+                if (!cancelled && price > 0) setSolPriceUSD(price);
+            })
+            .catch((err: unknown) => {
+                if (!cancelled) {
+                    logger.warn(
+                        'Ticket SOL price fetch failed:',
+                        err instanceof Error ? err.message : String(err)
+                    );
+                }
+            });
+        return () => { cancelled = true; };
+    }, []);
+
     const claimEstimate = useMemo<TicketClaimEstimate>(() => {
         const claimableCount = ticketScanResult?.claimableTickets.length || 0;
         const totalClaimableSOL = ticketScanResult?.totalClaimableSOL || 0;
@@ -54,7 +79,10 @@ export function useTicketFinder() {
             ? (claimableCount + 1) * NETWORK_FEE_PER_SIGNATURE_SOL
             : 0;
         const userReceivesSOL = Math.max(totalClaimableSOL - serviceFeeSOL, 0);
-        const userReceivesUSD = userReceivesSOL * 150;
+        // Use the live SOL price; fall back to the documented constant
+        // if the fetch never resolved (solPriceUSD stays at the initial
+        // FALLBACK_SOL_PRICE_USD value).
+        const userReceivesUSD = userReceivesSOL * solPriceUSD;
 
         return {
             claimableCount,
@@ -64,7 +92,7 @@ export function useTicketFinder() {
             userReceivesSOL,
             userReceivesUSD,
         };
-    }, [ticketScanResult]);
+    }, [ticketScanResult, solPriceUSD]);
 
     const updateProgress = useCallback((update: {
         id: string;
