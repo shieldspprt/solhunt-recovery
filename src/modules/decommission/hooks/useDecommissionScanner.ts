@@ -9,6 +9,7 @@ import { createAppError } from '@/lib/errors';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
 import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 import { DECOMMISSION_SERVICE_FEE_PERCENT, DECOMMISSION_FEE_SOL_MIN } from '../constants';
+import { fetchSOLPriceUSD, FALLBACK_SOL_PRICE_USD } from '@/lib/solPrice';
 import { logger } from '@/lib/logger';
 import {
     logDecommissionScanStarted,
@@ -31,11 +32,23 @@ export function useDecommissionScanner() {
         logDecommissionScanStarted();
 
         try {
-            const result = await scanForDeadProtocolPositions(
-                publicKey.toString(),
-                connection,
-                (progress) => store.setScanProgress(progress)
-            );
+            // Fetch live SOL price in parallel with the scan so the recovery
+            // estimate and the actual on-chain service fee both use a real
+            // USD/SOL rate. Previously both fell back to a hardcoded 150,
+            // which produced wrong fee quotes when SOL moved materially.
+            // The helper itself falls back to FALLBACK_SOL_PRICE_USD on
+            // Jupiter failure, so the UX is identical when the price API
+            // is unavailable.
+            const [result, solPriceUSD] = await Promise.all([
+                scanForDeadProtocolPositions(
+                    publicKey.toString(),
+                    connection,
+                    (progress) => store.setScanProgress(progress)
+                ),
+                fetchSOLPriceUSD(),
+            ]);
+
+            store.setSolPriceUSD(solPriceUSD);
 
             store.setScanResult(result);
             store.setScanStatus(result.positionsFound > 0 ? 'scan_complete' : 'nothing_found');
@@ -78,9 +91,12 @@ export function useDecommissionScanner() {
             .reduce((sum, i) => sum + (i.estimatedValueUSD ?? 0), 0);
 
         const serviceFeeUSD = totalValueUSD * (DECOMMISSION_SERVICE_FEE_PERCENT / 100);
-        const solPrice = 150;
+        // Use the live SOL price fetched at scan start. Fall back to the
+        // documented constant only if the price fetch returned 0 (e.g.
+        // Jupiter returned a non-positive number).
+        const solPrice = store.solPriceUSD > 0 ? store.solPriceUSD : FALLBACK_SOL_PRICE_USD;
         const serviceFeeSOL = Math.max(
-            serviceFeeUSD / (solPrice || 140),
+            serviceFeeUSD / solPrice,
             DECOMMISSION_FEE_SOL_MIN
         );
 
@@ -95,7 +111,7 @@ export function useDecommissionScanner() {
             netValueUSD: totalValueUSD > 0 ? totalValueUSD - serviceFeeUSD : null,
             txCount: inAppItems.length,
         };
-    }, [selectedItems]);
+    }, [selectedItems, store.solPriceUSD]);
 
     const initiateRecovery = useCallback(() => {
         if (selectedItems.length === 0) return;
@@ -128,7 +144,11 @@ export function useDecommissionScanner() {
 
             const inAppItems = selectedItems.filter(i => i.recoveryMethod === 'in_app');
             if (inAppItems.length > 0) {
-                const transactions = await buildWithdrawalTransactions(inAppItems, publicKey, connection);
+                // Pass the live SOL price from the store so the on-chain
+                // service fee matches the estimate shown in the UI. Falls
+                // back to the documented constant inside the builder if 0.
+                const solPriceUSD = store.solPriceUSD > 0 ? store.solPriceUSD : FALLBACK_SOL_PRICE_USD;
+                const transactions = await buildWithdrawalTransactions(inAppItems, publicKey, connection, solPriceUSD);
 
                 for (let i = 0; i < transactions.length; i++) {
                     const item = inAppItems[i];

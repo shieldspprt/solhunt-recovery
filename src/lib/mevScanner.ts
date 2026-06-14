@@ -5,33 +5,10 @@ import {
     MEV_API_PAGE_SIZE,
     MEV_MIN_CLAIM_LAMPORTS,
 } from '@/config/constants';
-import { JUPITER_PRICE_API } from '@/modules/lp-harvester/constants';
+import { fetchSOLPriceUSD } from './solPrice';
 import type { MEVClaimItem } from '@/types';
 import { withTimeout } from './withTimeout';
 import { logger } from './logger';
-
-/** Fallback SOL price in USD when Jupiter price API is unavailable. */
-const FALLBACK_SOL_PRICE_USD = 150;
-
-/**
- * Fetch the current SOL price in USD from Jupiter.
- * Returns fallback price on any error (network, non-200, parse).
- */
-export async function fetchSOLPriceUSD(): Promise<number> {
-    try {
-        const res = await withTimeout(
-            fetch(`${JUPITER_PRICE_API}?ids=SOL`),
-            5_000,
-            'RPC_TIMEOUT'
-        );
-        if (!res.ok) return FALLBACK_SOL_PRICE_USD;
-        const json = await res.json() as { prices?: Array<{ price?: number }> };
-        const price = json?.prices?.[0]?.price;
-        return typeof price === 'number' && price > 0 ? price : FALLBACK_SOL_PRICE_USD;
-    } catch (_err: unknown) {
-        return FALLBACK_SOL_PRICE_USD;
-    }
-}
 
 /**
  * Paginated fetch with timeout wrapper for MEV API pages.

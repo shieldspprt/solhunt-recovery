@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { logger } from '@/lib/logger';
-import { fetchSOLPriceUSD } from '@/lib/mevScanner';
+import { fetchSOLPriceUSD } from '@/lib/solPrice';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
