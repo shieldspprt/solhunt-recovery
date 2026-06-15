@@ -11,6 +11,7 @@ import {
     type TransactionInstruction,
 } from '@solana/web3.js';
 import { withTimeout } from './withTimeout';
+import { clamp } from './arrayUtils';
 
 // ─── Defaults ──────────────────────────────────────────────
 /** Fallback if the RPC call fails (50k micro-lamports ≈ 0.000005 SOL per 200k CU) */
@@ -21,6 +22,11 @@ export const DEFAULT_COMPUTE_UNITS = 200_000;
 
 /** Aggressive compute unit budget for complex burns / swaps */
 export const HIGH_COMPUTE_UNITS = 400_000;
+
+/** Lower bound (micro-lamports) — 10k protects against under-pricing in quiet markets */
+const MIN_PRIORITY_FEE_MICRO_LAMPORTS = 10_000;
+/** Upper bound (micro-lamports) — 1M caps accidental overspend when the p75 is extreme */
+const MAX_PRIORITY_FEE_MICRO_LAMPORTS = 1_000_000;
 
 // ─── Fee Fetcher ──────────────────────────────────────────
 
@@ -63,8 +69,8 @@ export async function getOptimalPriorityFee(
         const p75Index = Math.floor(sorted.length * 0.75);
         const p75Fee = sorted[p75Index];
 
-        // Clamp between 10k and 1M micro-lamports
-        return Math.max(10_000, Math.min(p75Fee, 1_000_000));
+        // Clamp between 10k and 1M micro-lamports to avoid under-pricing or accidental overspend
+        return clamp(p75Fee, MIN_PRIORITY_FEE_MICRO_LAMPORTS, MAX_PRIORITY_FEE_MICRO_LAMPORTS);
     } catch (err: unknown) {
         return DEFAULT_PRIORITY_FEE_MICRO_LAMPORTS;
     }

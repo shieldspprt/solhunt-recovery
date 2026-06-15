@@ -5,6 +5,8 @@
  * LRU cache to avoid recomputing the same formatted values in lists.
  */
 
+import { FALLBACK_SOL_PRICE_USD } from './solPrice';
+
 // ─── Memoization Cache ───────────────────────────────────────────────────────
 
 /** Simple LRU cache for memoizing formatting results */
@@ -167,9 +169,13 @@ export const formatCurrency = formatUSD;
 
 /**
  * Formats SOL amount as USD estimate using an optional SOL price.
- * Defaults to $150/SOL when no price is provided.
+ * Defaults to FALLBACK_SOL_PRICE_USD (from @/lib/solPrice) when no price
+ * is provided. This is the single source of truth shared with the live
+ * Jupiter price fetch — components that have a live price should pass
+ * it explicitly; the default ensures consistent fallback behavior
+ * across all 30+ call sites that omit a price argument.
  */
-export function estimateUSD(solAmount: number, solPriceUSD = 150): string {
+export function estimateUSD(solAmount: number, solPriceUSD: number = FALLBACK_SOL_PRICE_USD): string {
     return `~${formatUSD(solAmount * solPriceUSD)}`;
 }
 

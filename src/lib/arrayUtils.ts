@@ -23,3 +23,15 @@ export function safeParseFloat(value: string | number | undefined): number {
     const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
     return Number.isFinite(parsed) ? parsed : 0;
 }
+
+/**
+ * Clamps a number to the inclusive [min, max] range.
+ * Returns the value unchanged when min > max (degenerate range).
+ * Replaces the inline `Math.max(min, Math.min(max, value))` pattern that
+ * previously appeared in two places (health score, priority fee cap).
+ */
+export function clamp(value: number, min: number, max: number): number {
+    if (value < min) return min;
+    if (value > max) return max;
+    return value;
+}

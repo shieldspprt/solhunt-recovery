@@ -7,6 +7,7 @@ import { isValidSolanaAddress } from '@/lib/validation';
 import { shortenAddress } from '@/lib/formatting';
 import { toAppError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { clamp } from '@/lib/arrayUtils';
 import type { WalletScanResponse } from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -48,7 +49,7 @@ function formatSol(sol: number): string {
 
 const ScoreBar = memo(function ScoreBar({ score }: { score: number }) {
   // Clamp to [0, 100] so assistive tech never hears an out-of-range value
-  const clampedScore = Math.max(0, Math.min(100, Math.round(score)));
+  const clampedScore = clamp(Math.round(score), 0, 100);
   return (
     <div
       className="w-full bg-gray-700 rounded-full h-2"
