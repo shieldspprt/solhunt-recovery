@@ -18,6 +18,7 @@ import { createReadonlyWallet, toBase58, toUiAmount } from '../../utils/readonly
 import { toValidPublicKey } from '@/lib/validation';
 import { withRetry } from '@/lib/rpcRetry';
 import { logger } from '@/lib/logger';
+import { IS_PRODUCTION } from '@/config/constants';
 
 interface ParsedTokenAccountInfo {
     mint: string;
@@ -193,7 +194,11 @@ export async function scanOrcaPositions(
         } catch (err: unknown) {
             // Not an Orca position mint (or failed to fetch) — log and continue.
             // Silently skip to avoid spamming users with non-critical parsing errors.
-            if (process.env.NODE_ENV === 'development') {
+            // Gate on the project's IS_PRODUCTION constant rather than
+            // process.env.NODE_ENV: Vite's `define: { 'process.env': {} }`
+            // replaces the entire object at build time, so NODE_ENV is always
+            // undefined in the bundle and the old check never fired.
+            if (!IS_PRODUCTION) {
                 const msg = err instanceof Error ? err.message : String(err);
                 logger.warn(`[OrcaScanner] Skipped mint ${mintAddress.slice(0, 8)}...: ${msg.slice(0, 100)}`);
             }
