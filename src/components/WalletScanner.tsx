@@ -8,6 +8,7 @@ import { shortenAddress } from '@/lib/formatting';
 import { toAppError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
 import { clamp } from '@/lib/arrayUtils';
+import { FALLBACK_SOL_PRICE_USD } from '@/lib/solPrice';
 import type { WalletScanResponse } from '@/types';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -122,7 +123,7 @@ const ScanResults = memo(function ScanResults({ result }: { result: WalletScanRe
         <StatCard
           label="Recoverable SOL"
           value={`${formatSol(result.recoverable_sol)} SOL`}
-          sub={`~$${(result.recoverable_sol * 150).toFixed(2)} at $150/SOL`}
+          sub={`~$${(result.recoverable_sol * FALLBACK_SOL_PRICE_USD).toFixed(2)} at $${FALLBACK_SOL_PRICE_USD}/SOL`}
           highlight={result.recoverable_sol > 0}
         />
         <StatCard
