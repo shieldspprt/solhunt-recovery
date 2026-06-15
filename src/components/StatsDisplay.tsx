@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useRef, memo, useCallback } from 'react';
 import { logger } from '@/lib/logger';
-import { fetchSOLPriceUSD } from '@/lib/solPrice';
+import { fetchSOLPriceUSD, FALLBACK_SOL_PRICE_USD } from '@/lib/solPrice';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -317,7 +317,7 @@ export function StatsDisplay() {
         <StatBox
           label="Total Recoverable"
           value={`${today.total_recoverable_sol.toFixed(2)} SOL`}
-          sub={solPriceUSD ? `~$${(today.total_recoverable_sol * solPriceUSD).toFixed(0)} at $${solPriceUSD}/SOL` : `~$${(today.total_recoverable_sol * 150).toFixed(0)}`}
+          sub={solPriceUSD ? `~$${(today.total_recoverable_sol * solPriceUSD).toFixed(0)} at $${solPriceUSD}/SOL` : `~$${(today.total_recoverable_sol * FALLBACK_SOL_PRICE_USD).toFixed(0)} at $${FALLBACK_SOL_PRICE_USD}/SOL`}
           accent
         />
         <StatBox
