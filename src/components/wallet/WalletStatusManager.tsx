@@ -16,7 +16,7 @@ import { logger } from '@/lib/logger';
 export function WalletStatusManager() {
     const { connected, disconnecting, publicKey } = useWallet();
     // Initialize with actual connected value to track true prior state
-    const previousConnected = useRef(connected);
+    const previousConnected = useRef<boolean>(connected);
 
     // Handle connection state changes
     useEffect(() => {

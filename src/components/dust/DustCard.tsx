@@ -77,7 +77,7 @@ export const DustCard = memo(function DustCard() {
         );
     }
 
-    const parentRef = useRef(null);
+    const parentRef = useRef<HTMLDivElement | null>(null);
     const virtualizer = useVirtualizer({
         count: dustScanResult.dustTokens.length,
         getScrollElement: () => parentRef.current,

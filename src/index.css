@@ -80,3 +80,29 @@
     background-color: #162032 !important;
   }
 }
+
+/* ──────────────────────────────────────────────────────────────────────
+   Accessibility: prefers-reduced-motion
+
+   WCAG 2.3.3 (Animation from Interactions, AAA) — for users with the
+   prefers-reduced-motion: reduce system setting (vestibular disorders,
+   migraines, etc.), disable all transitions, keyframe animations, and
+   smooth scrolling. Tailwind's `animate-*` and `transition-*` utilities
+   generate `animation` / `transition` properties on the elements they
+   target, so a single global rule covers them all.
+
+   We do NOT simply remove the animation property — that can leave elements
+   in a half-applied animated state (e.g. mid-fade-in). Setting the duration
+   to 0.01ms is the well-known technique that ensures any in-flight animation
+   snaps to its end state immediately instead of freezing.
+   ────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
