@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { X } from 'lucide-react';
 import {
     HARVEST_COMPOUND_FEE_PERCENT,
@@ -26,6 +27,7 @@ export function HarvestConfirmModal({
 }: HarvestConfirmModalProps) {
     if (!open || !estimate) return null;
 
+    const titleId = useId();
     const previewPositions = positions.slice(0, 8);
     const hiddenCount = Math.max(positions.length - previewPositions.length, 0);
 
@@ -37,7 +39,12 @@ export function HarvestConfirmModal({
                 aria-hidden="true"
             />
 
-            <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div
+                className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+            >
                 <button
                     type="button"
                     onClick={onCancel}
@@ -48,7 +55,7 @@ export function HarvestConfirmModal({
                 </button>
 
                 <div className="p-6 sm:p-8">
-                    <h2 className="text-xl font-bold text-shield-text mb-2">
+                    <h2 id={titleId} className="text-xl font-bold text-shield-text mb-2">
                         Confirm LP Harvest
                     </h2>
                     <p className="text-sm text-shield-muted mb-4">

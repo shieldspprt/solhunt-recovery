@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { CheckCircle2, ExternalLink, Loader2, X, XCircle } from 'lucide-react';
 import { SOLSCAN_TX_URL } from '@/config/constants';
 import type { HarvestResult, HarvestResultItem, LPHarvestStatus } from '../types';
@@ -31,6 +32,7 @@ export function HarvestProgressModal({
 }: HarvestProgressModalProps) {
     if (!open) return null;
 
+    const titleId = useId();
     const processing = status === 'harvesting' || status === 'compounding' || status === 'sending_fee';
 
     const firstSignature = result?.items.find((item) => item.signature)?.signature
@@ -47,7 +49,12 @@ export function HarvestProgressModal({
                 aria-hidden="true"
             />
 
-            <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div
+                className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+            >
                 {!processing && (
                     <button
                         type="button"
@@ -78,7 +85,7 @@ export function HarvestProgressModal({
                         </div>
                     )}
 
-                    <h2 className="text-xl font-bold text-shield-text text-center mb-2">
+                    <h2 id={titleId} className="text-xl font-bold text-shield-text text-center mb-2">
                         {statusText(status)}
                     </h2>
 
