@@ -116,7 +116,7 @@ function isArray(value: unknown): value is unknown[] {
 
 /** Validates that a value is a valid number or undefined */
 function isOptionalNumber(value: unknown): value is number | undefined {
-  return value === undefined || (typeof value === 'number' && !isNaN(value));
+  return value === undefined || (typeof value === 'number' && !Number.isNaN(value));
 }
 
 /**
@@ -161,7 +161,7 @@ function validateBuildRevokeTransactionsArgs(args: RawToolArgs): BuildRevokeTran
   
   // Validate fee_percent if provided (0-100 range)
   const feePercent = args.fee_percent;
-  if (feePercent !== undefined && (typeof feePercent !== 'number' || feePercent < 0 || feePercent > 100 || isNaN(feePercent))) {
+  if (feePercent !== undefined && (typeof feePercent !== 'number' || feePercent < 0 || feePercent > 100 || Number.isNaN(feePercent))) {
     return null;
   }
 
@@ -193,7 +193,7 @@ function validateBuildRecoveryTransactionArgs(args: RawToolArgs): BuildRecoveryT
 
   // Validate fee_percent if provided (0-100 range)
   const feePercent = args.fee_percent;
-  if (feePercent !== undefined && (typeof feePercent !== 'number' || feePercent < 0 || feePercent > 100 || isNaN(feePercent))) {
+  if (feePercent !== undefined && (typeof feePercent !== 'number' || feePercent < 0 || feePercent > 100 || Number.isNaN(feePercent))) {
     return null;
   }
 

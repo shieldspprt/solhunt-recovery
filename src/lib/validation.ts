@@ -130,5 +130,5 @@ export function isValidAmount(amount: number): boolean {
  */
 export function isValidAmountString(amount: string): boolean {
     const parsed = parseFloat(amount);
-    return !isNaN(parsed) && parsed >= 0;
+    return !Number.isNaN(parsed) && parsed >= 0;
 }
