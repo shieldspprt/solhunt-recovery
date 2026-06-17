@@ -38,11 +38,19 @@ export const handler: Handler = async (event) => {
     return corsPreflightResponse(event, { methods: 'GET, OPTIONS' });
   }
 
-  // How many days of history to return (default: 7)
-  const days = Math.min(
-    parseInt(event.queryStringParameters?.days || '7'),
-    30
-  );
+  // How many days of history to return (default: 7, max: 30).
+  // Hardened parser: clamp to [1, 30], fall back to 7 on any non-numeric /
+  // NaN / negative / zero input. Previously `parseInt('abc')` returned NaN
+  // and `Math.min(NaN, 30)` stayed NaN — Supabase `.limit(NaN)` would then
+  // reject the request. Negative limits (e.g. `?days=-5`) also slipped
+  // through Math.min unchanged.
+  const DEFAULT_DAYS = 7;
+  const MAX_DAYS = 30;
+  const rawDays = event.queryStringParameters?.days;
+  const parsedDays = rawDays === undefined ? DEFAULT_DAYS : Number.parseInt(rawDays, 10);
+  const days = Number.isFinite(parsedDays) && parsedDays > 0
+    ? Math.min(parsedDays, MAX_DAYS)
+    : DEFAULT_DAYS;
 
   try {
     const { data, error } = await supabase

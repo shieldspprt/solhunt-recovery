@@ -60,10 +60,23 @@ export const handler: Handler = async (event) => {
   
   // Query logs (GET)
   if (event.httpMethod === 'GET') {
-    const limit = parseInt(event.queryStringParameters?.limit || '50');
+    // Hardened limit parser: clamp to [1, 1000], fall back to 50 on any
+    // non-numeric / NaN / negative / zero input. Previously `parseInt('abc')`
+    // returned NaN, and `slice(0, Math.min(NaN, 1000))` silently returned 0
+    // entries. Negative limits (e.g. `?limit=-5`) also slipped through
+    // Math.min unchanged. Now we treat malformed input as the default and
+    // bound the value to a known-safe range.
+    const DEFAULT_LIMIT = 50;
+    const MAX_LIMIT = 1000;
+    const rawLimit = event.queryStringParameters?.limit;
+    const parsedLimit = rawLimit === undefined ? DEFAULT_LIMIT : Number.parseInt(rawLimit, 10);
+    const limit = Number.isFinite(parsedLimit) && parsedLimit > 0
+      ? Math.min(parsedLimit, MAX_LIMIT)
+      : DEFAULT_LIMIT;
+
     const tool = event.queryStringParameters?.tool;
-    
-    let logs = global.mcpCallLog.slice(0, Math.min(limit, 1000));
+
+    let logs = global.mcpCallLog.slice(0, limit);
     
     if (tool) {
       logs = logs.filter(l => l.tool === tool);
