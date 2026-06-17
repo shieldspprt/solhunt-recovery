@@ -87,9 +87,17 @@ export function setPageMeta(meta: PageMeta): void {
 
     const nodes = getNodes();
 
-    if (meta.description !== undefined) {
+    // og:title always reflects the current page title — this is independent
+    // of the description. Previously this was nested inside the description
+    // branch, so a page that called usePageMeta({ title: '...' }) without a
+    // description left og:title at the previous page's value. Link-preview
+    // scrapers (Slack, Twitter, Discord) read og:title directly from the
+    // static HTML on first render, so a stale value persists for the whole
+    // share window even if document.title updates.
+    if (nodes.ogTitle) nodes.ogTitle.setAttribute('content', normalizedTitle);
+
+    if (meta.description !== undefined && meta.description !== '') {
         if (nodes.description) nodes.description.setAttribute('content', meta.description);
-        if (nodes.ogTitle) nodes.ogTitle.setAttribute('content', normalizedTitle);
         if (nodes.ogDescription) nodes.ogDescription.setAttribute('content', meta.description);
     }
     if (nodes.ogImage) nodes.ogImage.setAttribute('content', DEFAULT_OG_IMAGE);
