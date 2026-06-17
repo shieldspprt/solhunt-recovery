@@ -127,8 +127,17 @@ export function useDecommissionScanner() {
         try {
             const redirectItems = selectedItems.filter(i => i.recoveryMethod === 'redirect');
             for (const item of redirectItems) {
-                if (item.redirectUrl) {
-                    window.open(item.redirectUrl, '_blank', 'noopener');
+                // SECURITY: Only follow HTTPS recovery URLs. The URL comes from
+                // a hardcoded protocol registry, but validating here defends
+                // against future registry drift (a misconfigured or malicious
+                // entry with http://, javascript:, or data: would otherwise
+                // execute in the context of this PWA tab).
+                // 'noopener,noreferrer' is the standard hardening for target=_blank
+                // — noopener blocks window.opener access from the new tab, and
+                // noreferrer suppresses the Referer header so the destination
+                // does not learn the page URL the user came from.
+                if (item.redirectUrl && item.redirectUrl.startsWith('https://')) {
+                    window.open(item.redirectUrl, '_blank', 'noopener,noreferrer');
                 }
                 resultItems.push({
                     protocolId: item.protocol.id,
