@@ -23,13 +23,18 @@ export function ConfirmCloseModal({
     const { selectedCount, totalSOL, serviceFeeSOL, userReceivesSOL } = estimate;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="buffer-confirm-title"
+        >
             <div className="glass-card w-full max-w-md rounded-2xl p-6 border border-shield-border/50 shadow-2xl animate-scale-in">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-shield-warning/10 border border-shield-warning/20 mb-4 mx-auto">
                     <AlertTriangle className="h-6 w-6 text-shield-warning" aria-hidden="true" />
                 </div>
 
-                <h2 className="text-xl font-bold text-center text-shield-text mb-2">Destructive Action</h2>
+                <h2 id="buffer-confirm-title" className="text-xl font-bold text-center text-shield-text mb-2">Destructive Action</h2>
                 <p className="text-center text-shield-muted text-sm mb-6 leading-relaxed">
                     You are about to close <strong>{selectedCount} program buffer{selectedCount === 1 ? '' : 's'}</strong>.
                     This will permanently destroy the stored bytecode.
