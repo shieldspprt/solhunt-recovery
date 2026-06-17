@@ -71,6 +71,7 @@ export const PositionRow = memo(function PositionRow({ position, selected, onTog
                         checked={selected}
                         onChange={() => onToggle(position.id)}
                         disabled={isViewOnly}
+                        aria-label={`Select ${position.poolName} position on ${position.protocolDisplayName}${selected ? ' (selected)' : ''}`}
                         className="mt-1 h-4 w-4 rounded border-shield-border bg-shield-bg text-shield-accent disabled:opacity-60"
                     />
 
