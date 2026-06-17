@@ -20,6 +20,27 @@ const FEE_PERCENT = 15;
 const ESTIMATED_TX_COST_SOL = 0.000005; // 5000 lamports base fee, just an estimate
 const FEE_WALLET = 'DD4AdYKVcV6kgpmiCEeASRmJyRdKgmaRAbsjKucx8CvY';
 
+/** Error codes returned by preview-recovery. Matches the MCPErrorCode
+ *  vocabulary used in netlify/functions/mcp.ts so API and MCP clients
+ *  can share a single error-decoding switch. */
+type PreviewRecoveryErrorCode =
+  | 'INVALID_PARAMS'
+  | 'EXECUTION_ERROR'
+  | 'METHOD_NOT_ALLOWED';
+
+/** Build a typed error response body. Mirrors the { error, code, detail }
+ *  shape used by build-recovery.ts and build-revoke.ts so every Netlify
+ *  function returns the same error contract. */
+function errorBody(
+  code: PreviewRecoveryErrorCode,
+  error: string,
+  detail?: string,
+): string {
+  return JSON.stringify(
+    detail === undefined ? { error, code } : { error, code, detail },
+  );
+}
+
 export const handler: Handler = async (event) => {
   const headers = buildCorsHeaders(event, { methods: 'GET, OPTIONS' });
 
@@ -27,16 +48,56 @@ export const handler: Handler = async (event) => {
     return corsPreflightResponse(event, { methods: 'GET, OPTIONS' });
   }
 
+  if (event.httpMethod !== 'GET') {
+    return {
+      statusCode: 405,
+      headers,
+      body: errorBody('METHOD_NOT_ALLOWED', `Method not allowed. Use GET.`),
+    };
+  }
+
   const wallet = event.queryStringParameters?.wallet?.trim();
   const maxAccountsStr = event.queryStringParameters?.max_accounts?.trim();
-  const maxAccounts = maxAccountsStr ? parseInt(maxAccountsStr, 10) : 100;
 
   if (!wallet || !isValidSolanaAddress(wallet)) {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({ success: false, error: 'Invalid or missing wallet address' })
+      body: errorBody(
+        'INVALID_PARAMS',
+        'Invalid or missing wallet address',
+        'Provide a base58 Solana public key (32-44 characters) in the `wallet` query parameter.',
+      ),
     };
+  }
+
+  // Validate max_accounts: must be a finite positive integer in [1, 1000].
+  // Previously a malformed value silently became NaN and was used as the
+  // slice limit, which would either return zero accounts (NaN coerces to 0)
+  // or skip the cap entirely. Reject invalid input explicitly.
+  const DEFAULT_MAX_ACCOUNTS = 100;
+  const MIN_MAX_ACCOUNTS = 1;
+  const MAX_MAX_ACCOUNTS = 1000;
+  let maxAccounts = DEFAULT_MAX_ACCOUNTS;
+  if (maxAccountsStr !== undefined && maxAccountsStr !== '') {
+    const parsed = Number(maxAccountsStr);
+    if (
+      !Number.isFinite(parsed) ||
+      !Number.isInteger(parsed) ||
+      parsed < MIN_MAX_ACCOUNTS ||
+      parsed > MAX_MAX_ACCOUNTS
+    ) {
+      return {
+        statusCode: 400,
+        headers,
+        body: errorBody(
+          'INVALID_PARAMS',
+          `Invalid max_accounts: ${maxAccountsStr}`,
+          `Must be an integer between ${MIN_MAX_ACCOUNTS} and ${MAX_MAX_ACCOUNTS}.`,
+        ),
+      };
+    }
+    maxAccounts = parsed;
   }
 
   try {
@@ -96,11 +157,11 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        success: false,
-        error: `Failed to generate recovery preview. RPC may be rate limited.`,
-        detail: message
-      })
+      body: errorBody(
+        'EXECUTION_ERROR',
+        'Failed to generate recovery preview. RPC may be rate limited.',
+        message,
+      ),
     };
   }
 };
