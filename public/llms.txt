@@ -15,6 +15,7 @@ All actionable buttons and containers use the `data-agent-target` attribute.
 - **Connect Wallet**: `data-agent-target="connect-wallet-btn"`
 - **Start Global Scan**: `data-agent-target="start-scan-btn"`
 - **Execute Claim (Green Button)**: `data-agent-target="execute-claim-btn"`
+- **Execute MEV Claim (Green Button)**: `data-agent-target="execute-mev-claim-btn"`
 - **Engine Cards (Homepage)**: Use `data-agent-target="engine-card-<ID>"` (e.g., `engine-card-1` for Basic Scan).
 
 ## Headless URL Scanning

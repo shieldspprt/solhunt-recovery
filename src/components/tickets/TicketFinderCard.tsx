@@ -183,6 +183,7 @@ export const TicketFinderCard = memo(function TicketFinderCard() {
                         <button
                             onClick={initiateClaimAll}
                             type="button"
+                            data-agent-target="execute-claim-btn"
                             aria-label={`Claim All ${ticketScanResult.claimableTickets.length} Tickets`}
                             className="w-full rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                         >

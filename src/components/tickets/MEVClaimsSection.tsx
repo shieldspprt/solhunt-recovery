@@ -114,6 +114,7 @@ export const MEVClaimsSection = memo(function MEVClaimsSection() {
                         <button
                             onClick={initiateClaim}
                             type="button"
+                            data-agent-target="execute-mev-claim-btn"
                             aria-label={`Claim ${selectedItems.length} MEV reward${selectedItems.length === 1 ? '' : 's'}`}
                             className="w-full rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                         >
