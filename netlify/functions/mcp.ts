@@ -68,8 +68,11 @@ type ToolArgs =
   | PreviewRecoveryArgs
   | DiscoverPlatformFeaturesArgs;
 
-/** Standard MCP error codes */
-type MCPErrorCode = 
+/** Standard MCP error codes.
+ * PARSE_ERROR is included for JSON-RPC spec compliance (-32700).
+ * @see https://www.jsonrpc.org/specification#error_object */
+type MCPErrorCode =
+  | 'PARSE_ERROR'
   | 'INVALID_PARAMS'
   | 'TOOL_NOT_FOUND'
   | 'EXECUTION_ERROR'
@@ -526,9 +529,44 @@ const FEE_PERCENT = (() => {
 })();
 
 /**
+ * Maps SolHunt MCP error codes to JSON-RPC 2.0 spec error numbers.
+ *
+ * Spec-defined codes (https://www.jsonrpc.org/specification#error_object):
+ *   -32700  Parse error      — Invalid JSON was received by the server
+ *   -32600  Invalid Request  — The JSON sent is not a valid request object
+ *   -32601  Method not found — The method does not exist or is unavailable
+ *   -32602  Invalid params   — Invalid method parameters
+ *   -32603  Internal error   — Internal JSON-RPC error
+ *   -32000..-32099 — Server error (reserved for implementation-defined server-errors)
+ *
+ * Without this mapping, every MCP error is reported as -32000, so a Claude /
+ * Cursor / Windsurf client can't distinguish a malformed wallet address from
+ * a downstream RPC outage. Tool implementers building error-aware UX
+ * (retry-with-backoff vs prompt-the-user-to-fix-input) depend on the code.
+ *
+ * EXECUTION_ERROR, RATE_LIMITED, WALLET_NOT_FOUND, and METHOD_NOT_ALLOWED
+ * are implementation-defined server errors and live in the -32000..-32099
+ * range — each gets a unique slot so clients can branch on them.
+ */
+const JSON_RPC_ERROR_CODE: Readonly<Record<MCPErrorCode, number>> = Object.freeze({
+  PARSE_ERROR:      -32700,
+  INVALID_PARAMS:   -32602,
+  TOOL_NOT_FOUND:   -32601,
+  EXECUTION_ERROR:  -32001,
+  WALLET_NOT_FOUND: -32002,
+  RATE_LIMITED:     -32003,
+  METHOD_NOT_ALLOWED: -32004,
+  INTERNAL_ERROR:   -32603,
+});
+
+function toJsonRpcErrorCode(code: MCPErrorCode): number {
+  return JSON_RPC_ERROR_CODE[code];
+}
+
+/**
  * Creates a typed MCP error response conforming to the Smithery MCP error schema.
- * @param code - One of: INVALID_PARAMS, TOOL_NOT_FOUND, EXECUTION_ERROR, WALLET_NOT_FOUND,
- *               RATE_LIMITED, METHOD_NOT_ALLOWED, INTERNAL_ERROR.
+ * @param code - One of: PARSE_ERROR, INVALID_PARAMS, TOOL_NOT_FOUND, EXECUTION_ERROR,
+ *               WALLET_NOT_FOUND, RATE_LIMITED, METHOD_NOT_ALLOWED, INTERNAL_ERROR.
  * @param message - Human-readable error message (used as 'error' field in response).
  * @param tool - Optional tool name that produced this error (useful for debugging).
  * @param detail - Machine-readable additional context (structured error body, etc.).
@@ -1065,10 +1103,13 @@ export const handler: Handler = async (event) => {
     try {
       body = JSON.parse(event.body || '{}');
     } catch (_e: unknown) {
+      // Per JSON-RPC 2.0 spec: malformed JSON is a Parse error (-32700),
+      // not an Invalid params error (-32602). Clients use the code to decide
+      // whether to retry (transient) or fix their request body (permanent).
       return {
         statusCode: 400,
         headers: buildHeaders(),
-        body: JSON.stringify(createMCPError('INVALID_PARAMS', 'Invalid JSON body'))
+        body: JSON.stringify(createMCPError('PARSE_ERROR', 'Invalid JSON body'))
       };
     }
 
@@ -1182,9 +1223,13 @@ Workflow: 1) Call get_wallet_report. 2) If recoverable SOL > 0.001, call preview
     // If executeTool returned an error (non-success), propagate it as-is
     // without re-wrapping in a JSON-RPC result envelope (prevents double-wrapping)
     if (result && typeof result === 'object' && 'code' in result && 'error' in result) {
-      const err = result as { code: string; error: string; tool?: string; detail?: string };
-      // JSON-RPC calls: wrap in JSON-RPC error envelope per spec
-      // Direct format calls: return typed error as-is (no JSON-RPC wrapper)
+      const err = result as { code: MCPErrorCode; error: string; tool?: string; detail?: string };
+      // JSON-RPC calls: wrap in JSON-RPC error envelope per spec.
+      // Use the proper spec-compliant error code (PARSE_ERROR=-32700,
+      // INVALID_PARAMS=-32602, TOOL_NOT_FOUND=-32601, INTERNAL_ERROR=-32603,
+      // EXECUTION_ERROR=-32001, RATE_LIMITED=-32003, etc.) so clients can
+      // branch intelligently — retry-vs-fix-input-vs-show-error UX all depend
+      // on receiving the right code.
       if (body.method) {
         return {
           statusCode: 400,
@@ -1192,7 +1237,7 @@ Workflow: 1) Call get_wallet_report. 2) If recoverable SOL > 0.001, call preview
           body: JSON.stringify({
             jsonrpc: "2.0",
             id: body.id || null,
-            error: { code: -32000, message: err.error, data: err }
+            error: { code: toJsonRpcErrorCode(err.code), message: err.error, data: err }
           })
         };
       }
