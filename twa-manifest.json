@@ -17,7 +17,7 @@
   "maskableIconUrl": "https://solhunt.dev/icons/icon-512-maskable.png",
   "splashScreenFadeOutDuration": 300,
   "signingKey": {
-    "path": "/Users/abdurrehman/Desktop/Trae/recovery/wallet-shield/solhunt-upload-key.keystore",
+    "path": "./solhunt-upload-key.keystore",
     "alias": "solhunt"
   },
   "appVersionName": "1",

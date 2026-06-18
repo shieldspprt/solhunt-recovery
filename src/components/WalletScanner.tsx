@@ -371,6 +371,10 @@ export function WalletScanner() {
       <div className="flex flex-col sm:flex-row gap-3 relative z-10">
         <div className="relative flex-1 group">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-shield-accent/50 to-[#9945ff]/50 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+          {/* maxLength=44 caps paste/typing at the Solana address upper bound,
+              preventing oversized strings from ever reaching validation.
+              autoCapitalize/autoCorrect=off stop mobile keyboards from
+              mutating the base58 string. See src/lib/validation.ts. */}
           <input
             type="text"
             value={address}
@@ -381,6 +385,11 @@ export function WalletScanner() {
             aria-invalid={!!error}
             aria-describedby={error ? 'wallet-scan-error' : undefined}
             aria-busy={state === 'loading'}
+            maxLength={44}
+            inputMode="text"
+            autoCapitalize="none"
+            autoCorrect="off"
+            pattern="^[1-9A-HJ-NP-Za-km-z]{32,44}$"
             className={[
               'relative w-full bg-shield-bg/90 backdrop-blur-xl border rounded-xl px-5 py-4 text-sm text-white',
               'placeholder-shield-muted/50 outline-none transition-all font-mono shadow-inner',

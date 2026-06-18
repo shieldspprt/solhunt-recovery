@@ -15,8 +15,14 @@ export const PageWrapper = memo(function PageWrapper({ children }: PageWrapperPr
 
     return (
         <div className="flex min-h-screen flex-col bg-shield-bg">
+            <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-shield-accent focus:px-4 focus:py-2 focus:font-bold focus:text-shield-bg focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-shield-accent focus:ring-offset-2 focus:ring-offset-shield-bg"
+            >
+                Skip to main content
+            </a>
             <Header />
-            <main className="flex-1">
+            <main id="main-content" className="flex-1">
                 {!isHome && (
                     <div className="mx-auto w-full max-w-5xl px-4 sm:px-6 pt-6 sm:pt-8 pb-2 animate-fade-in">
                         <Link
