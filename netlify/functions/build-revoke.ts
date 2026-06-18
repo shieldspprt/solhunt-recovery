@@ -58,7 +58,29 @@ export const handler: Handler = async (event) => {
   }
 
   const wallet_address = typeof body.wallet_address === 'string' ? body.wallet_address : '';
-  const batch_number = typeof body.batch_number === 'number' ? body.batch_number : 1;
+  // Parse and validate batch_number: must be a finite positive integer
+  // (Solana batches start at 1). Previously a malformed value (e.g. -1,
+  // 0, 1.5, NaN) silently fell through to the default of 1, and an
+  // out-of-range value (e.g. 99 for a 2-batch revocation) was silently
+  // clamped to the last valid batch via Math.min — returning success for
+  // a request the caller never asked for. That mismatch between
+  // build-revoke and build-recovery (which already returns a typed
+  // INVALID_PARAMS error on out-of-range) made it easy for AI agents to
+  // re-submit the same batch and double-charge the user. Mirror the
+  // build-recovery contract exactly.
+  const rawBatchNumber = body.batch_number;
+  let batch_number = 1;
+  if (rawBatchNumber !== undefined) {
+    if (
+      typeof rawBatchNumber !== 'number' ||
+      !Number.isFinite(rawBatchNumber) ||
+      !Number.isInteger(rawBatchNumber) ||
+      rawBatchNumber < 1
+    ) {
+      return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'Invalid batch_number', 'batch_number must be a positive integer (1, 2, 3, ...).') };
+    }
+    batch_number = rawBatchNumber;
+  }
   const token_accounts_raw = body.token_accounts;
   const token_accounts = Array.isArray(token_accounts_raw) ? token_accounts_raw : [];
 
@@ -105,7 +127,18 @@ export const handler: Handler = async (event) => {
     }
 
     const totalBatches = batches.length;
-    const batchIdx = Math.min(Math.max(0, batch_number - 1), totalBatches - 1);
+    const batchIdx = batch_number - 1;
+
+    // Out-of-range batch number — return a typed 400 INVALID_PARAMS error
+    // instead of silently clamping to the last valid batch (the previous
+    // Math.min(Math.max(0, batch_number - 1), totalBatches - 1) behavior).
+    // Silently re-mapping a 99th batch request to the 1st batch produced
+    // a "success" response for a transaction the caller never asked for,
+    // making double-charges invisible to AI agents driving this API.
+    if (batchIdx >= totalBatches) {
+      return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'Batch number out of range', `batch_number=${batch_number} exceeds total_batches=${totalBatches}.`) };
+    }
+
     const currentBatch = batches[batchIdx];
 
     // Build transaction
