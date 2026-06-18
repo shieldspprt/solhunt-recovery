@@ -806,6 +806,11 @@ async function executeTool(
           agents: [
             'Fleet Manager: Monitor up to 50 agent wallets in real-time.',
             'API Access: Programmatic MCP access for AI agents and automated workflows.',
+            'MCP get_wallet_report: Full wallet health analysis (recoverable SOL, fee preview, batch count) in one call.',
+            'MCP scan_token_approvals: Find dApp token spending approvals rated by risk (HIGH/MEDIUM/LOW).',
+            'MCP build_revoke_transactions: Build unsigned tx to revoke token approvals (user signs and submits).',
+            'MCP build_recovery_transaction: Build unsigned tx to recover SOL from zero-balance accounts (user signs and submits).',
+            'MCP preview_recovery: Explicit fee preview before building any transaction — full transparency on SolHunt fees.',
           ],
           analytics: [
             'Token Swap Hub: Jupiter and Raydium swap integrations for recovered dust.',
