@@ -42,6 +42,18 @@ export const JITO_TIP_LAMPORTS = 50_000;
 /** Maximum retry attempts for Jito submission before falling back to RPC */
 export const MAX_JITO_RETRIES = 3;
 
+/**
+ * Run `connection.simulateTransaction` before submitting a signed transaction.
+ * Catches runtime errors (insufficient SOL, account state changes, program
+ * errors, CU overruns) before the user pays network fees for a tx that would
+ * fail on-chain. Set VITE_SIMULATE_BEFORE_SEND=false to disable — default is ON.
+ */
+export const SIMULATE_BEFORE_SEND = (() => {
+    const env = typeof import.meta !== 'undefined' && import.meta.env?.VITE_SIMULATE_BEFORE_SEND;
+    if (env === undefined) return true;
+    return env !== 'false' && env !== '0';
+})();
+
 // ─── Circuit Breaker Configuration ─────────────────────────────
 
 /** Number of consecutive failures before opening the circuit */
@@ -275,11 +287,74 @@ function confirmWithTimeout(
 }
 
 /**
+ * Simulate a signed transaction before submitting it on-chain.
+ *
+ * This is a defense-in-depth layer on top of `verifyTransactionSecurity`:
+ *  - `verifyTransactionSecurity` blocks disallowed program IDs.
+ *  - Simulation catches runtime errors that the whitelist cannot detect —
+ *    insufficient SOL for fees, account state changes since the tx was built,
+ *    custom program errors, account-not-found, etc.
+ *
+ * Simulation is read-only — it does NOT modify chain state, does NOT cost
+ * fees, and does NOT require signatures to be valid. A failed simulation
+ * means the transaction would fail on-chain, costing the user fees for
+ * nothing. By short-circuiting here, we surface the failure to the caller
+ * without paying the network fee.
+ *
+ * Throws a typed AppError on:
+ *  - Simulation RPC failure
+ *  - Non-null `err` in the simulation response (transaction would fail)
+ *  - `unitsConsumed` exceeding the Solana transaction limit (1.4M units)
+ *  - Empty `logs` with a non-null `err` (RPC returned a truncated response)
+ */
+async function simulateTransactionBeforeSend(
+    connection: Connection,
+    signedTx: Transaction | VersionedTransaction,
+): Promise<void> {
+    const sim = await connection.simulateTransaction(signedTx as VersionedTransaction, {
+        sigVerify: false,
+        replaceRecentBlockhash: true,
+        commitment: 'processed',
+    }).catch((simErr: unknown) => {
+        throw {
+            code: ERROR_CODES.RPC_ERROR,
+            message: ERROR_MESSAGES.RPC_ERROR,
+            technicalDetail: `Simulation RPC failed: ${simErr instanceof Error ? simErr.message : String(simErr)}`,
+        } satisfies AppError;
+    });
+
+    const { err, logs, unitsConsumed } = sim.value;
+
+    // Non-null err → the transaction would fail on-chain. Surface a typed error.
+    if (err !== null && err !== undefined) {
+        const lastLog = Array.isArray(logs) && logs.length > 0
+            ? logs[logs.length - 1]
+            : '(no logs)';
+        throw {
+            code: ERROR_CODES.TX_SIMULATION_FAILED,
+            message: ERROR_MESSAGES.TX_SIMULATION_FAILED,
+            technicalDetail: `Simulation failed: ${typeof err === 'string' ? err : JSON.stringify(err)}. Last log: ${lastLog}`,
+        } satisfies AppError;
+    }
+
+    // CUs over the Solana per-transaction limit (1.4M) means the tx would
+    // never be accepted by a leader — bail before paying for submission.
+    if (typeof unitsConsumed === 'number' && unitsConsumed > 1_400_000) {
+        throw {
+            code: ERROR_CODES.TX_SIMULATION_FAILED,
+            message: ERROR_MESSAGES.TX_SIMULATION_FAILED,
+            technicalDetail: `Transaction would exceed Solana compute budget: ${unitsConsumed} > 1,400,000 CUs`,
+        } satisfies AppError;
+    }
+}
+
+/**
  * Send a signed (legacy OR versioned) transaction with Jito-first strategy.
  *
- * 1. Try Jito Block Engine for faster block inclusion
- * 2. Fall back to standard RPC if Jito fails
- * 3. Confirm the transaction with a hard timeout
+ * 1. Run transaction simulation as a defense-in-depth check
+ * 2. Try Jito Block Engine for faster block inclusion
+ * 3. Fall back to standard RPC if Jito fails
+ * 4. Confirm the transaction with a hard timeout
  */
 export async function sendWithJito(
     signedTx: Transaction | VersionedTransaction,
@@ -288,6 +363,15 @@ export async function sendWithJito(
     const serialized = signedTx.serialize();
     const { blockhash, lastValidBlockHeight } =
         await connection.getLatestBlockhash('confirmed');
+
+    // SECURITY: Simulation catches runtime errors (insufficient SOL, account
+    // state changes, program errors) that the program-whitelist check
+    // (`verifyTransactionSecurity`) cannot detect. Skip simulation only when
+    // explicitly opted out via the env var — default is ON.
+    if (SIMULATE_BEFORE_SEND) {
+        await simulateTransactionBeforeSend(connection, signedTx);
+    }
+
     let signature: string;
 
     try {
@@ -318,20 +402,33 @@ export async function sendWithJito(
  * Send a signed transaction via standard RPC with retries and
  * skipPreflight for speed. No Jito.
  *
- * SECURITY NOTE: Transaction simulation before signing is enforced upstream.
- * All callers (useReclaimRent, useRevoke, useMEVClaims, etc.) call
- * verifyTransactionSecurity(tx, publicKey) BEFORE signTransaction().
- * The verifyTransactionSecurity() function checks all instruction program IDs
- * against the allowed list and validates fee payer. This means the transaction
- * has already been "simulated" via program whitelist verification before the
- * signed bytes reach this function. skipPreflight here only avoids a second RPC
- * round-trip to simulate the already-verified transaction.
+ * SECURITY NOTE: Transaction simulation is enforced HERE via
+ * simulateTransactionBeforeSend(), which runs connection.simulateTransaction
+ * against the signed transaction before submission. Simulation catches
+ * runtime errors (insufficient SOL, account state changes, custom program
+ * errors, CU overruns) that program whitelist checks cannot detect.
+ *
+ * Program-whitelist verification (verifyTransactionSecurity) is still
+ * enforced upstream by every caller before signTransaction() — these two
+ * layers are complementary, not redundant.
+ *
+ * skipPreflight: true on sendRawTransaction skips the wallet adapter's
+ * automatic preflight simulation — we already simulated explicitly above,
+ * so a second round-trip would just slow submission without adding safety.
  */
 export async function sendWithRetry(
     signedTx: Transaction | VersionedTransaction,
     connection: Connection
 ): Promise<string> {
     const serialized = signedTx.serialize();
+
+    // SECURITY: Defense-in-depth simulation — catch runtime errors before
+    // the user pays network fees for a tx that would fail on-chain.
+    // Can be disabled via VITE_SIMULATE_BEFORE_SEND=false for emergency
+    // RPC outages where simulation is failing but submission still works.
+    if (SIMULATE_BEFORE_SEND) {
+        await simulateTransactionBeforeSend(connection, signedTx);
+    }
 
     const signature = await connection.sendRawTransaction(serialized as Buffer, {
         skipPreflight: true,
