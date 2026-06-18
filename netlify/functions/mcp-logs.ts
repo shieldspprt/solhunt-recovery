@@ -33,14 +33,55 @@ export const handler: Handler = async (event) => {
   // Log a call (POST from mcp.ts)
   if (event.httpMethod === 'POST') {
     try {
-      const { tool, wallet, duration, success } = JSON.parse(event.body || '{}');
-      
+      // Defensive type validation. JSON.parse returns `any` and the try/catch
+      // only catches a thrown SyntaxError — not wrong field types. A caller
+      // sending `{"tool": 123, "duration": "abc", "success": "yes"}` would
+      // silently pollute the strictly-typed mcpCallLog array, then break the
+      // `tool_breakdown` accumulator and the `filter(l => l.tool === tool)`
+      // GET query with a runtime TypeError. Validate every field at the
+      // boundary so the log buffer can stay tightly typed downstream.
+      const parsed = JSON.parse(event.body || '{}') as Record<string, unknown>;
+
+      // tool: must be a non-empty string, capped at 64 chars (longest valid
+      // MCP tool name is well under that — defensive against log injection).
+      const rawTool = parsed.tool;
+      if (typeof rawTool !== 'string' || rawTool.length === 0 || rawTool.length > 64) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid tool' }) };
+      }
+      const tool = rawTool;
+
+      // wallet: optional string. Cap at 64 chars to match Solana pubkey max
+      // (44) with a small safety margin. Non-string values are coerced to
+      // 'unknown' so analytics isn't lost on bad clients.
+      const rawWallet = parsed.wallet;
+      const wallet = typeof rawWallet === 'string' && rawWallet.length > 0 && rawWallet.length <= 64
+        ? rawWallet.slice(0, 8) + '...'
+        : 'unknown';
+
+      // duration: must be a finite non-negative number, capped at 1 hour
+      // (3,600,000 ms) — anything longer is almost certainly a client bug
+      // or a clock skew issue, and would skew P95 dashboards.
+      const rawDuration = parsed.duration;
+      if (typeof rawDuration !== 'number' || !Number.isFinite(rawDuration) || rawDuration < 0 || rawDuration > 3_600_000) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid duration' }) };
+      }
+      const duration = rawDuration;
+
+      // success: must be a boolean. Coerce strict-true string "true" so
+      // stringified analytics from older MCP clients still work, but reject
+      // any other truthy/falsy coercion (1, "yes", etc.) which used to
+      // silently pass through.
+      const rawSuccess = parsed.success;
+      const success = typeof rawSuccess === 'boolean'
+        ? rawSuccess
+        : rawSuccess === 'true';
+
       global.mcpCallLog.unshift({
         timestamp: new Date().toISOString(),
         tool,
-        wallet: wallet ? wallet.slice(0, 8) + '...' : 'unknown',
+        wallet,
         duration,
-        success
+        success,
       });
       
       // Keep only last MAX_LOGS
