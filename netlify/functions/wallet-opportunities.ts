@@ -7,6 +7,7 @@ import {
   type Handler,
   buildCorsHeaders,
   corsPreflightResponse,
+  errorBody,
   getErrorMessage,
   isValidSolanaAddress,
   safeLogError,
@@ -34,7 +35,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({ success: false, error: 'Missing wallet parameter' })
+      body: errorBody('INVALID_PARAMS', 'Missing wallet parameter', 'Pass ?wallet=<base58 Solana public key>.')
     };
   }
 
@@ -42,7 +43,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({ success: false, error: 'Invalid wallet address' })
+      body: errorBody('INVALID_PARAMS', 'Invalid wallet address', 'Provide a base58 Solana public key (32-44 characters).')
     };
   }
 
@@ -100,10 +101,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Failed to fetch opportunities. RPC may be rate limited.'
-      })
+      body: errorBody('INTERNAL_ERROR', 'Failed to fetch opportunities. RPC may be rate limited.')
     };
   }
 };

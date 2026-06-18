@@ -7,6 +7,7 @@ import {
   type Handler,
   buildCorsHeaders,
   corsPreflightResponse,
+  errorBody,
   getErrorMessage,
   isValidSolanaAddress,
   methodNotAllowed,
@@ -69,7 +70,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({ success: false, error: 'Missing address parameter' })
+      body: errorBody('INVALID_PARAMS', 'Missing address parameter', 'Pass ?address=<base58 Solana public key>.')
     };
   }
 
@@ -77,10 +78,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Invalid Solana wallet address. Must be 32–44 characters, base58 encoded.'
-      })
+      body: errorBody('INVALID_PARAMS', 'Invalid Solana wallet address', 'Must be 32–44 characters, base58 encoded.')
     };
   }
 
@@ -148,7 +146,7 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ success: false, error: 'Invalid wallet address' })
+        body: errorBody('INVALID_PARAMS', 'Invalid wallet address', 'Solana public key did not pass curve-point validation.')
       };
     }
 
@@ -156,10 +154,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Scan failed. The RPC may be rate limited. Try again in a moment.'
-      })
+      body: errorBody('EXECUTION_ERROR', 'Scan failed. The RPC may be rate limited. Try again in a moment.', errorMessage)
     };
   }
 };
