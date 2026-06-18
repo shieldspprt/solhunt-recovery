@@ -6,6 +6,7 @@ import {
   type Handler,
   buildCorsHeaders,
   corsPreflightResponse,
+  errorBody,
   getErrorMessage,
   safeLogError,
 } from './_shared';
@@ -93,7 +94,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ success: false, error: message })
+      body: errorBody('INTERNAL_ERROR', 'Failed to load stats', message)
     };
   }
 };

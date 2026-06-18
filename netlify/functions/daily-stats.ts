@@ -7,7 +7,10 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import {
   type Handler,
   buildCorsHeaders,
+  corsPreflightResponse,
+  errorBody,
   getErrorMessage,
+  methodNotAllowed,
   safeLogError,
   safeLogInfo,
   safeLogWarn,
@@ -306,6 +309,14 @@ export const handler: Handler = async (event) => {
   // sees fresh data; the scheduler rate-limits itself.
   const headers = buildCorsHeaders(event, { methods: 'POST, GET, OPTIONS' });
 
+  if (event.httpMethod === 'OPTIONS') {
+    return corsPreflightResponse(event, { methods: 'POST, GET, OPTIONS' });
+  }
+
+  if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
+    return methodNotAllowed(event, 'POST, GET, OPTIONS');
+  }
+
   // Security: only allow internal calls or Netlify scheduler
   const secret = event.headers?.['x-internal-secret'] || event.queryStringParameters?.secret;
   
@@ -398,7 +409,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ success: false, error: message })
+      body: errorBody('INTERNAL_ERROR', 'Daily stats run failed', message)
     };
   }
 };
