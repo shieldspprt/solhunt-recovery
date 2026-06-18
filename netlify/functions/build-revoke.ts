@@ -8,6 +8,7 @@ import {
   type Handler,
   buildCorsHeaders,
   corsPreflightResponse,
+  errorBody,
   getErrorMessage,
   isValidSolanaAddress,
   methodNotAllowed,
@@ -49,7 +50,11 @@ export const handler: Handler = async (event) => {
   try {
     body = JSON.parse(event.body || '{}') as Record<string, unknown>;
   } catch (err: unknown) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON body' }) };
+    // Parse error — return the typed contract so clients can branch on
+    // code='PARSE_ERROR' (retryable transient) vs. 'INVALID_PARAMS' (fix
+    // your request) vs. 'EXECUTION_ERROR' (server bug).
+    safeLogError('build-revoke parse error:', getErrorMessage(err));
+    return { statusCode: 400, headers, body: errorBody('PARSE_ERROR', 'Invalid JSON body') };
   }
 
   const wallet_address = typeof body.wallet_address === 'string' ? body.wallet_address : '';

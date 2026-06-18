@@ -195,6 +195,46 @@ export function getErrorMessage(error: unknown): string {
 // ── HTTP Method Gate ────────────────────────────────────────────────────────
 
 /**
+ * Standard Netlify function error codes. Matches the subset of
+ * `MCPErrorCode` from `mcp.ts` that's meaningful for direct API
+ * endpoints (no JSON-RPC framing, no Smithery specifics).
+ *
+ * Centralising the union here means adding a new code (e.g. `RATE_LIMITED`
+ * for a future in-function throttle) is a one-line change that the
+ * TypeScript compiler then verifies at every call site.
+ */
+export type NetlifyErrorCode =
+  | 'PARSE_ERROR'
+  | 'INVALID_PARAMS'
+  | 'METHOD_NOT_ALLOWED'
+  | 'EXECUTION_ERROR'
+  | 'INTERNAL_ERROR';
+
+/**
+ * Build a typed error response body that matches the
+ * `{ error, code, detail? }` contract used across SolHunt Netlify
+ * functions (preview-recovery, build-recovery, build-revoke, mcp).
+ *
+ * `detail` is omitted from the JSON when undefined so we don't emit
+ * `"detail": undefined` in the wire format — clients can use
+ * `'code' in body && body.code === 'PARSE_ERROR'` to branch on
+ * error type without having to special-case missing detail.
+ *
+ * Usage:
+ *   return { statusCode: 400, headers, body: errorBody('PARSE_ERROR', 'Invalid JSON body') };
+ *   return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'Invalid wallet', 'Provide a base58 address') };
+ */
+export function errorBody(
+  code: NetlifyErrorCode,
+  error: string,
+  detail?: string,
+): string {
+  return JSON.stringify(
+    detail === undefined ? { error, code } : { error, code, detail },
+  );
+}
+
+/**
  * Build a typed 405 Method Not Allowed response using the shared
  * CORS/security headers. Reduces the "if (method !== X) return …" boilerplate
  * in every function to a single line.
