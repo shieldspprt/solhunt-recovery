@@ -108,7 +108,7 @@ export const DeadProtocolCard = memo(function DeadProtocolCard({ item, isSelecte
                 {/* Action Area */}
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-shield-border/30">
                     <p className="text-xs text-orange-400 flex items-center gap-1.5 pointer-events-none">
-                        ⚠️ DO NOT burn this token in Engine 3.
+                        <span aria-hidden="true">⚠️</span> DO NOT burn this token in Engine 3.
                     </p>
 
                     {recoveryMethod === 'redirect' && protocol.recoveryUrl && (

@@ -10,7 +10,7 @@ export function DecommissionScanPanel({ startScan }: Props) {
     return (
         <div className="glass-card rounded-3xl p-8 sm:p-12 text-center mt-6">
             <div className="mb-8 mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-shield-border/30 border border-shield-border/50">
-                <span className="text-4xl">🪦</span>
+                <span className="text-4xl" aria-hidden="true">🪦</span>
             </div>
 
             <h1 className="text-3xl font-extrabold text-shield-text mb-6">

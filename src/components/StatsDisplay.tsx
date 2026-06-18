@@ -377,7 +377,7 @@ export function StatsDisplay() {
               {today.x_draft.length} characters
               {today.x_draft.length > 280 && (
                 <span className="text-yellow-600 ml-2">
-                  ⚠ Over 280 chars — trim before posting
+                  <span aria-hidden="true">⚠</span> Over 280 chars — trim before posting
                 </span>
               )}
             </span>

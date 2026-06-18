@@ -47,7 +47,7 @@ export function DecommissionPage() {
 
                 {scanner.scanStatus === 'nothing_found' && (
                     <div className="glass-card rounded-2xl p-10 text-center mt-6">
-                        <span className="text-5xl block mb-6">✅</span>
+                        <span className="text-5xl block mb-6" aria-hidden="true">✅</span>
                         <h2 className="text-2xl font-bold text-shield-text mb-4">No dead protocol positions found</h2>
                         <p className="text-shield-muted mb-8">
                             Your wallet is clean from known decommissioned DeFi protocols. You may still have generic worthless dust tokens in Engine 3.

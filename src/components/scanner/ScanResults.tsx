@@ -38,7 +38,7 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
                         <CheckCircle2 className="h-10 w-10 text-shield-success" aria-hidden="true" />
                     </div>
                     <h2 className="text-2xl font-bold text-shield-text mb-2">
-                        ✅ Your wallet is clean!
+                        <span aria-hidden="true">✅</span> Your wallet is clean!
                     </h2>
                     <p className="text-shield-muted mb-1">
                         No dangerous permissions found.
@@ -69,7 +69,7 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
                             </div>
                             <div className="flex-1">
                                 <h2 className="text-xl font-bold text-shield-text mb-3">
-                                    ⚠️ {delegations.length} Dangerous Permission{delegations.length !== 1 ? 's' : ''} Found
+                                    <span aria-hidden="true">⚠️</span> {delegations.length} Dangerous Permission{delegations.length !== 1 ? 's' : ''} Found
                                 </h2>
 
                                 {/* Risk summary */}

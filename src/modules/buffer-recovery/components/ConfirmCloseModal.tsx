@@ -57,7 +57,7 @@ export function ConfirmCloseModal({
 
                 <div className="bg-shield-warning/5 rounded-xl border border-shield-warning/20 p-4 mb-6">
                     <p className="text-xs text-shield-warning font-medium leading-relaxed">
-                        ⚠️ Only close buffers from deployments that are fully complete or abandoned.
+                        <span aria-hidden="true">⚠️</span> Only close buffers from deployments that are fully complete or abandoned.
                         If you are mid-deployment and close an active buffer, your deployment will fail.
                     </p>
                 </div>
