@@ -69,11 +69,11 @@ export const handler: Handler = async (event) => {
   const effective_fee_percent = fee_percent_override !== null ? fee_percent_override : EFFECTIVE_FEE_PERCENT;
 
   if (!wallet_address || !isValidSolanaAddress(wallet_address)) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid wallet_address' }) };
+    return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'Invalid wallet_address', 'Provide a base58 Solana public key (32-44 characters).') };
   }
 
   if (!destination_wallet || !isValidSolanaAddress(destination_wallet)) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid destination_wallet' }) };
+    return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'Invalid destination_wallet', 'Provide a base58 Solana public key (32-44 characters).') };
   }
 
   try {
@@ -106,7 +106,7 @@ export const handler: Handler = async (event) => {
     
     // Safety check
     if (batchIdx >= totalBatches && closeable.length > 0) {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Batch number out of range' }) };
+      return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'Batch number out of range', `batch_number=${batch_number} exceeds total_batches=${totalBatches}.`) };
     }
 
     const startIdx = batchIdx * MAX_ACCOUNTS_PER_TX;
@@ -186,11 +186,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        error: 'Failed to build recovery transaction',
-        code: 'EXECUTION_ERROR',
-        detail: errorMessage
-      })
+      body: errorBody('EXECUTION_ERROR', 'Failed to build recovery transaction', errorMessage)
     };
   }
 };

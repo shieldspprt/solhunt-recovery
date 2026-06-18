@@ -63,11 +63,11 @@ export const handler: Handler = async (event) => {
   const token_accounts = Array.isArray(token_accounts_raw) ? token_accounts_raw : [];
 
   if (!wallet_address || !isValidSolanaAddress(wallet_address)) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid wallet_address' }) };
+    return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'Invalid wallet_address', 'Provide a base58 Solana public key (32-44 characters).') };
   }
 
   if (!token_accounts || token_accounts.length === 0) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'token_accounts array required' }) };
+    return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'token_accounts array required', 'Provide a non-empty array of token account objects with address and mint fields.') };
   }
 
   try {
@@ -92,7 +92,7 @@ export const handler: Handler = async (event) => {
     }
 
     if (accountsToRevoke.length === 0) {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: 'No valid token accounts to revoke' }) };
+      return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'No valid token accounts to revoke', 'Each token account must have a valid base58 address and mint.') };
     }
 
     // Get blockhash
@@ -178,11 +178,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        error: 'Failed to build revoke transaction',
-        code: 'EXECUTION_ERROR',
-        detail: errorMessage
-      })
+      body: errorBody('EXECUTION_ERROR', 'Failed to build revoke transaction', errorMessage)
     };
   }
 };
