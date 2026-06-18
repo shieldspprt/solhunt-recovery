@@ -238,6 +238,11 @@ export function errorBody(
  * Build a typed 405 Method Not Allowed response using the shared
  * CORS/security headers. Reduces the "if (method !== X) return …" boilerplate
  * in every function to a single line.
+ *
+ * Body shape matches the `{ error, code, detail? }` contract used by
+ * `errorBody()` — every Netlify function's 405 path now returns the same
+ * typed envelope as 400/500 errors, so clients can branch on
+ * `body.code === 'METHOD_NOT_ALLOWED'` without special-casing missing fields.
  */
 export function methodNotAllowed(
   event: Pick<HandlerEvent, 'headers'>,
@@ -250,7 +255,7 @@ export function methodNotAllowed(
       ...buildCorsHeaders(event, { methods, exposeHeaders }),
       'Allow': methods,
     },
-    body: JSON.stringify({ error: `Method not allowed. Use ${methods}.` }),
+    body: errorBody('METHOD_NOT_ALLOWED', `Method not allowed. Use ${methods}.`),
   };
 }
 

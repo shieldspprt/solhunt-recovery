@@ -99,7 +99,7 @@ export const ScannerCard = memo(function ScannerCard() {
                     <button
                         type="button"
                         onClick={handleCopy}
-                        className="p-2 rounded-lg hover:bg-shield-border/50 transition-colors text-shield-muted hover:text-shield-text"
+                        className="p-2 rounded-lg hover:bg-shield-border/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent/50 transition-colors text-shield-muted hover:text-shield-text"
                         aria-label="Copy wallet address to clipboard"
                     >
                         {copied ? (
