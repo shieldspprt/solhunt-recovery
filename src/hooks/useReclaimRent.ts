@@ -99,7 +99,8 @@ export function useReclaimRent() {
             let totalClosed = 0;
 
             // Sequential processing, similar to useRevoke
-            for (const tx of transactions) {
+            for (const reclaimTx of transactions) {
+                const tx = reclaimTx.transaction;
                 try {
                     // Security audit: verify transaction only contains allowed instructions
                     verifyTransactionSecurity(tx, publicKey);
@@ -112,14 +113,12 @@ export function useReclaimRent() {
                     // Robust polling to avoid WebSocket failures
                     await confirmTransactionRobust(connection, signature, 'confirmed');
 
-                    // Count closed accounts in this batch
-                    // If this is the FIRST tx, it has an extra fee transfer instruction
-                    const isFirstTx = tx === transactions[0] && estimate.serviceFeeSOL > 0;
-                    const closedAccountsInTx = isFirstTx
-                        ? tx.instructions.length - 1
-                        : tx.instructions.length;
-
-                    totalClosed += closedAccountsInTx;
+                    // Use the explicit closeCount from the builder rather than
+                    // subtracting from tx.instructions.length. The transaction
+                    // also carries priority-fee ComputeBudget instructions and
+                    // (for the first batch) a service-fee transfer, so any
+                    // length-based math is fragile and over-counts on success.
+                    totalClosed += reclaimTx.closeCount;
 
                 } catch (txError: unknown) {
                     const errorMessage = txError instanceof Error ? txError.message : String(txError);

@@ -60,15 +60,27 @@ export function calculateReclaimEstimate(accounts: CloseableAccount[]): ReclaimE
     };
 }
 
+export interface ReclaimTx {
+    transaction: Transaction;
+    closeCount: number;
+}
+
 /**
  * Builds batched transactions to close empty token accounts.
  * Safely adds the service fee transfer to the FIRST transaction only.
+ *
+ * Returns each Transaction paired with the number of CloseAccount instructions
+ * it actually contains. Callers MUST use this closeCount rather than inferring
+ * from `transaction.instructions.length`, because each transaction also contains
+ * 2 priority-fee ComputeBudget instructions plus (on the first batch) one
+ * service-fee transfer — the old inference subtracted only 1, silently
+ * overcounting closed accounts on the first batch.
  */
 export async function buildReclaimTransactions(
     accounts: CloseableAccount[],
     walletPublicKey: PublicKey,
     connection: Connection
-): Promise<Transaction[]> {
+): Promise<ReclaimTx[]> {
     // Step 1: Safety checks (Section 4.3)
     if (!accounts || accounts.length < RENT_RECLAIM_MIN_ACCOUNTS) {
         throw createAppError(
@@ -107,8 +119,12 @@ export async function buildReclaimTransactions(
         );
     }
 
-    // Step 4: Build transactions
-    const transactions: Transaction[] = [];
+    // Step 4: Build transactions (each tagged with the number of CloseAccount
+    // instructions it actually contains, so callers don't have to infer it
+    // from tx.instructions.length — which is wrong because each tx also carries
+    // priority-fee ComputeBudget instructions and (on the first batch) a
+    // service-fee transfer)
+    const transactions: ReclaimTx[] = [];
     const priorityFee = await getOptimalPriorityFee(connection);
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
@@ -151,7 +167,8 @@ export async function buildReclaimTransactions(
         transaction.recentBlockhash = recentBlockhash;
         transaction.feePayer = walletPublicKey;
 
-        transactions.push(transaction);
+        const closeCount = batch.length;
+        transactions.push({ transaction, closeCount });
     }
 
     return transactions;
