@@ -113,7 +113,12 @@ export const LPHarvesterCard = memo(function LPHarvesterCard() {
 
     if (scanStatus === 'scanning') {
         return (
-            <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full">
+            <div
+                className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full"
+                role="status"
+                aria-live="polite"
+                aria-busy="true"
+            >
                 <div className="flex items-center gap-3 mb-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
                         <Loader2 className="h-5 w-5 text-shield-accent animate-spin" aria-hidden="true" />
@@ -124,11 +129,20 @@ export const LPHarvesterCard = memo(function LPHarvesterCard() {
                     </div>
                 </div>
 
-                <div className="space-y-2 text-sm text-shield-muted">
-                    <p>⏳ Orca Whirlpools</p>
-                    <p>⏳ Raydium (CLMM + AMM)</p>
-                    <p>⏳ Meteora DLMM</p>
-                </div>
+                {/* Each row is its own status so AT users hear the per-protocol state
+                    when the live region announces updates. aria-hidden on the emoji
+                    keeps the SR output text-only ("Waiting for Orca Whirlpools..."). */}
+                <ul className="space-y-2 text-sm text-shield-muted list-none p-0 m-0">
+                    <li>
+                        <span aria-hidden="true">⏳</span> Waiting for Orca Whirlpools…
+                    </li>
+                    <li>
+                        <span aria-hidden="true">⏳</span> Waiting for Raydium (CLMM + AMM)…
+                    </li>
+                    <li>
+                        <span aria-hidden="true">⏳</span> Waiting for Meteora DLMM…
+                    </li>
+                </ul>
             </div>
         );
     }
