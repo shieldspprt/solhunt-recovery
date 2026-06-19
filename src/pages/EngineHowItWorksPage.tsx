@@ -434,6 +434,7 @@ export function EngineHowItWorksPage() {
                             href="https://twitter.com/solhuntdev"
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-label="Contact SolHunt on X (Twitter) (opens in new tab)"
                             className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1DA1F2] px-6 py-2.5 font-semibold text-white shadow-lg shadow-[#1DA1F2]/20 hover:bg-[#1A91DA] transition-all hover:-translate-y-0.5 text-sm"
                         >
                             Message @solhuntdev
@@ -441,6 +442,7 @@ export function EngineHowItWorksPage() {
                         {engineInfo && (
                             <Link
                                 to={engineInfo.route}
+                                aria-label={`Back to ${engineInfo.name} tool`}
                                 className="inline-flex items-center justify-center gap-2 flex-1 rounded-xl border border-shield-border/80 bg-shield-card px-4 py-2.5 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors sm:flex-none text-sm"
                             >
                                 Back to {engineInfo.name}
