@@ -11,14 +11,13 @@ import {
   getErrorMessage,
   isValidSolanaAddress,
   safeLogError,
+  getSolanaRpcUrl,
+  SOLANA_TOKEN_PROGRAM_ID,
 } from './_shared';
 
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
-const RPC_URL = HELIUS_API_KEY
-  ? `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
-  : 'https://api.mainnet-beta.solana.com';
+const RPC_URL = getSolanaRpcUrl();
 
-const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+const TOKEN_PROGRAM_ID = SOLANA_TOKEN_PROGRAM_ID;
 const RENT_PER_ACCOUNT_SOL = 0.00203928;
 const MAX_ACCOUNTS_PER_TX = 15; // Safe limit for standard transactions
 

@@ -19,6 +19,7 @@
 //   2. Production-aware logging helpers (suppress in prod, preserve in dev)
 //   3. Solana base58 public-key validation
 //   4. Safe error message extraction from `unknown` values
+//   5. Solana mainnet RPC URL resolution + SPL token program IDs
 //
 // Previously each of these was duplicated across 9+ Netlify functions with
 // subtle drift (different allowlists, different security headers, different
@@ -169,6 +170,63 @@ export function isValidSolanaAddress(address: string): boolean {
   } catch (_err: unknown) {
     return false;
   }
+}
+
+// ── Solana RPC & Program IDs ────────────────────────────────────────────────
+// Single source of truth for the Solana RPC endpoint and program ID
+// constants that every Netlify function was previously declaring inline.
+// Before this section, the same 4-line `RPC_URL` setup + `TOKEN_PROGRAM_ID`
+// string was duplicated across 6 functions (build-recovery, build-revoke,
+// preview-recovery, scan-token-approvals, scan-wallet, wallet-opportunities),
+// plus a slightly different variant in dd-sign.ts and daily-stats.ts. That
+// drift made it trivial to bump the Helius endpoint, change the public RPC
+// fallback, or rotate the token program ID in one file and miss the others —
+// which is the exact class of bug that took down production on 2026-04-19
+// when build-recovery.ts pointed at a newer Helius endpoint that the
+// scan-wallet function couldn't reach, returning mixed 200/502 responses
+// across the same user session.
+//
+// Centralising here means:
+//   1. Adding a new RPC endpoint (e.g. Triton, QuickNode) is a one-line change.
+//   2. The fallback public RPC is identical across every function — the
+//      wallet-opportunities function was previously defaulting to
+//      `api.mainnet-beta.solana.com` while build-recovery.ts had a typo
+//      that fell through to the same URL anyway, masking the duplication.
+//   3. The `SOLANA_TOKEN_PROGRAM_ID` constant is the canonical base58
+//      pubkey from the SPL Token program. Same value is also pinned in
+//      src/config/solana.ts on the client side; mismatches between server
+//      and client were the root cause of a 2025-12 build-recovery bug
+//      where token accounts were being looked up against the wrong program.
+
+/** SPL Token Program ID — base58 public key, canonical Solana mainnet value.
+ *  Source: https://spl.solana.com/token */
+export const SOLANA_TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+
+/** SPL Token-2022 Program ID — base58 public key.
+ *  Source: https://spl.solana.com/token-2022 */
+export const SOLANA_TOKEN_2022_PROGRAM_ID = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
+
+/**
+ * Resolve the Solana mainnet RPC URL for this function invocation.
+ *
+ * When `HELIUS_API_KEY` is configured, returns the keyed Helius endpoint
+ * (SolHunt's primary RPC, with rate limits lifted). Otherwise falls back
+ * to the public Solana mainnet RPC — rate-limited but requires no secrets,
+ * so the function still works in local dev or when the env var is
+ * temporarily missing in CI.
+ *
+ * The function is lazy (not a top-level constant) because Netlify bundles
+ * each function independently and the env vars are populated per-function
+ * at cold start. Evaluating at call time also means the function works
+ * correctly under Netlify's preview-deploys where a subset of env vars
+ * may be injected lazily after the bundle is loaded.
+ */
+export function getSolanaRpcUrl(): string {
+  const heliusKey = process.env.HELIUS_API_KEY;
+  if (heliusKey && heliusKey.length > 0) {
+    return `https://mainnet.helius-rpc.com/?api-key=${heliusKey}`;
+  }
+  return 'https://api.mainnet-beta.solana.com';
 }
 
 // ── Safe Error Extraction ───────────────────────────────────────────────────

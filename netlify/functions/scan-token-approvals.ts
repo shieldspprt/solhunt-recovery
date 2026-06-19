@@ -12,17 +12,17 @@ import {
   isValidSolanaAddress,
   methodNotAllowed,
   safeLogError,
+  getSolanaRpcUrl,
+  SOLANA_TOKEN_PROGRAM_ID,
+  SOLANA_TOKEN_2022_PROGRAM_ID,
 } from './_shared';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
-const RPC_URL = HELIUS_API_KEY
-  ? `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
-  : 'https://api.mainnet-beta.solana.com';
+const RPC_URL = getSolanaRpcUrl();
 
-const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
-const TOKEN_2022_PROGRAM_ID = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
+const TOKEN_PROGRAM_ID = SOLANA_TOKEN_PROGRAM_ID;
+const TOKEN_2022_PROGRAM_ID = SOLANA_TOKEN_2022_PROGRAM_ID;
 
 // Known safe delegates (protocols that are generally trustworthy)
 const KNOWN_DELEGATES = new Set([
