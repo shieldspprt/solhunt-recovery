@@ -41,9 +41,10 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                             href={SOLSCAN_TOKEN_URL(delegation.mint)}
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-label={`View token ${delegation.tokenSymbol} (${shortenAddress(delegation.mint, 4)}) on Solscan (opens in new tab)`}
                             className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1 transition-colors"
                         >
-                            {shortenAddress(delegation.mint, 4)}
+                            <span aria-hidden="true">{shortenAddress(delegation.mint, 4)}</span>
                             <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         </a>
                     </div>
@@ -69,9 +70,10 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                             href={SOLSCAN_ACCOUNT_URL(delegation.delegate)}
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-label={`View delegate ${knownName ? knownName : shortenAddress(delegation.delegate, 4)} on Solscan (opens in new tab)`}
                             className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1 transition-colors"
                         >
-                            {shortenAddress(delegation.delegate, 4)}
+                            <span aria-hidden="true">{shortenAddress(delegation.delegate, 4)}</span>
                             <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         </a>
                     </div>
@@ -120,9 +122,10 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                                     href={SOLSCAN_ACCOUNT_URL(delegation.delegate)}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    aria-label={`View delegate ${knownName ? knownName : shortenAddress(delegation.delegate, 4)} on Solscan (opens in new tab)`}
                                     className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1"
                                 >
-                                    {shortenAddress(delegation.delegate, 4)}
+                                    <span aria-hidden="true">{shortenAddress(delegation.delegate, 4)}</span>
                                     <ExternalLink className="h-3 w-3" aria-hidden="true" />
                                 </a>
                             </div>
@@ -132,9 +135,10 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                             href={SOLSCAN_TOKEN_URL(delegation.mint)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1"
+                            aria-label={`View token mint ${delegation.tokenSymbol} (${shortenAddress(delegation.mint, 4)}) on Solscan (opens in new tab)`}
+                            className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1 transition-colors"
                         >
-                            Mint: {shortenAddress(delegation.mint, 4)}
+                            <span aria-hidden="true">{shortenAddress(delegation.mint, 4)}</span>
                             <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         </a>
                     </div>
