@@ -14,6 +14,22 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="SolHunt" />
 
+  <!-- iOS Safari: stop auto-detection of phone numbers, addresses, and dates.
+       Without this, iOS Safari wraps any base58 sequence that looks vaguely
+       numeric — including the leading digits of common Solana wallet addresses
+       (e.g. "7vfC...9X9") — in a <a href="tel:..."> tag. That linkified DOM
+       node breaks copy-paste into the wallet scanner input on the next page.
+       telephone=no disables phone detection globally, which is correct for a
+       wallet recovery tool — no legitimate phone-number use case exists. -->
+  <meta name="format-detection" content="telephone=no" />
+  <!-- SolHunt is a dark-only product. Declaring color-scheme: dark tells
+       iOS Safari and Chromium to render scrollbars, form controls, and
+       the address-bar background against a dark palette instead of
+       briefly flashing white while the React app boots. Also forces the
+       browser to use the dark theme for native UI even when the user's
+       OS-level appearance is set to light. -->
+  <meta name="color-scheme" content="dark" />
+
   <!-- SEO -->
   <title>SolHunt | Recover Locked SOL</title>
   <meta name="description"
