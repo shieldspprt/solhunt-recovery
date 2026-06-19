@@ -25,12 +25,25 @@ export const ProtocolSection = memo(function ProtocolSection({
 
     const [collapsed, setCollapsed] = useState(totalValueUSD <= 0);
     const info = LP_PROTOCOL_INFO[protocol];
+    // Stable, deterministic ID for the collapsible panel so the toggle button
+    // can reference it via aria-controls. Using the protocol value (e.g.
+    // "orca", "raydium_clmm") instead of a random id keeps it stable across
+    // re-renders, so screen readers can announce the same panel identity
+    // even when the position list refreshes from a re-scan.
+    const panelId = `lp-protocol-panel-${protocol.replace(/[^a-z0-9]/gi, '-')}`;
 
     return (
         <div className="rounded-xl border border-shield-border bg-shield-bg/30">
             <button
                 type="button"
                 onClick={() => setCollapsed((value) => !value)}
+                // aria-expanded tells screen readers whether the controlled
+                // region is currently visible. Without it, SR users only hear
+                // the button's accessible name ("Expand Orca section") and
+                // have no way to know whether the section is already open
+                // after they navigate past it.
+                aria-expanded={!collapsed}
+                aria-controls={panelId}
                 aria-label={collapsed ? `Expand ${info.displayName} section` : `Collapse ${info.displayName} section`}
                 className="flex w-full items-center justify-between px-4 py-3 text-left"
             >
@@ -53,7 +66,16 @@ export const ProtocolSection = memo(function ProtocolSection({
             </button>
 
             {!collapsed && (
-                <div className="space-y-2 border-t border-shield-border p-3">
+                <div
+                    id={panelId}
+                    // role="region" + aria-labelledby (via the button above)
+                    // lets SR users jump straight to this section using the
+                    // landmark shortcut, and identifies it as the controlled
+                    // region of the accordion toggle.
+                    role="region"
+                    aria-label={`${info.displayName} positions`}
+                    className="space-y-2 border-t border-shield-border p-3"
+                >
                     {positions.map((position) => (
                         <PositionRow
                             key={position.id}
