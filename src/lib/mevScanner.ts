@@ -9,6 +9,7 @@ import { fetchSOLPriceUSD } from './solPrice';
 import type { MEVClaimItem } from '@/types';
 import { withTimeout } from './withTimeout';
 import { logger } from './logger';
+import { isValidSolanaPublicKey } from './validation';
 
 /**
  * Paginated fetch with timeout wrapper for MEV API pages.
@@ -53,6 +54,22 @@ export interface JitoStakerReward {
 export async function fetchMEVClaims(
     walletAddress: string
 ): Promise<MEVClaimItem[]> {
+    // SECURITY: Validate wallet address before any external API call.
+    // Mirrors the pattern in bufferScanner.ts and decommissionScanner.ts —
+    // rejecting malformed input up front avoids wasted RPC/API round-trips
+    // and prevents injection of unexpected payloads into the Jito kobe API.
+    // Preserves the function's documented "Never throws — returns [] on any
+    // API error" contract: an invalid wallet address is treated identically
+    // to "no rewards" from the caller's perspective, but the warning is
+    // surfaced via the logger so the misuse is observable in dev/prod logs.
+    if (!isValidSolanaPublicKey(walletAddress)) {
+        logger.warn('MEVClaims.InvalidAddress', {
+            code: 'INVALID_ADDRESS',
+            input_prefix: walletAddress?.substring(0, 10) ?? '',
+        });
+        return [];
+    }
+
     // Fetch live SOL price first (non-blocking, fallback on error)
     const solPriceUSD = await fetchSOLPriceUSD();
 
