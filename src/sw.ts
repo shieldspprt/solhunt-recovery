@@ -1,6 +1,22 @@
 /**
  * SolHunt Service Worker
- * Cache version: 2026-06-17-1
+ * Cache version: 2026-06-19-1
+ *
+ * Bumping the version stamp: both runtime cache buckets below include the
+ * `vYYYYMMDD` suffix. When this file ships, existing PWA users still have
+ * the old `google-fonts` / `static-assets` caches from the previous
+ * install. Workbox's `cleanupOutdatedCaches()` (called above) deletes any
+ * cache whose name doesn't appear in the current precache manifest — so
+ * renaming to `google-fonts-v20260619` and `static-assets-v20260619`
+ * forces a one-time invalidation, then the new caches take over.
+ *
+ * Bump this version (and the bucket suffixes) whenever you ship changes
+ * to the app shell, fonts, or any cached static asset — even if the SW
+ * file content hasn't materially changed. Without the bump, returning
+ * users keep seeing cached JS from the previous deploy until they
+ * manually clear site data, which is exactly the failure mode that
+ * caused stale bundles to ship security fixes hours late during the
+ * 2026-04 recovery incident.
  *
  * @see https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope
  */
@@ -111,7 +127,7 @@ for (const pattern of NETWORK_ONLY_PATTERNS) {
 // ──────────────────────────────────────────────────────
 registerRoute(
   /^https:\/\/fonts\.(googleapis|gstatic)\.com/,
-  new NetworkFirst({ cacheName: 'google-fonts', networkTimeoutSeconds: 5 })
+  new NetworkFirst({ cacheName: 'google-fonts-v20260619', networkTimeoutSeconds: 5 })
 );
 
 // ──────────────────────────────────────────────────────
@@ -120,7 +136,7 @@ registerRoute(
 // ──────────────────────────────────────────────────────
 registerRoute(
   /\.(?:js|css)$/,
-  new StaleWhileRevalidate({ cacheName: 'static-assets' })
+  new StaleWhileRevalidate({ cacheName: 'static-assets-v20260619' })
 );
 
 // ──────────────────────────────────────────────────────
