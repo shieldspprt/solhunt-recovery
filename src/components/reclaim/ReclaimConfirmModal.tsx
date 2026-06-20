@@ -3,18 +3,67 @@ import { useReclaimRent } from '@/hooks/useReclaimRent';
 import { formatSOLValue, estimateUSD } from '@/lib/formatting';
 import { Coins, X, Zap } from 'lucide-react';
 import { MAX_CLOSE_PER_TX } from '@/config/constants';
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { memo } from 'react';
 
 export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
     const { reclaimStatus, clearReclaim } = useAppStore();
     const { closeableAccounts, reclaimEstimate, executeReclaim } = useReclaimRent();
     const [feeConsent, setFeeConsent] = useState(false);
+    const modalRef = useRef<HTMLDivElement>(null);
+    const cancelButtonRef = useRef<HTMLButtonElement>(null);
+    const previousActiveElement = useRef<HTMLElement | null>(null);
 
     // Only show when state is awaiting_confirmation
     if (reclaimStatus !== 'awaiting_confirmation' || !reclaimEstimate) return null;
 
     const transactionCount = Math.max(1, Math.ceil(closeableAccounts.length / MAX_CLOSE_PER_TX));
+
+    // Keyboard + focus management, mirroring RevokeConfirmModal.
+    // Without these, keyboard users and screen-reader users can't reliably
+    // dismiss a sign-before-signing confirmation modal — Tab walks them back
+    // into the underlying page, Escape does nothing, and focus jumps
+    // unpredictably. The pattern is established in RevokeConfirmModal;
+    // applying it here keeps all sign-flow modals consistent.
+    const handleEscape = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape') clearReclaim();
+    }, [clearReclaim]);
+
+    const handleTabKey = useCallback((e: KeyboardEvent, first: HTMLElement | undefined, last: HTMLElement | undefined) => {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first?.focus();
+        }
+    }, []);
+
+    useEffect(() => {
+        previousActiveElement.current = document.activeElement as HTMLElement;
+        document.addEventListener('keydown', handleEscape);
+        const cancelBtn = cancelButtonRef.current;
+        const timer = setTimeout(() => cancelBtn?.focus(), 0);
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            previousActiveElement.current?.focus();
+            clearTimeout(timer);
+        };
+    }, [handleEscape]);
+
+    useEffect(() => {
+        const modal = modalRef.current;
+        if (!modal) return;
+        const focusable = modal.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const handler = (e: KeyboardEvent) => handleTabKey(e, first, last);
+        modal.addEventListener('keydown', handler);
+        return () => modal.removeEventListener('keydown', handler);
+    }, [handleTabKey]);
 
     return (
         <div
@@ -31,8 +80,12 @@ export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
             />
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div
+                ref={modalRef}
+                className="relative w-full max-w-md overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            >
                 <button
+                    ref={cancelButtonRef}
                     type="button"
                     onClick={clearReclaim}
                     aria-label="Close reclaim confirmation modal"
