@@ -39,13 +39,27 @@ const CopyrightPage = lazy(() => import('@/pages/CopyrightPage').then(m => ({ de
 import '@solana/wallet-adapter-react-ui/styles.css';
 
 /**
- * TWA Shortcut Router
- * Routes Android app shortcuts (https://solhunt.dev/?engine=scan|revoke|reclaim|fleet)
- * to the correct page. Without this, tapping a shortcut from the home screen
- * lands on the home page and silently drops the engine parameter — defeating
- * the entire purpose of the shortcut.
+ * TWA / PWA Shortcut Router
+ * Routes home-screen shortcuts (https://solhunt.dev/?engine=...) to the
+ * correct page. Without this, tapping a shortcut silently drops the engine
+ * parameter and lands on the home page — defeating the purpose of the
+ * shortcut.
  *
- * @see app/src/main/res/xml/shortcuts.xml for the shortcut definitions.
+ * PWA manifest declares 6 shortcuts in public/manifest.webmanifest:
+ *   - scan       → /scan       (full wallet analysis)
+ *   - revoke     → /scan       (revoke flows live inside the scanner)
+ *   - reclaim    → /buffers    (rent reclaim is part of buffer recovery)
+ *   - lp-fees    → /lp-fees    (LP Fee Harvester engine)
+ *   - buffers    → /buffers    (Buffer Account Recovery engine)
+ *   - tickets    → /tickets    (Staking Ticket Finder engine)
+ *
+ * Android app shortcuts (app/src/main/res/xml/shortcuts.xml) declare 4:
+ *   - scan, revoke, reclaim, fleet.
+ *   - fleet is MCP/web-only → routed to /scan as a graceful fallback.
+ *
+ * @see public/manifest.webmanifest — keep this list in sync when adding
+ *      a new shortcut to either surface.
+ * @see app/src/main/res/xml/shortcuts.xml
  */
 function TwaShortcutRouter() {
     const [searchParams] = useSearchParams();
@@ -63,13 +77,24 @@ function TwaShortcutRouter() {
                 navigate('/scan', { replace: true });
                 break;
             case 'revoke':
+                // Revoke flows are surfaced inside the scanner page.
                 navigate('/scan', { replace: true });
                 break;
             case 'reclaim':
+                // Rent reclaim lives inside buffer recovery.
                 navigate('/buffers', { replace: true });
                 break;
+            case 'lp-fees':
+                navigate('/lp-fees', { replace: true });
+                break;
+            case 'buffers':
+                navigate('/buffers', { replace: true });
+                break;
+            case 'tickets':
+                navigate('/tickets', { replace: true });
+                break;
             case 'fleet':
-                // Fleet Manager is currently a MCP/web-only tool — route to
+                // Fleet Manager is currently an MCP/web-only tool — route to
                 // the scan page so the user can still monitor a single wallet.
                 navigate('/scan', { replace: true });
                 break;
