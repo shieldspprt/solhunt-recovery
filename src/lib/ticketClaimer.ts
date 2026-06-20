@@ -204,6 +204,11 @@ export async function buildSanctumClaimTransaction(
     ticket: StakingTicket,
     walletPublicKey: PublicKey
 ): Promise<VersionedTransaction | Transaction> {
+    // 8s timeout: a hung Sanctum redeem API previously stalled the
+    // staking-ticket claim flow indefinitely. Mirrors the pattern in
+    // dustScanner.ts:340 (commit 7ea243b) — 8s is generous enough for a
+    // cold-cache response from a distant PoP, tight enough that the
+    // user sees a clear error instead of a frozen UI.
     const response = await fetch(SANCTUM_REDEEM_API, {
         method: 'POST',
         headers: {
@@ -213,6 +218,7 @@ export async function buildSanctumClaimTransaction(
             ticket: ticket.ticketAccountAddress,
             wallet: walletPublicKey.toBase58(),
         }),
+        signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) {

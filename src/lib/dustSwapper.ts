@@ -140,12 +140,18 @@ async function fetchSerializedRaydiumTransactions(
         inputAccount: token.tokenAccountAddress,
     };
 
+    // 8s timeout: a hung Raydium swap-tx API previously stalled the dust
+    // swap loop indefinitely. Mirrors the pattern in dustScanner.ts:340
+    // (commit 7ea243b) — 8s is generous enough for a cold-cache response
+    // from a distant PoP, tight enough that the user sees a clear error
+    // instead of a frozen UI.
     const response = await fetch(RAYDIUM_SWAP_TX_API, {
         method: 'POST',
         headers: {
             'content-type': 'application/json',
         },
         body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) {
@@ -270,6 +276,10 @@ async function fetchSerializedJupiterTransactions(
     };
 
     for (const source of getJupiterSwapSources()) {
+        // 8s timeout: a hung Jupiter swap endpoint previously stalled the
+        // dust-swap loop indefinitely. Mirrors the pattern in
+        // dustScanner.ts:340 (commit 7ea243b) — the 429-retry gets a fresh
+        // signal so the retry doesn't inherit an already-elapsed budget.
         let response = await fetch(source.url, {
             method: 'POST',
             headers: {
@@ -277,6 +287,7 @@ async function fetchSerializedJupiterTransactions(
                 ...(source.headers || {}),
             },
             body: JSON.stringify(body),
+            signal: AbortSignal.timeout(8000),
         });
 
         if (response.status === 429) {
@@ -288,6 +299,7 @@ async function fetchSerializedJupiterTransactions(
                     ...(source.headers || {}),
                 },
                 body: JSON.stringify(body),
+                signal: AbortSignal.timeout(8000),
             });
         }
 

@@ -221,6 +221,11 @@ async function submitToJito(
 ): Promise<string> {
     const base58Tx = Buffer.from(serializedTx).toString('base64');
 
+    // 8s timeout: if the Jito Block Engine is hung or unreachable, the
+    // user has already signed the transaction and is waiting. Without a
+    // timeout, the fetch can stall indefinitely and the recovery flow
+    // never reaches the standard-RPC fallback (or any user-facing error).
+    // Mirrors the pattern used in dustScanner.ts:340 (commit 7ea243b).
     const response = await fetch(`${JITO_BLOCK_ENGINE_URL}/api/v1/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -230,6 +235,7 @@ async function submitToJito(
             method: 'sendTransaction',
             params: [base58Tx, { encoding: 'base64' }],
         }),
+        signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) {
