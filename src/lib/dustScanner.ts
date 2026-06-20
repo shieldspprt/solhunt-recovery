@@ -104,8 +104,23 @@ async function fetchDexScreenerPairs(mints: string[]): Promise<Map<string, DexSc
         const url = `${DEXSCREENER_TOKEN_PRICES_API}/${mintBatch.join(',')}`;
         let response: Response;
         try {
-            response = await fetch(url);
+            // 8s timeout: DexScreener is usually fast (<2s) but a slow batch
+            // of 30 mints can hit rate limits. Without a timeout, a hung
+            // response stalls the whole dust scan loop until the browser
+            // gives up (often minutes). Matches the AbortSignal.timeout
+            // pattern used elsewhere in the codebase (e.g. positionValueEstimator).
+            response = await fetch(url, { signal: AbortSignal.timeout(8000) });
         } catch (fetchErr: unknown) {
+            // AbortError is a timeout — surface as a distinct error so the UI
+            // can show "DexScreener timed out, retrying" rather than the
+            // generic "network error" message which misleads users on flaky
+            // connections where the fetch itself was fine.
+            if (fetchErr instanceof DOMException && fetchErr.name === 'AbortError') {
+                throw createAppError(
+                    'DUST_PRICE_FETCH_FAILED',
+                    `DexScreener timed out after 8s for ${mintBatch.length} mints`
+                );
+            }
             throw createAppError(
                 'DUST_PRICE_FETCH_FAILED',
                 `Network error reaching DexScreener: ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}`
@@ -257,10 +272,13 @@ async function fetchRaydiumQuote(
 
     const url = `${RAYDIUM_QUOTE_API}?${params.toString()}`;
 
-    let response = await fetch(url, { cache: 'no-store' });
+    // 8s timeout: guard against a hung Raydium quote API. The previous
+    // unguarded fetch could stall the dust swap loop indefinitely when
+    // Raydium's edge was slow. Same window as DexScreener for consistency.
+    let response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
     if (response.status === 429) {
         await delay(1000);
-        response = await fetch(url, { cache: 'no-store' });
+        response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
     }
 
     if (!response.ok) {
@@ -315,9 +333,12 @@ async function fetchJupiterQuote(
     for (const source of getJupiterQuoteSources()) {
         const url = `${source.url}?${params.toString()}`;
 
+        // 8s timeout: mirror the Raydium fetch above — a hung Jupiter
+        // quote API previously stalled the swap loop indefinitely.
         let response = await fetch(url, {
             headers: source.headers,
             cache: 'no-store',
+            signal: AbortSignal.timeout(8000),
         });
 
         if (response.status === 429) {
@@ -325,6 +346,7 @@ async function fetchJupiterQuote(
             response = await fetch(url, {
                 headers: source.headers,
                 cache: 'no-store',
+                signal: AbortSignal.timeout(8000),
             });
         }
 
