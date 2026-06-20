@@ -76,7 +76,10 @@ async function parseApiPositions(
     }
 
     const endpoint = `${METEORA_POSITION_API}/${encodeURIComponent(walletAddress)}`;
-    const response = await fetch(endpoint, { cache: 'no-store' });
+    // 8s timeout: a hung Meteora position API previously stalled the LP
+    // scanner indefinitely. Mirrors the AbortSignal.timeout pattern from
+    // dustScanner.ts (commit 7ea243b) and dustSwapper.ts (commit 871e02f).
+    const response = await fetch(endpoint, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
 
     if (!response.ok) {
         if (response.status === 404) {

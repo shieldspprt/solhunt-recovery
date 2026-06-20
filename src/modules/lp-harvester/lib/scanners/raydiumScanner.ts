@@ -89,7 +89,13 @@ async function fetchRaydiumPools(): Promise<ParsedPoolInfo[]> {
         return cachedPools;
     }
 
-    const response = await fetch(RAYDIUM_LIQUIDITY_LIST_API, { cache: 'no-store' });
+    // 15s timeout: the Raydium liquidity list endpoint returns a large JSON
+    // payload (every Raydium pool on mainnet) and warrants a longer budget
+    // than the per-account fetches. Without this, a stalled Raydium CDN
+    // freezes the LP scan UI indefinitely. Mirrors the AbortSignal.timeout
+    // pattern added to dustScanner.ts (commit 7ea243b) and dustSwapper.ts
+    // (commit 871e02f).
+    const response = await fetch(RAYDIUM_LIQUIDITY_LIST_API, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     if (!response.ok) {
         throw new Error(`Raydium liquidity list request failed (${response.status}).`);
     }
