@@ -246,7 +246,13 @@ async function scanSanctumTickets(
     let response: Response;
 
     try {
-        response = await fetch(endpoint, { cache: 'no-store' });
+        // 8s timeout: a hung Sanctum tickets endpoint previously stalled the
+        // Staking Ticket Finder scan indefinitely (this was the only remaining
+        // fetch in the file without a timeout — ticketClaimer.ts:223 and the
+        // other scanner modules already enforce 8s). 8s is generous for a
+        // cold-cache response from the Sanctum API and tight enough to surface
+        // a clear error before the user gives up on the ticket scanner.
+        response = await fetch(endpoint, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
     } catch (err: unknown) {
         throw createAppError(
             'SANCTUM_API_FAILED',
