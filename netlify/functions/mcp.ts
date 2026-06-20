@@ -564,6 +564,46 @@ function toJsonRpcErrorCode(code: MCPErrorCode): number {
 }
 
 /**
+ * Maps MCP error codes to semantically correct HTTP status codes.
+ *
+ * JSON-RPC 2.0 doesn't constrain HTTP status — the wire protocol uses its own
+ * error.code field. But SolHunt's MCP server is also invoked over plain HTTP
+ * (direct format, no `method` wrapper) where clients DO depend on HTTP status.
+ * Previously every MCP error returned HTTP 400, which collapsed
+ * user-correctable failures (WALLET_NOT_FOUND, INVALID_PARAMS) together with
+ * server-side outages (INTERNAL_ERROR, EXECUTION_ERROR) and made a 429 look
+ * like a malformed request. Returning the correct HTTP status lets browser
+ * fetch() and CLI clients (curl, MCP-Inspector) differentiate retry-vs-fix
+ * behaviour using a single field — the same UX split JSON-RPC's error.code
+ * already encodes on the wrapper side.
+ *
+ *  - PARSE_ERROR / INVALID_PARAMS / TOOL_NOT_FOUND → 400 (client-side malformed)
+ *  - WALLET_NOT_FOUND                              → 404 (resource identity issue)
+ *  - METHOD_NOT_ALLOWED                            → 405 (HTTP semantics)
+ *  - RATE_LIMITED                                  → 429 (already handled separately)
+ *  - EXECUTION_ERROR                               → 502 (downstream API call failed —
+ *                                                     the upstream wallet API is the
+ *                                                     misbehaving party, not SolHunt's
+ *                                                     handler logic, which makes 502 a
+ *                                                     better signal than 500)
+ *  - INTERNAL_ERROR                                → 500 (SolHunt-side bug)
+ */
+const MCP_ERROR_HTTP_STATUS: Readonly<Record<MCPErrorCode, number>> = Object.freeze({
+  PARSE_ERROR:        400,
+  INVALID_PARAMS:     400,
+  TOOL_NOT_FOUND:     400,
+  WALLET_NOT_FOUND:   404,
+  METHOD_NOT_ALLOWED: 405,
+  RATE_LIMITED:       429,
+  EXECUTION_ERROR:    502,
+  INTERNAL_ERROR:     500,
+});
+
+function toHttpStatus(code: MCPErrorCode): number {
+  return MCP_ERROR_HTTP_STATUS[code];
+}
+
+/**
  * Creates a typed MCP error response conforming to the Smithery MCP error schema.
  * @param code - One of: PARSE_ERROR, INVALID_PARAMS, TOOL_NOT_FOUND, EXECUTION_ERROR,
  *               WALLET_NOT_FOUND, RATE_LIMITED, METHOD_NOT_ALLOWED, INTERNAL_ERROR.
@@ -1253,7 +1293,7 @@ Workflow: 1) Call get_wallet_report. 2) If recoverable SOL > 0.001, call preview
       // on receiving the right code.
       if (body.method) {
         return {
-          statusCode: 400,
+          statusCode: toHttpStatus(err.code),
           headers: buildHeaders(),
           body: JSON.stringify({
             jsonrpc: "2.0",
@@ -1264,7 +1304,7 @@ Workflow: 1) Call get_wallet_report. 2) If recoverable SOL > 0.001, call preview
       }
       // Direct format: preserve the typed MCP error structure
       return {
-        statusCode: 400,
+        statusCode: toHttpStatus(err.code),
         headers: buildHeaders(),
         body: JSON.stringify({ error: err.error, code: err.code, tool: err.tool, detail: err.detail })
       };
