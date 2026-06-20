@@ -594,11 +594,17 @@ async function executeTool(
                         'N/A';
   safeLogInfo(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
 
-  // Fire-and-forget analytics logging — must never break tool execution
+  // Fire-and-forget analytics logging — must never break tool execution.
+  // 3s AbortSignal.timeout: without this, a hung mcp-logs endpoint can keep
+  // the MCP Lambda instance alive past its warm window (Netlify will wait up
+  // to the full function timeout to free it), blocking subsequent calls and
+  // leaking the wallet address into any partial-response logs. 3s is
+  // generous for an internal analytics endpoint and lets us move on fast.
   void fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tool: name, wallet: walletAddress, duration: Date.now() - startMs, success: true })
+    body: JSON.stringify({ tool: name, wallet: walletAddress, duration: Date.now() - startMs, success: true }),
+    signal: AbortSignal.timeout(3000),
   }).catch((_logErr: unknown) => {
     // Silent fail — analytics logging must never break tool execution
   });
@@ -838,10 +844,14 @@ async function executeTool(
     // can show error rate per tool. Fire-and-forget — must never break the
     // already-failing tool call. Safe to log the wallet here because mcp-logs
     // already truncates it to 8 chars + '...' before storage.
+    // 3s AbortSignal.timeout: mirror the success-path fix so a hung
+    // mcp-logs endpoint doesn't pin the failed Lambda instance for the
+    // remainder of the function timeout window.
     void fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tool: name, wallet: walletAddress, duration: Date.now() - startMs, success: false })
+      body: JSON.stringify({ tool: name, wallet: walletAddress, duration: Date.now() - startMs, success: false }),
+      signal: AbortSignal.timeout(3000),
     }).catch((_logErr: unknown) => {
       // Silent fail — analytics logging must never break error reporting
     });
