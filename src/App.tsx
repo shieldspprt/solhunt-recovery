@@ -1,5 +1,5 @@
 import { useMemo, useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useSearchParams, useNavigate } from 'react-router-dom';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
@@ -37,6 +37,50 @@ const CopyrightPage = lazy(() => import('@/pages/CopyrightPage').then(m => ({ de
 
 // Default styles that can be overridden by your app
 import '@solana/wallet-adapter-react-ui/styles.css';
+
+/**
+ * TWA Shortcut Router
+ * Routes Android app shortcuts (https://solhunt.dev/?engine=scan|revoke|reclaim|fleet)
+ * to the correct page. Without this, tapping a shortcut from the home screen
+ * lands on the home page and silently drops the engine parameter — defeating
+ * the entire purpose of the shortcut.
+ *
+ * @see app/src/main/res/xml/shortcuts.xml for the shortcut definitions.
+ */
+function TwaShortcutRouter() {
+    const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        const engine = searchParams.get('engine');
+        if (!engine) return;
+
+        // Whitelist: only known shortcut IDs route. Unknown values are
+        // intentionally ignored so a malformed shortcut never breaks the
+        // home page or exposes internal routes.
+        switch (engine) {
+            case 'scan':
+                navigate('/scan', { replace: true });
+                break;
+            case 'revoke':
+                navigate('/scan', { replace: true });
+                break;
+            case 'reclaim':
+                navigate('/buffers', { replace: true });
+                break;
+            case 'fleet':
+                // Fleet Manager is currently a MCP/web-only tool — route to
+                // the scan page so the user can still monitor a single wallet.
+                navigate('/scan', { replace: true });
+                break;
+            default:
+                // Unknown engine — leave on the home page.
+                break;
+        }
+    }, [searchParams, navigate]);
+
+    return null;
+}
 
 /**
  * Headless Agent Parser
@@ -103,6 +147,7 @@ function App() {
                     <WalletModalProvider>
                         <WalletStatusManager />
                         <BrowserRouter>
+                            <TwaShortcutRouter />
                             <AgentUrlParser />
                             <Suspense fallback={<LoadingSpinner fullpage message="Loading..." />}>
                                 <Routes>
