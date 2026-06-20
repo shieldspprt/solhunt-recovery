@@ -297,10 +297,10 @@ export function LearnPage() {
     const activeContent = LEARN_CONTENT_MAP[activeEngineId];
 
     usePageMeta({
-        title: 'Learning Hub',
-        description: 'Deep dive into SolHunt\'s 9 recovery engines: revoke approvals, reclaim rent, harvest LP fees, and recover locked SOL from your Solana wallet.',
+        title: `Learn: ${activeContent.title}`,
+        description: activeContent.description,
         noindex: true,
-    });
+    }, [activeEngineId]);
 
     // Ensure URL matches active state
     useEffect(() => {
