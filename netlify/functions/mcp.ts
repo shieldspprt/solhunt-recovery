@@ -920,8 +920,14 @@ function checkRateLimit(ip: string, walletAddress?: string): RateLimitResult {
       };
     }
     
-    // Both allowed - return the one with fewer remaining
-    if (walletResult.remaining < ipResult.remaining) {
+    // Both allowed - return the one with fewer remaining.
+    // Use <= (not <) so ties resolve to 'wallet'. The wallet policy is the
+    // stricter of the two (50/h vs 100/h), so on a freshly-seen wallet behind
+    // a busy shared IP the wallet quota is the active constraint clients
+    // should be watching. Reporting source: 'ip' here misleads API consumers
+    // into optimising against the wrong bucket — they throttle IP retries
+    // when the wallet quota is what actually trips next.
+    if (walletResult.remaining <= ipResult.remaining) {
       return { ...walletResult, source: 'wallet' };
     }
   }
