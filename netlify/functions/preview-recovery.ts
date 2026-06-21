@@ -3,6 +3,7 @@ import {
   type Handler,
   buildCorsHeaders,
   corsPreflightResponse,
+  errorBody,
   getErrorMessage,
   isValidSolanaAddress,
   safeLogError,
@@ -18,27 +19,6 @@ const MAX_ACCOUNTS_PER_TX = 15;
 const FEE_PERCENT = 15;
 const ESTIMATED_TX_COST_SOL = 0.000005; // 5000 lamports base fee, just an estimate
 const FEE_WALLET = 'DD4AdYKVcV6kgpmiCEeASRmJyRdKgmaRAbsjKucx8CvY';
-
-/** Error codes returned by preview-recovery. Matches the MCPErrorCode
- *  vocabulary used in netlify/functions/mcp.ts so API and MCP clients
- *  can share a single error-decoding switch. */
-type PreviewRecoveryErrorCode =
-  | 'INVALID_PARAMS'
-  | 'EXECUTION_ERROR'
-  | 'METHOD_NOT_ALLOWED';
-
-/** Build a typed error response body. Mirrors the { error, code, detail }
- *  shape used by build-recovery.ts and build-revoke.ts so every Netlify
- *  function returns the same error contract. */
-function errorBody(
-  code: PreviewRecoveryErrorCode,
-  error: string,
-  detail?: string,
-): string {
-  return JSON.stringify(
-    detail === undefined ? { error, code } : { error, code, detail },
-  );
-}
 
 export const handler: Handler = async (event) => {
   const headers = buildCorsHeaders(event, { methods: 'GET, OPTIONS' });
