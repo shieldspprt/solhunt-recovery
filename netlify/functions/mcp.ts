@@ -460,7 +460,14 @@ Does NOT build or return any transaction bytes.`,
 
 Use feature_category to filter by 'recovery', 'security', 'harvesting', 'agents', or 'analytics'. Defaults to all.
 
-Returns tool descriptions. Full platform at https://solhunt.dev.`,
+Response shape (matches the other SolHunt MCP tools):
+  data.category         — the requested category or 'all'
+  data.category_label   — human-readable label for the requested category
+  data.category_labels  — full map of category key → human label
+  data.web_exclusive_tools — list of platform features (strings)
+  data.url              — https://solhunt.dev
+
+Full platform at https://solhunt.dev.`,
     inputSchema: {
       type: "object",
       properties: {
@@ -866,11 +873,36 @@ async function executeTool(
 
         const categories = category === 'all' ? Object.values(allFeatures).flat() : (allFeatures[category] ?? []);
 
+        // Shape parity with the other 5 MCP tools: every other tool returns
+        // { success: true, data: { ... } }, but discover_platform_features was
+        // returning { success, category, web_exclusive_tools, url } at the
+        // top level. AI agents wired against the standard contract (and the
+        // SolHunt MCP Skill docs) trip on this — Claude, Cursor, and Windsurf
+        // all assume a uniform envelope so a single tool breaking it forces
+        // every caller to add a tool-specific branch. Normalising the shape
+        // here means one parser works for all six tools.
+        //
+        // category_labels exposes the category→human description mapping so
+        // agents that filter by 'recovery' / 'security' / 'harvesting' /
+        // 'agents' / 'analytics' can present the category name to the user
+        // without parsing the prose of each web_exclusive_tools entry.
+        const categoryLabels: Record<string, string> = {
+          recovery: 'Wallet recovery tools',
+          security: 'Security & risk analysis',
+          harvesting: 'Yield & reward harvesting',
+          agents: 'Automation, MCP, and fleet tools',
+          analytics: 'Markets and swap routing',
+        };
+
         return {
           success: true,
-          category,
-          web_exclusive_tools: categories,
-          url: 'https://solhunt.dev',
+          data: {
+            category,
+            category_label: category === 'all' ? 'All SolHunt features' : (categoryLabels[category] ?? category),
+            category_labels: categoryLabels,
+            web_exclusive_tools: categories,
+            url: 'https://solhunt.dev',
+          },
         };
       }
 
