@@ -240,8 +240,16 @@ export function StatsDisplay() {
   }, []);
 
   useEffect(() => {
+    // Combine the unmount-controller signal with a hard 8s timeout so a hung
+    // /api/get-stats endpoint can't pin the loading skeleton forever. The
+    // 8s window matches the timeout used elsewhere in the codebase for
+    // /api/* calls (e.g. Sanctum tickets, dust scanners, LP harvesters) —
+    // consistent UX timeout behaviour across the app.
     const controller = new AbortController();
-    fetch('/api/get-stats', { signal: controller.signal })
+    const timeoutSignal = AbortSignal.timeout(8000);
+    const signal = AbortSignal.any([controller.signal, timeoutSignal]);
+
+    fetch('/api/get-stats', { signal })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -251,7 +259,13 @@ export function StatsDisplay() {
         else setError('Failed to load stats');
       })
       .catch((err: unknown) => {
-        if (err instanceof Error && err.name === 'AbortError') return;
+        // Unmount-driven abort (controller.signal) is a normal cleanup path —
+        // keep the silent return so we don't surface a false "failed" message.
+        // A timeout-driven abort (AbortSignal.timeout) keeps loading=false via
+        // .finally() below and falls through to the "Stats unavailable" branch
+        // because data?.today is still undefined — correct UX for a timed-out
+        // fetch.
+        if (err instanceof Error && err.name === 'AbortError' && controller.signal.aborted) return;
         logger.warn('Stats fetch failed:', err instanceof Error ? err.message : String(err));
         setError('Failed to load stats');
       })

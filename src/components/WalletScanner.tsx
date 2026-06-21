@@ -219,9 +219,14 @@ export function WalletScanner() {
 
   // Fetch live network overview stats strictly for the public pill
   useEffect(() => {
+    // Combine the unmount-controller signal with a hard 8s timeout so a hung
+    // /api/get-stats endpoint can't pin this fetch's promise indefinitely.
+    // Matches the timeout used elsewhere in the codebase for /api/* calls.
     const controller = new AbortController();
-    
-    fetch('/api/get-stats?days=1', { signal: controller.signal })
+    const timeoutSignal = AbortSignal.timeout(8000);
+    const signal = AbortSignal.any([controller.signal, timeoutSignal]);
+
+    fetch('/api/get-stats?days=1', { signal })
       .then(res => {
         if (!res.ok) return null;
         try {
@@ -242,7 +247,7 @@ export function WalletScanner() {
         // Non-critical — pill stats failure should not crash or alert the user
         logger.warn('Live stats fetch failed:', err instanceof Error ? err.message : String(err));
       });
-    
+
     return () => controller.abort();
   }, []);
 
