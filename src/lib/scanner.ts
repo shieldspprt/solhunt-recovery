@@ -73,6 +73,8 @@ async function fetchTokenAccounts(
         );
     };
 
+    const safeMessage = (e: unknown): string => e instanceof Error ? e.message : String(e);
+
     try {
         return (await attemptFetch()).value;
     } catch (firstError: unknown) {
@@ -82,10 +84,18 @@ async function fetchTokenAccounts(
             return (await attemptFetch()).value;
         } catch (retryError: unknown) {
             const programName = programId.equals(TOKEN_2022_PROGRAM_ID) ? 'Token-2022' : 'SPL Token';
+            // Surface BOTH failure contexts so the user (and Firebase crashlytics)
+            // can tell apart "first attempt hit RPC rate limit, retry hit network blip"
+            // from "both attempts hit the same transient RPC outage". Previously
+            // only retryError was reported — firstError was captured but discarded,
+            // so a transient then-permanent failure mode looked identical to a
+            // double transient failure, and the 500ms-backoff retry path silently
+            // hid upstream provider issues from the diagnostic telemetry.
             throw createAppError(
                 'RPC_ERROR',
                 `Failed to fetch ${programName} accounts after retry. ` +
-                `Error: ${retryError instanceof Error ? retryError.message : String(retryError)}. ` +
+                `First attempt: ${safeMessage(firstError)}. ` +
+                `Retry attempt: ${safeMessage(retryError)}. ` +
                 `Try again or check your network connection.`
             );
         }
