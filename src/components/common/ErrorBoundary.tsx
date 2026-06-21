@@ -32,10 +32,18 @@ export class ErrorBoundary extends PureComponent<ErrorBoundaryProps, ErrorBounda
     }
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-        // Use production-safe logger instead of raw console.error
-        logger.error('ErrorBoundary caught an error', { 
-            error: error.message, 
-            componentStack: errorInfo.componentStack 
+        // Pass the raw Error so logger can extract a real errorCode
+        // (Error.name, or .code on AppError-shaped errors) — the previous
+        // `{ error: error.message, componentStack }` object literal had no
+        // .name and no .code, so reportAppError always classified these as
+        // 'UNKNOWN' in production and the mcp-logs / Firebase dashboard
+        // couldn't tell a top-level boundary crash from an engine crash.
+        // componentStack is forwarded as structured metadata so the crash
+        // location is still observable without leaking the error message
+        // (which may contain wallet addresses, RPC bodies, or stack
+        // frames referencing local file paths).
+        logger.error('ErrorBoundary caught an error', error, {
+            componentStack: errorInfo.componentStack,
         });
     }
 

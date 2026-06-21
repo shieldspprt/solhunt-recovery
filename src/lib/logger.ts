@@ -15,7 +15,46 @@ import { logEvent } from '@/lib/analytics';
 // a string literal so a future audit can promote it to the union if needed.
 const APP_ERROR_EVENT = 'app_error';
 
-function reportAppError(context: string, err: unknown): void {
+/**
+ * Optional structured metadata attached to a logger.error report.
+ * Values are forwarded to Firebase Analytics as event parameters, so the
+ * primitive type set matches logEvent's EventParams — strings, numbers,
+ * booleans, null, or undefined. Reject objects/functions to keep the
+ * analytics payload flat and serialisable.
+ *
+ * `undefined` is permitted for fields whose underlying type is optional
+ * (e.g. React's `ErrorInfo.componentStack: string | null | undefined`).
+ * At merge time, `undefined` values are stripped — Firebase Analytics's
+ * `logEvent` rejects undefined params and would otherwise throw a
+ * TypeError that masks the original report.
+ */
+export type ErrorMetadata = Record<string, string | number | boolean | null | undefined>;
+
+/**
+ * Build the analytics event payload from a logger.error call.
+ * Drops `undefined` metadata values because Firebase Analytics' `logEvent`
+ * rejects undefined params and would otherwise throw a TypeError that masks
+ * the original error report. `null` is preserved — it's a valid value
+ * (`logEvent` accepts null) and lets callers explicitly mark "no value".
+ */
+function buildEventPayload(
+    context: string,
+    errorCode: string,
+    metadata: ErrorMetadata,
+): Record<string, string | number | boolean | null> {
+    const payload: Record<string, string | number | boolean | null> = {
+        context,
+        errorCode,
+        timestamp: Date.now(),
+    };
+    for (const [key, value] of Object.entries(metadata)) {
+        if (value === undefined) continue;
+        payload[key] = value;
+    }
+    return payload;
+}
+
+function reportAppError(context: string, err: unknown, metadata: ErrorMetadata = {}): void {
     // Extract a stable, non-PII error code. Prefer the error's own .code
     // (matches our AppError shape); otherwise derive from the message length
     // and the context. NEVER include the original error message — it may
@@ -27,7 +66,12 @@ function reportAppError(context: string, err: unknown): void {
     } else if (err instanceof Error) {
         errorCode = err.name || 'Error';
     }
-    logEvent(APP_ERROR_EVENT, { context, errorCode, timestamp: Date.now() });
+    // Merge caller-supplied metadata AFTER the canonical fields so a stray
+    // `context` / `errorCode` / `timestamp` key in metadata cannot clobber
+    // them. `buildEventPayload` handles the `undefined`-filter so callers
+    // can pass optional fields (e.g. `ErrorInfo.componentStack`) without a
+    // pre-strip step.
+    logEvent(APP_ERROR_EVENT, buildEventPayload(context, errorCode, metadata));
 }
 
 export const logger = {
@@ -37,11 +81,23 @@ export const logger = {
     warn: (...args: unknown[]): void => {
         if (!IS_PRODUCTION) console.warn(...args);
     },
-    error: (context: string, err?: unknown): void => {
-        if (!IS_PRODUCTION) console.error(context, err);
+    error: (context: string, err?: unknown, metadata: ErrorMetadata = {}): void => {
+        if (!IS_PRODUCTION) {
+            // Include metadata in the dev console output too — when chasing
+            // down a componentStack or a custom tag in the Firebase dashboard
+            // the dev console is the first place a contributor looks, so
+            // merging the keys here keeps the local repro path identical to
+            // the production analytics path.
+            if (Object.keys(metadata).length > 0) {
+                console.error(context, err, metadata);
+            } else {
+                console.error(context, err);
+            }
+        }
         // In production: forward structured context + errorCode to Firebase
-        // Analytics. No PII is included — only the context label and a
-        // short error code derived from the error itself.
-        if (IS_PRODUCTION) reportAppError(context, err);
+        // Analytics. No PII is included — only the context label, a short
+        // error code derived from the error itself, and any caller-supplied
+        // metadata (componentStack, engineId, etc.).
+        if (IS_PRODUCTION) reportAppError(context, err, metadata);
     },
 };

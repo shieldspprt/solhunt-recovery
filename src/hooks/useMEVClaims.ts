@@ -210,7 +210,7 @@ export function useMEVClaims() {
             });
 
         } catch (err: unknown) {
-            logger.error('MEV executeClaim error', { err });
+            logger.error('MEV executeClaim error', err);
             const errMessage = err instanceof Error ? err.message : String(err);
             setMEVClaimStatus('error');
             setMEVClaimError({

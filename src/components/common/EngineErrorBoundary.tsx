@@ -34,10 +34,25 @@ export class EngineErrorBoundary extends PureComponent<EngineErrorBoundaryProps,
     }
 
     componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-        logger.error(`[EngineErrorBoundary:${this.props.engineId}] Engine threw unexpectedly`, {
-            error: error.message,
-            componentStack: errorInfo.componentStack,
-        });
+        // Pass the raw Error so logger can extract a real errorCode
+        // (Error.name, or .code on AppError-shaped errors) — the previous
+        // `{ error: error.message, componentStack }` object literal had no
+        // .name and no .code, so reportAppError always classified these as
+        // 'UNKNOWN' in production and the mcp-logs / Firebase dashboard
+        // couldn't tell an engine crash from a top-level boundary crash,
+        // nor which engine it came from. The errorContext string
+        // (e.g. "[EngineErrorBoundary:1] Engine threw unexpectedly") and
+        // the engineId parameter are both forwarded as metadata so the
+        // dashboard can group by engine and the dev console shows the
+        // same shape in both environments.
+        logger.error(
+            `[EngineErrorBoundary:${this.props.engineId}] Engine threw unexpectedly`,
+            error,
+            {
+                engineId: this.props.engineId,
+                componentStack: errorInfo.componentStack,
+            }
+        );
     }
 
     handleReset = (): void => {
