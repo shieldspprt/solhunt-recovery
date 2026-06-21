@@ -216,13 +216,32 @@ export function useDecommissionScanner() {
                 items: resultItems,
             });
 
-            store.setRecoveryStatus('complete');
+            // If every in-app transaction failed (no successes, but failures
+            // present), the recovery was a complete failure — surface it via
+            // the 'error' modal so the user sees a clear failure message
+            // instead of a celebratory "Recovery Complete!" card with $0.00
+            // recovered. The per-tx errors are already logged inside the
+            // loop; we synthesise a top-level message for the modal from the
+            // first failed item. Redirect-only outcomes (no in-app failures)
+            // still legitimately count as 'complete' even when recoveredCount
+            // is 0 — the user will be guided to the external recovery site.
+            const recoveredCount = resultItems.filter(r => r.success).length;
+            const failedCount = resultItems.filter(r => !r.success && !r.redirectUrl).length;
+            const firstFailedItem = resultItems.find(r => !r.success && !r.redirectUrl && r.errorMessage);
+            if (recoveredCount === 0 && failedCount > 0 && firstFailedItem) {
+                const appError = createAppError('DECOMMISSION_RECOVERY_FAILED', firstFailedItem.errorMessage || 'All recovery transactions failed.');
+                store.setRecoveryStatus('error');
+                store.setRecoveryError(appError.message);
+                logDecommissionRecoveryFailed(appError.code);
+            } else {
+                store.setRecoveryStatus('complete');
 
-            logDecommissionRecoveryComplete({
-                recoveredCount: resultItems.filter(r => r.success).length,
-                redirectCount: resultItems.filter(r => r.redirectUrl && !r.success).length,
-                failedCount: resultItems.filter(r => !r.success && !r.redirectUrl).length,
-            });
+                logDecommissionRecoveryComplete({
+                    recoveredCount,
+                    redirectCount: resultItems.filter(r => r.redirectUrl && !r.success).length,
+                    failedCount,
+                });
+            }
 
         } catch (err: unknown) {
             // Forward structured error to production monitoring (PII-safe, no wallet details).
@@ -254,6 +273,17 @@ export function useDecommissionScanner() {
         recoveryError: store.recoveryError,
         initiateRecovery,
         executeRecovery,
-        cancelRecovery: () => store.setRecoveryStatus('idle'),
+        // Clear recoveryError/recoveryResult/recoveryProgress alongside the
+        // status reset so a stale error from a previous attempt isn't shown
+        // on the next recovery flow. Without this, dismissing the error
+        // modal then immediately re-running recovery leaves the old error
+        // text in the store until executeRecovery overwrites it, which
+        // surfaces in the UI as a flash of the previous failure message.
+        cancelRecovery: () => {
+            store.setRecoveryStatus('idle');
+            store.setRecoveryError(null);
+            store.setRecoveryResult(null);
+            store.setRecoveryProgress('');
+        },
     };
 }
