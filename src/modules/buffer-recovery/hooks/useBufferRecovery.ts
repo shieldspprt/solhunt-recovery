@@ -67,7 +67,14 @@ export function useBufferRecovery() {
                 hasRecentBuffers: buffers.some(b => Date.now() - b.createdAt < RECENT_BUFFER_THRESHOLD_MS)
             });
         } catch (error: unknown) {
-            logger.warn('Buffer scan failed:', error instanceof Error ? error.message : error);
+            // logger.error (not logger.warn) so the failure reaches Firebase
+            // Analytics as an `app_error` event in production. logger.warn is
+            // dev-only — production users' buffer-scan failures were silently
+            // invisible until users reported them manually. The error code
+            // (BUFFER_SCAN_FAILED) matches what createAppError below uses, so
+            // a single string in the Firebase dashboard groups scan-side
+            // crashes by root cause.
+            logger.error('BUFFER_SCAN_FAILED', error);
             const technicalDetail = error instanceof Error ? error.toString() : String(error);
             setBufferScanError(createAppError('BUFFER_SCAN_FAILED', technicalDetail));
         }
@@ -123,7 +130,15 @@ export function useBufferRecovery() {
 
             await runScan();
         } catch (error: unknown) {
-            logger.warn('Buffer close failed:', error instanceof Error ? error.message : error);
+            // logger.error (not logger.warn) so the close-time failure reaches
+            // Firebase Analytics in production. Buffer-close runs after the
+            // user has signed and the transaction is on-chain — silent failure
+            // here would leave the user's wallet debited but the recovery
+            // result store showing no error, which is the exact "did my SOL
+            // get reclaimed?" support incident the prior warn-only logging
+            // caused. Error code matches createAppError below for dashboard
+            // consistency with the scan path.
+            logger.error('BUFFER_CLOSE_FAILED', error);
             const technicalDetail = error instanceof Error ? error.toString() : String(error);
             setBufferCloseError(createAppError('BUFFER_CLOSE_FAILED', technicalDetail));
             logBufferCloseComplete({
