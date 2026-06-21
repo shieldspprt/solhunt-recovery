@@ -946,6 +946,14 @@ const RATE_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const walletRateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const WALLET_RATE_LIMIT = 50; // stricter limit per wallet (50/hour vs 100/hour per IP)
 
+// Lazy-cleanup threshold: once a map exceeds this many keys, drop all
+// expired entries on the next write. Picked well above expected steady-state
+// for a warm Netlify function (a handful of IPs × handful of wallets) so
+// the sweep is rare under normal load but the map cannot grow unbounded
+// under abuse or long-lived warm instances. 1000 entries × ~80 bytes each
+// is ~80KB — comfortably under any Lambda heap concern.
+const RATE_MAP_CLEANUP_THRESHOLD = 1000;
+
 interface RateLimitResult {
   allowed: boolean;
   remaining: number;
@@ -953,13 +961,42 @@ interface RateLimitResult {
   source: 'ip' | 'wallet';
 }
 
+/**
+ * Removes expired entries from a rate-limit map. Called lazily on writes
+ * when the map size crosses RATE_MAP_CLEANUP_THRESHOLD so a long-lived warm
+ * Lambda can't leak memory through accumulated one-off IPs/wallets whose
+ * hour-long window has already expired.
+ *
+ * @param map - The rate-limit map to purge (mutated in place).
+ * @param now - Current epoch ms; entries with resetAt <= now are dropped.
+ */
+function purgeExpiredEntries(
+  map: Map<string, { count: number; resetAt: number }>,
+  now: number
+): void {
+  for (const [key, entry] of map) {
+    if (entry.resetAt <= now) {
+      map.delete(key);
+    }
+  }
+}
+
 function checkRateLimit(ip: string, walletAddress?: string): RateLimitResult {
   const now = Date.now();
-  
+
+  // Lazy cleanup before reads: keeps the maps bounded without paying the
+  // O(n) sweep cost on the request hot path until the threshold is hit.
+  if (rateLimitMap.size > RATE_MAP_CLEANUP_THRESHOLD) {
+    purgeExpiredEntries(rateLimitMap, now);
+  }
+  if (walletRateLimitMap.size > RATE_MAP_CLEANUP_THRESHOLD) {
+    purgeExpiredEntries(walletRateLimitMap, now);
+  }
+
   // Check IP-based rate limit
   const ipEntry = rateLimitMap.get(ip);
   let ipResult: { allowed: boolean; remaining: number; resetAt: number };
-  
+
   if (!ipEntry || now > ipEntry.resetAt) {
     // New window for IP
     rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
