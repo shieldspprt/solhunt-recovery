@@ -784,7 +784,18 @@ async function executeTool(
           { headers, signal: AbortSignal.timeout(10000) }
         );
         if (!res.ok) {
+          // 404 must be surfaced as WALLET_NOT_FOUND, not EXECUTION_ERROR,
+          // for parity with get_wallet_report. Otherwise an MCP client
+          // (Claude, Cursor, Windsurf) reads a malformed/inactive wallet
+          // address as a generic upstream failure and retries indefinitely
+          // instead of prompting the user to fix the input. The JSON-RPC
+          // error.code maps to -32002 (WALLET_NOT_FOUND) and the HTTP
+          // status is 404 — both let the client branch on "fix input"
+          // vs "retry with backoff" without an extra round trip.
           const detail = await parseResponseDetail(res);
+          if (res.status === 404) {
+            return createMCPError('WALLET_NOT_FOUND', `Wallet ${address} not found or has no token approvals to scan.`, name, detail);
+          }
           return createMCPError('EXECUTION_ERROR', `Token approvals scan failed: ${res.status}`, name, detail);
         }
         const data = await res.json().catch((e: unknown) => { throw new Error(`Token approvals scan response parse failed: ${e instanceof Error ? e.message : String(e)}`); });
