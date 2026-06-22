@@ -5,6 +5,7 @@
 import {
   type Handler,
   buildCorsHeaders,
+  errorBody,
   getErrorMessage,
   safeLogError,
 } from './_shared';
@@ -141,5 +142,16 @@ export const handler: Handler = async (event) => {
     };
   }
   
-  return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+  // METHOD_NOT_ALLOWED is emitted via the shared `errorBody()` envelope so the
+  // 405 contract matches mcp.ts / preview-recovery.ts / _shared.ts exactly.
+  // Previously this branch returned a bare `{ error: 'Method not allowed' }`
+  // object, so clients branching on `body.code === 'METHOD_NOT_ALLOWED'` would
+  // silently miss this endpoint and re-interpret the response as a malformed
+  // payload — masking the actual fix-the-request-method signal. Routing through
+  // the shared helper keeps every SolHunt 405 surface identical.
+  return {
+    statusCode: 405,
+    headers: { ...headers, 'Allow': 'GET, POST, OPTIONS' },
+    body: errorBody('METHOD_NOT_ALLOWED', 'Method not allowed. Use GET, POST, or OPTIONS.'),
+  };
 };

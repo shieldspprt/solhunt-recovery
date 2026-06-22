@@ -1,6 +1,6 @@
 /**
  * SolHunt Service Worker
- * Cache version: 2026-06-22-1
+ * Cache version: 2026-06-22-2
  *
  * Bumping the version stamp: both runtime cache buckets below include the
  * `vYYYYMMDD` suffix. When this file ships, existing PWA users still have
@@ -136,7 +136,7 @@ registerRoute(
 // ──────────────────────────────────────────────────────
 registerRoute(
   /\.(?:js|css)$/,
-  new StaleWhileRevalidate({ cacheName: 'static-assets-v20260622' })
+  new StaleWhileRevalidate({ cacheName: 'static-assets-v20260622-2' })
 );
 
 // ──────────────────────────────────────────────────────
