@@ -622,6 +622,49 @@ function createMCPError(code: MCPErrorCode, message: string, tool?: string, deta
   return { error: message, code, tool, detail };
 }
 
+/**
+ * Fire-and-forget analytics POST to the mcp-logs endpoint.
+ * Centralised so the success path and the error catch in executeTool share
+ * exactly the same payload shape, timeout, and silent-fail behaviour. Without
+ * this helper the two paths drift independently — the 3s AbortSignal.timeout
+ * was added to the success path in one commit and then to the error path in a
+ * follow-up, and a third fix elsewhere added a new payload field that only
+ * landed on one branch. Collapsing them into one function makes that class of
+ * bug structurally impossible.
+ *
+ * 3s AbortSignal.timeout is intentional: a hung mcp-logs endpoint would
+ * otherwise pin the MCP Lambda instance for the rest of the function
+ * timeout window (Netlify waits up to the full timeout to free it), blocking
+ * subsequent calls and leaking the wallet address into any partial-response
+ * logs. 3s is generous for an internal analytics endpoint and lets us move
+ * on fast.
+ *
+ * Silent fail by design: analytics logging must never break tool execution,
+ * including a tool that is already failing.
+ *
+ * @param name - Tool name (for the `tool` field of the mcp-logs payload).
+ * @param walletAddress - Caller's wallet address (already-truncated by the
+ *   mcp-logs endpoint, so safe to forward).
+ * @param startMs - Epoch ms when the tool started; the helper computes
+ *   `duration = Date.now() - startMs` at call time.
+ * @param success - Whether the tool completed normally (true) or threw (false).
+ */
+function logMcpCall(
+  name: ToolName,
+  walletAddress: string,
+  startMs: number,
+  success: boolean,
+): void {
+  void fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tool: name, wallet: walletAddress, duration: Date.now() - startMs, success }),
+    signal: AbortSignal.timeout(3000),
+  }).catch((_logErr: unknown) => {
+    // Silent fail — analytics logging must never break tool execution
+  });
+}
+
 async function executeTool(
   name: ToolName,
   args: ToolArgs,
@@ -641,20 +684,10 @@ async function executeTool(
                         'N/A';
   safeLogInfo(`MCP_CALL: ${name} | wallet=${walletAddress} | ${new Date().toISOString()}`);
 
-  // Fire-and-forget analytics logging — must never break tool execution.
-  // 3s AbortSignal.timeout: without this, a hung mcp-logs endpoint can keep
-  // the MCP Lambda instance alive past its warm window (Netlify will wait up
-  // to the full function timeout to free it), blocking subsequent calls and
-  // leaking the wallet address into any partial-response logs. 3s is
-  // generous for an internal analytics endpoint and lets us move on fast.
-  void fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tool: name, wallet: walletAddress, duration: Date.now() - startMs, success: true }),
-    signal: AbortSignal.timeout(3000),
-  }).catch((_logErr: unknown) => {
-    // Silent fail — analytics logging must never break tool execution
-  });
+  // Fire-and-forget analytics logging on the success path. The error path
+  // calls the same helper from its catch block so both paths use identical
+  // payload shape, timeout, and silent-fail behaviour.
+  logMcpCall(name, walletAddress, startMs, true);
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -915,18 +948,9 @@ async function executeTool(
     // Surface the failure to the analytics pipeline so the mcp-logs dashboard
     // can show error rate per tool. Fire-and-forget — must never break the
     // already-failing tool call. Safe to log the wallet here because mcp-logs
-    // already truncates it to 8 chars + '...' before storage.
-    // 3s AbortSignal.timeout: mirror the success-path fix so a hung
-    // mcp-logs endpoint doesn't pin the failed Lambda instance for the
-    // remainder of the function timeout window.
-    void fetch('https://solhunt.dev/.netlify/functions/mcp-logs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tool: name, wallet: walletAddress, duration: Date.now() - startMs, success: false }),
-      signal: AbortSignal.timeout(3000),
-    }).catch((_logErr: unknown) => {
-      // Silent fail — analytics logging must never break error reporting
-    });
+    // already truncates it to 8 chars + '...' before storage. Same helper as
+    // the success path so payload, timeout, and silent-fail stay identical.
+    logMcpCall(name, walletAddress, startMs, false);
     return createMCPError(
       'INTERNAL_ERROR',
       `Internal server error: ${message}`,
