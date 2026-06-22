@@ -1228,6 +1228,25 @@ export const handler: Handler = async (event) => {
     const retryAfterSec = Math.ceil((rateLimit.resetAt - Date.now()) / 1000);
     const retryAt = new Date(rateLimit.resetAt).toISOString();
     // Return typed error + rate limit detail for programmatic clients
+    //
+    // Bug fix: `rate_limit.limit` was hardcoded to RATE_LIMIT (the per-IP cap
+    // of 100) regardless of which policy tripped. When the stricter per-wallet
+    // policy (50/h) is the active constraint, the headers correctly report
+    // X-RateLimit-Limit: 50 (fixed in 7e6897a) and RateLimit: r=0;t=… with
+    // the wallet policy q=50, but a programmatic client reading the JSON
+    // body saw `limit: 100, remaining: 0` — implying the wallet had 100 of
+    // budget left when in reality it had 50. That mismatch made retries
+    // resume a full quota's worth too early on the next request cycle, and
+    // a careful client doing rate-limit reconciliation (parse body, compare
+    // to headers) tripped its consistency check and surfaced a false-positive
+    // 429 log alert.
+    //
+    // Pick the active-policy limit from the same source as the headers
+    // (rateLimit.source) so body, IETF RateLimit-*, and legacy
+    // X-RateLimit-* all stay aligned. The wallet_rate_limit block already
+    // carries the WALLET_RATE_LIMIT constant directly, so per-wallet
+    // clients can reconcile even when the tripped policy is the IP cap.
+    const activeLimit = rateLimit.source === 'wallet' ? WALLET_RATE_LIMIT : RATE_LIMIT;
     return {
       statusCode: 429,
       headers: buildHeaders(true),
@@ -1235,7 +1254,7 @@ export const handler: Handler = async (event) => {
           ...createMCPError('RATE_LIMITED', `Rate limit exceeded. Try again in ${retryAfterSec} seconds.`, undefined, `source=${rateLimit.source}`),
           retry_after_seconds: retryAfterSec,
           rate_limit: {
-            limit: RATE_LIMIT,
+            limit: activeLimit,
             remaining: 0,
             reset_at: retryAt,
             window_seconds: Math.floor(RATE_WINDOW_MS / 1000),
