@@ -1,4 +1,4 @@
-import { Connection, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import bs58 from 'bs58';
 import {
     BufferAccount
@@ -13,13 +13,18 @@ import { createAppError } from '@/lib/errors';
 
 /**
  * Scans for BPF Loader buffer accounts owned by the given wallet.
- * 
+ *
  * SECURITY: Validates wallet address before making any RPC calls to prevent
  * injection attacks and ensure consistent error handling.
+ *
+ * The connection is intentionally NOT a parameter: `withRetry` internally
+ * tries the configured primary and backup RPCs, so accepting a connection
+ * here would only mislead callers into thinking it controls the retry
+ * chain. Callers should not need to plumb a `useConnection()` value down
+ * to a scanner that already has its own resilient transport.
  */
 export async function scanForBuffers(
-    walletAddress: string,
-    _connection: Connection
+    walletAddress: string
 ): Promise<BufferAccount[]> {
     // Validate wallet address format before making any RPC calls
     if (!isValidSolanaPublicKey(walletAddress)) {

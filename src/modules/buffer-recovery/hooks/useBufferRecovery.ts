@@ -45,7 +45,7 @@ export function useBufferRecovery() {
 
         try {
             setBufferScanStatus('scanning');
-            const buffers = await scanForBuffers(targetWallet, connection);
+            const buffers = await scanForBuffers(targetWallet);
 
             const closeable = buffers.filter(b => b.status === 'closeable');
             const totalLocked = buffers.reduce((acc, b) => acc + b.lamports, 0);
@@ -78,7 +78,7 @@ export function useBufferRecovery() {
             const technicalDetail = error instanceof Error ? error.toString() : String(error);
             setBufferScanError(createAppError('BUFFER_SCAN_FAILED', technicalDetail));
         }
-    }, [targetWallet, connection, setBufferScanStatus, setBufferScanResult, setBufferScanError]);
+    }, [targetWallet, setBufferScanStatus, setBufferScanResult, setBufferScanError]);
 
     const performClose = useCallback(async () => {
         if (!publicKey || selectedBufferAddresses.length === 0 || !bufferScanResult) return;
