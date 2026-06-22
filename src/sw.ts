@@ -1,13 +1,13 @@
 /**
  * SolHunt Service Worker
- * Cache version: 2026-06-21-1
+ * Cache version: 2026-06-22-1
  *
  * Bumping the version stamp: both runtime cache buckets below include the
  * `vYYYYMMDD` suffix. When this file ships, existing PWA users still have
  * the old `google-fonts` / `static-assets` caches from the previous
  * install. Workbox's `cleanupOutdatedCaches()` (called above) deletes any
  * cache whose name doesn't appear in the current precache manifest — so
- * renaming to `google-fonts-v20260621` and `static-assets-v20260621`
+ * renaming to `google-fonts-v20260622` and `static-assets-v20260622`
  * forces a one-time invalidation, then the new caches take over.
  *
  * Bump this version (and the bucket suffixes) whenever you ship changes
@@ -127,7 +127,7 @@ for (const pattern of NETWORK_ONLY_PATTERNS) {
 // ──────────────────────────────────────────────────────
 registerRoute(
   /^https:\/\/fonts\.(googleapis|gstatic)\.com/,
-  new NetworkFirst({ cacheName: 'google-fonts-v20260621', networkTimeoutSeconds: 5 })
+  new NetworkFirst({ cacheName: 'google-fonts-v20260622', networkTimeoutSeconds: 5 })
 );
 
 // ──────────────────────────────────────────────────────
@@ -136,7 +136,7 @@ registerRoute(
 // ──────────────────────────────────────────────────────
 registerRoute(
   /\.(?:js|css)$/,
-  new StaleWhileRevalidate({ cacheName: 'static-assets-v20260621' })
+  new StaleWhileRevalidate({ cacheName: 'static-assets-v20260622' })
 );
 
 // ──────────────────────────────────────────────────────
