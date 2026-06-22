@@ -3,12 +3,21 @@
  * Cache version: 2026-06-22-2
  *
  * Bumping the version stamp: both runtime cache buckets below include the
- * `vYYYYMMDD` suffix. When this file ships, existing PWA users still have
- * the old `google-fonts` / `static-assets` caches from the previous
- * install. Workbox's `cleanupOutdatedCaches()` (called above) deletes any
- * cache whose name doesn't appear in the current precache manifest — so
- * renaming to `google-fonts-v20260622` and `static-assets-v20260622`
- * forces a one-time invalidation, then the new caches take over.
+ * `vYYYYMMDD-N` suffix (where N is the within-day revision index). When this
+ * file ships, existing PWA users still have the old `google-fonts` /
+ * `static-assets` caches from the previous install. Workbox's
+ * `cleanupOutdatedCaches()` (called above) deletes any cache whose name
+ * doesn't appear in the current precache manifest — so renaming both buckets
+ * to `google-fonts-v20260622-2` and `static-assets-v20260622-2` forces a
+ * one-time invalidation, then the new caches take over.
+ *
+ * Both buckets MUST use the SAME suffix — bumping only one (which happened
+ * in the -2 cut: static-assets moved to -2 but google-fonts stayed at the
+ * unrevised v20260622) leaves the unmoved bucket serving the previous
+ * deploy's assets to returning users. For fonts that's usually harmless
+ * (font files are immutable across deploys) but it breaks the invariant the
+ * "cache version" stamp promises — the header comment says everything
+ * invalidates together, so they should.
  *
  * Bump this version (and the bucket suffixes) whenever you ship changes
  * to the app shell, fonts, or any cached static asset — even if the SW
@@ -127,7 +136,7 @@ for (const pattern of NETWORK_ONLY_PATTERNS) {
 // ──────────────────────────────────────────────────────
 registerRoute(
   /^https:\/\/fonts\.(googleapis|gstatic)\.com/,
-  new NetworkFirst({ cacheName: 'google-fonts-v20260622', networkTimeoutSeconds: 5 })
+  new NetworkFirst({ cacheName: 'google-fonts-v20260622-2', networkTimeoutSeconds: 5 })
 );
 
 // ──────────────────────────────────────────────────────

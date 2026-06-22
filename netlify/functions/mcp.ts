@@ -117,11 +117,6 @@ function isArray(value: unknown): value is unknown[] {
   return Array.isArray(value);
 }
 
-/** Validates that a value is a valid number or undefined */
-function isOptionalNumber(value: unknown): value is number | undefined {
-  return value === undefined || (typeof value === 'number' && !Number.isNaN(value));
-}
-
 /**
  * Validates a Solana base58 public key format.
  * Allows the MCP server to reject obviously malformed wallet addresses
@@ -203,7 +198,23 @@ function validateBuildRecoveryTransactionArgs(args: RawToolArgs): BuildRecoveryT
   return {
     wallet_address: args.wallet_address,
     destination_wallet: args.destination_wallet,
-    batch_number: isOptionalNumber(args.batch_number) ? args.batch_number : undefined,
+    // batch_number must be a positive integer >= 1 — Solana batch indices are
+    // 1-based and fractional values would silently route to the wrong batch
+    // in the downstream /api/build-recovery handler. validateBuildRevokeTrans
+    // actionsArgs already enforces this shape for its sibling tool; this
+    // keeps both transaction-building tools on the same validation contract
+    // so an MCP client (Claude, Cursor, Windsurf) can't pass batch_number=0.5
+    // to recovery and have it accepted while the same input is rejected for
+    // revoke. The IIFE matches the pattern in validateBuildRevokeTransactions
+    // Args above — inline IIFE returns undefined for invalid inputs rather
+    // than throwing, keeping the validator's "return null on bad input"
+    // contract intact.
+    batch_number: (() => {
+      const bn = args.batch_number;
+      if (bn === undefined) return undefined;
+      if (typeof bn !== 'number' || !Number.isFinite(bn) || bn < 1 || !Number.isInteger(bn)) return undefined;
+      return bn;
+    })(),
     fee_percent: typeof feePercent === 'number' ? feePercent : undefined,
   };
 }
