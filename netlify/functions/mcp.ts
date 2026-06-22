@@ -1188,7 +1188,19 @@ export const handler: Handler = async (event) => {
       // Legacy X-RateLimit-* fields — preserved for older clients that
       // haven't adopted the IETF draft. Will be removed once SolHunt
       // MCP clients (Claude, Cursor, Windsurf) all support RateLimit-*.
-      'X-RateLimit-Limit': String(RATE_LIMIT),
+      //
+      // Bug fix: X-RateLimit-Limit was previously hardcoded to RATE_LIMIT
+      // (the per-IP cap of 100) regardless of which policy tripped. When
+      // the stricter per-wallet policy (50/h) is the active constraint,
+      // the IETF RateLimit-* header correctly reports q=50, but a legacy
+      // client only reading X-RateLimit-* saw q=100 with remaining=0 — a
+      // 2x self-miscount of the real budget. Pick the limit from the
+      // same source that drives RateLimit-* so both header families stay
+      // consistent. Clients throttling on X-RateLimit-Remaining now stop
+      // at the same boundary as clients throttling on RateLimit.
+      'X-RateLimit-Limit': String(
+        rateLimit.source === 'wallet' ? WALLET_RATE_LIMIT : RATE_LIMIT
+      ),
       'X-RateLimit-Remaining': String(rateLimit.remaining),
       'X-RateLimit-Reset': String(Math.floor(rateLimit.resetAt / 1000)),
       'X-RateLimit-Window': String(windowSec),
