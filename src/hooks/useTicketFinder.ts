@@ -132,7 +132,7 @@ export function useTicketFinder() {
             clearTicketClaim();
             logTicketScanStarted();
 
-            const result = await scanForStakingTickets(publicKey.toBase58(), connection);
+            const result = await scanForStakingTickets(publicKey.toBase58());
             setTicketScanResult(result);
 
             logTicketScanComplete({
@@ -160,7 +160,6 @@ export function useTicketFinder() {
         }
     }, [
         publicKey,
-        connection,
         clearTicketClaim,
         setTicketScanStatus,
         setTicketScanResult,

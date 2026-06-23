@@ -1,5 +1,4 @@
 import {
-    Connection,
     LAMPORTS_PER_SOL,
     ParsedAccountData,
     PublicKey,
@@ -24,6 +23,7 @@ import {
 import { isValidSolanaPublicKey } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { createAppError } from '@/lib/errors';
+import { withRetry } from '@/lib/rpcRetry';
 
 interface StakeAuthorizedInfo {
     staker?: string;
@@ -204,18 +204,20 @@ function parseMarinadeTicketData(
 
 async function scanMarinadeTickets(
     walletAddress: string,
-    connection: Connection,
     currentEpoch: number
 ): Promise<StakingTicket[]> {
     try {
-        const accounts = await connection.getProgramAccounts(new PublicKey(MARINADE_PROGRAM_ID), {
-            filters: [
-                {
-                    // beneficiary starts at discriminator(8) + state(32)
-                    memcmp: { offset: 40, bytes: walletAddress },
-                },
-            ],
-        });
+        const accounts = await withRetry(
+            (conn) => conn.getProgramAccounts(new PublicKey(MARINADE_PROGRAM_ID), {
+                filters: [
+                    {
+                        // beneficiary starts at discriminator(8) + state(32)
+                        memcmp: { offset: 40, bytes: walletAddress },
+                    },
+                ],
+            }),
+            { operationName: 'Marinade getProgramAccounts' }
+        );
 
         return accounts
             .map((account) => parseMarinadeTicketData(
@@ -235,7 +237,6 @@ async function scanMarinadeTickets(
 
 async function scanSanctumTickets(
     walletAddress: string,
-    connection: Connection,
     currentEpoch: number
 ): Promise<StakingTicket[]> {
     if (Date.now() < sanctumApiSkipUntilMs) {
@@ -298,7 +299,10 @@ async function scanSanctumTickets(
         const ticketAddress = (apiTicket.ticket || apiTicket.ticketAddress || '').trim();
         if (!ticketAddress || !isValidSolanaPublicKey(ticketAddress)) continue;
 
-        const accountInfo = await connection.getAccountInfo(new PublicKey(ticketAddress), 'confirmed');
+        const accountInfo = await withRetry(
+            (conn) => conn.getAccountInfo(new PublicKey(ticketAddress), 'confirmed'),
+            { operationName: 'Sanctum getAccountInfo' }
+        );
         if (!accountInfo) continue;
 
         const lamportsRaw = String(
@@ -354,22 +358,24 @@ function getParsedStakeInfo(accountData: unknown): ParsedStakeInfo | null {
 }
 
 async function fetchStakeAccountsForWallet(
-    walletAddress: string,
-    connection: Connection
+    walletAddress: string
 ): Promise<StakeAccountEntry[]> {
-    const results = await connection.getParsedProgramAccounts(
-        StakeProgram.programId,
-        {
-            filters: [
-                {
-                    memcmp: {
-                        // Per spec: withdrawer offset in stake account layout
-                        offset: 44,
-                        bytes: walletAddress,
+    const results = await withRetry(
+        (conn) => conn.getParsedProgramAccounts(
+            StakeProgram.programId,
+            {
+                filters: [
+                    {
+                        memcmp: {
+                            // Per spec: withdrawer offset in stake account layout
+                            offset: 44,
+                            bytes: walletAddress,
+                        },
                     },
-                },
-            ],
-        }
+                ],
+            }
+        ),
+        { operationName: 'getParsedProgramAccounts stake' }
     );
 
     const entries: StakeAccountEntry[] = [];
@@ -555,8 +561,7 @@ async function scanNativeStakeAccounts(
 }
 
 export async function scanForStakingTickets(
-    walletAddress: string,
-    connection: Connection
+    walletAddress: string
 ): Promise<TicketScanResult> {
     if (!isValidSolanaPublicKey(walletAddress)) {
         throw createAppError(
@@ -567,7 +572,10 @@ export async function scanForStakingTickets(
 
     let currentEpoch = 0;
     try {
-        const epochInfo = await connection.getEpochInfo('confirmed');
+        const epochInfo = await withRetry(
+            (conn) => conn.getEpochInfo('confirmed'),
+            { operationName: 'getEpochInfo' }
+        );
         currentEpoch = epochInfo.epoch;
     } catch (_err: unknown) {
         return {
@@ -584,18 +592,18 @@ export async function scanForStakingTickets(
         };
     }
 
-    const stakeAccountsPromise = fetchStakeAccountsForWallet(walletAddress, connection);
+    const stakeAccountsPromise = fetchStakeAccountsForWallet(walletAddress);
     const protocolScanners: Array<{
         protocol: StakingProtocol;
         run: () => Promise<StakingTicket[]>;
     }> = [
             {
                 protocol: 'marinade',
-                run: () => scanMarinadeTickets(walletAddress, connection, currentEpoch),
+                run: () => scanMarinadeTickets(walletAddress, currentEpoch),
             },
             {
                 protocol: 'sanctum',
-                run: () => scanSanctumTickets(walletAddress, connection, currentEpoch),
+                run: () => scanSanctumTickets(walletAddress, currentEpoch),
             },
             {
                 protocol: 'jito',
