@@ -132,7 +132,7 @@ export function setPageMeta(meta: PageMeta): void {
     if (nodes.ogImage) nodes.ogImage.setAttribute('content', DEFAULT_OG_IMAGE);
     if (nodes.twitterImage) nodes.twitterImage.setAttribute('content', DEFAULT_OG_IMAGE);
     if (nodes.robots) {
-        nodes.robots.setAttribute('content', meta.noindex ? 'noindex, follow' : 'index, follow');
+        nodes.robots.setAttribute('content', meta.noindex === true ? 'noindex, follow' : 'index, follow');
     }
 }
 
