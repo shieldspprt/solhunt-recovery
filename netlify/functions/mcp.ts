@@ -39,7 +39,7 @@ interface TokenAccountItem {
 }
 
 /** Platform features grouped by category for discover_platform_features tool */
-type FeaturesByCategory = Record<string, string[]>;
+type FeaturesByCategory = Record<FeatureCategory, string[]>;
 
 /** Arguments for build_revoke_transactions tool */
 interface BuildRevokeTransactionsArgs {
@@ -926,7 +926,9 @@ async function executeTool(
           ],
         };
 
-        const categories = category === 'all' ? Object.values(allFeatures).flat() : (allFeatures[category] ?? []);
+        const categories = category === 'all'
+            ? Object.values(allFeatures).flat()
+            : (allFeatures[category as FeatureCategory] ?? []);
 
         // Shape parity with the other 5 MCP tools: every other tool returns
         // { success: true, data: { ... } }, but discover_platform_features was
