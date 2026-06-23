@@ -1486,7 +1486,7 @@ Workflow: 1) Call get_wallet_report. 2) If recoverable SOL > 0.001, call preview
 
   return {
     statusCode: 405,
-    headers: buildHeaders(false),
+    headers: buildHeaders(true),
     body: JSON.stringify(createMCPError('METHOD_NOT_ALLOWED', 'HTTP method not allowed. Use GET or POST.'))
   };
 };

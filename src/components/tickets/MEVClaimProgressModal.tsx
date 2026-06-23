@@ -37,10 +37,6 @@ export const MEVClaimProgressModal = memo(() => {
             <button
                 className="absolute inset-0 cursor-pointer bg-shield-bg/85 backdrop-blur-sm"
                 onClick={cancelClaim}
-                aria-label="Close MEV claim progress overlay"
-                aria-hidden="true"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') cancelClaim(); }}
                 type="button"
             />
 
