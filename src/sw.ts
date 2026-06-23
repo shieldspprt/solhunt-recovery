@@ -1,6 +1,6 @@
 /**
  * SolHunt Service Worker
- * Cache version: 2026-06-22-2
+ * Cache version: 2026-06-23-1
  *
  * Bumping the version stamp: both runtime cache buckets below include the
  * `vYYYYMMDD-N` suffix (where N is the within-day revision index). When this
@@ -8,7 +8,7 @@
  * `static-assets` caches from the previous install. Workbox's
  * `cleanupOutdatedCaches()` (called above) deletes any cache whose name
  * doesn't appear in the current precache manifest — so renaming both buckets
- * to `google-fonts-v20260622-2` and `static-assets-v20260622-2` forces a
+ * to `google-fonts-v20260623-1` and `static-assets-v20260623-1` forces a
  * one-time invalidation, then the new caches take over.
  *
  * Both buckets MUST use the SAME suffix — bumping only one (which happened
@@ -48,14 +48,7 @@ interface BeforeInstallPromptEvent extends Event {
     prompt(): Promise<void>;
 }
 
-/**
- * Marker type for service worker activate events.
- * The 'extends Event' satisfies the @ts-ignore expectation in activate listeners.
- * @see https://developer.mozilla.org/en-US/docs/Web/API/ExtendableEvent
- */
-interface ActivateEvent extends Event {
-    waitUntil(promise: Promise<unknown>): void;
-}
+
 
 /**
  * Extends ServiceWorkerGlobalScope with SolHunt-specific additions.
@@ -136,7 +129,7 @@ for (const pattern of NETWORK_ONLY_PATTERNS) {
 // ──────────────────────────────────────────────────────
 registerRoute(
   /^https:\/\/fonts\.(googleapis|gstatic)\.com/,
-  new NetworkFirst({ cacheName: 'google-fonts-v20260622-2', networkTimeoutSeconds: 5 })
+  new NetworkFirst({ cacheName: 'google-fonts-v20260623-1', networkTimeoutSeconds: 5 })
 );
 
 // ──────────────────────────────────────────────────────
@@ -145,14 +138,14 @@ registerRoute(
 // ──────────────────────────────────────────────────────
 registerRoute(
   /\.(?:js|css)$/,
-  new StaleWhileRevalidate({ cacheName: 'static-assets-v20260622-2' })
+  new StaleWhileRevalidate({ cacheName: 'static-assets-v20260623-1' })
 );
 
 // ──────────────────────────────────────────────────────
 // 6. Lifecycle: skip waiting + claim clients for fast updates
 // ──────────────────────────────────────────────────────
 self.skipWaiting();
-self.addEventListener('activate', (event: ActivateEvent) => {
+self.addEventListener('activate', (event: ExtendableEvent) => {
     event.waitUntil(self.clients.claim());
 });
 
