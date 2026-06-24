@@ -36,6 +36,7 @@ export const ClaimProgressModal = memo(() => {
                 className="absolute inset-0 cursor-pointer bg-shield-bg/85 backdrop-blur-sm"
                 onClick={cancelClaim}
                 type="button"
+                aria-label="Close claim modal by clicking backdrop"
             />
 
             <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
