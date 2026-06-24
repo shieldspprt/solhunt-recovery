@@ -7,6 +7,7 @@ import {
 } from '../constants';
 import type { HarvestEstimate, LPPosition } from '../types';
 import { formatLPUSD, formatLPSOL } from '../utils/formatting';
+import { useCallback, useEffect, useRef } from 'react';
 
 interface HarvestConfirmModalProps {
     open: boolean;
@@ -31,6 +32,55 @@ export function HarvestConfirmModal({
     const previewPositions = positions.slice(0, 8);
     const hiddenCount = Math.max(positions.length - previewPositions.length, 0);
 
+    // Focus management refs
+    const modalRef = useRef<HTMLDivElement>(null);
+    const cancelButtonRef = useRef<HTMLButtonElement>(null);
+    const previousActiveElement = useRef<HTMLElement | null>(null);
+
+    // Escape key handler
+    const handleEscape = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape') onCancel();
+    }, [onCancel]);
+
+    // Tab key trap handler
+    const handleTabKey = useCallback((e: KeyboardEvent, first: HTMLElement | undefined, last: HTMLElement | undefined) => {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first?.focus();
+        }
+    }, []);
+
+    // Global escape listener + focus management on mount/unmount
+    useEffect(() => {
+        previousActiveElement.current = document.activeElement as HTMLElement;
+        document.addEventListener('keydown', handleEscape);
+        const cancelBtn = cancelButtonRef.current;
+        const timer = setTimeout(() => cancelBtn?.focus(), 0);
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            previousActiveElement.current?.focus();
+            clearTimeout(timer);
+        };
+    }, [handleEscape]);
+
+    // Modal-local tab trap
+    useEffect(() => {
+        const modal = modalRef.current;
+        if (!modal) return;
+        const focusable = modal.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const handler = (e: KeyboardEvent) => handleTabKey(e, first, last);
+        modal.addEventListener('keydown', handler);
+        return () => modal.removeEventListener('keydown', handler);
+    }, [handleTabKey]);
+
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div
@@ -40,12 +90,14 @@ export function HarvestConfirmModal({
             />
 
             <div
+                ref={modalRef}
                 className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
             >
                 <button
+                    ref={cancelButtonRef}
                     type="button"
                     onClick={onCancel}
                     aria-label="Close LP harvest confirmation modal"
