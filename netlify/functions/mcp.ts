@@ -9,7 +9,7 @@ import { buildCorsHeaders, safeLogInfo } from './_shared';
 // ── Type Definitions ────────────────────────────────────────────────────────────
 
 /** Valid MCP tool names */
-type ToolName = 'get_wallet_report' | 'scan_token_approvals' | 'build_revoke_transactions' | 'build_recovery_transaction' | 'preview_recovery' | 'discover_platform_features';
+type ToolName = 'get_wallet_report' | 'scan_token_approvals' | 'build_revoke_transactions' | 'build_recovery_transaction' | 'preview_recovery' | 'discover_platform_features' | 'health_check';
 
 /** Arguments for get_wallet_report tool */
 interface GetWalletReportArgs {
@@ -29,6 +29,10 @@ interface PreviewRecoveryArgs {
 /** Arguments for discover_platform_features tool */
 interface DiscoverPlatformFeaturesArgs {
   feature_category?: string;
+}
+
+/** Arguments for health_check tool - no arguments needed */
+interface HealthCheckArgs {
 }
 
 /** Token account item for revocation */
@@ -66,7 +70,8 @@ type ToolArgs =
   | BuildRevokeTransactionsArgs 
   | BuildRecoveryTransactionArgs 
   | PreviewRecoveryArgs
-  | DiscoverPlatformFeaturesArgs;
+  | DiscoverPlatformFeaturesArgs
+  | HealthCheckArgs;
 
 /** Standard MCP error codes.
  * PARSE_ERROR is included for JSON-RPC spec compliance (-32700).
@@ -238,6 +243,12 @@ function validateDiscoverPlatformFeaturesArgs(args: RawToolArgs): DiscoverPlatfo
   return { feature_category };
 }
 
+/** Validates and narrows raw arguments to HealthCheckArgs */
+function validateHealthCheckArgs(_args: RawToolArgs): HealthCheckArgs | null {
+  // health_check takes no arguments - always valid if called
+  return {};
+}
+
 /** Validates raw arguments against the expected tool schema */
 function validateToolArgs(name: ToolName, args: RawToolArgs): ToolArgs | null {
   switch (name) {
@@ -253,6 +264,8 @@ function validateToolArgs(name: ToolName, args: RawToolArgs): ToolArgs | null {
       return validatePreviewRecoveryArgs(args);
     case 'discover_platform_features':
       return validateDiscoverPlatformFeaturesArgs(args);
+    case 'health_check':
+      return validateHealthCheckArgs(args);
     default:
       return null;
   }
@@ -491,6 +504,19 @@ Full platform at https://solhunt.dev.`,
       additionalProperties: false
     },
     instructions: `Step 1: Call discover_platform_features with an optional feature_category filter.\nStep 2: Parse the response — it includes a list of web-only tools at https://solhunt.dev.\nStep 3: Visit https://solhunt.dev to access the full platform.\nStep 4: For programmatic wallet recovery and token approvals, use the other SolHunt MCP tools.`
+  },
+  {
+    name: "health_check",
+    description: `Health check endpoint for monitoring SolHunt MCP server status.
+Returns server version, uptime, and dependency health (API base reachability).
+Use this to verify the MCP server is operational before calling other tools.
+No authentication or wallet address required.`,
+    inputSchema: {
+      type: "object",
+      properties: {},
+      additionalProperties: false
+    },
+    instructions: `Call health_check with no arguments to verify MCP server health. Returns { status: 'healthy' | 'degraded', version, uptime_seconds, api_base_reachable: boolean, timestamp }.`
   }
 ];
 
@@ -959,6 +985,31 @@ async function executeTool(
             category_labels: categoryLabels,
             web_exclusive_tools: categories,
             url: 'https://solhunt.dev',
+          },
+        };
+      }
+
+      case 'health_check': {
+        // Check API base reachability
+        let apiBaseReachable = false;
+        try {
+          const res = await fetch(`${API_BASE}/health`, { 
+            method: 'HEAD', 
+            signal: AbortSignal.timeout(3000) 
+          });
+          apiBaseReachable = res.ok;
+        } catch (_e: unknown) {
+          apiBaseReachable = false;
+        }
+
+        return {
+          success: true,
+          data: {
+            status: apiBaseReachable ? 'healthy' : 'degraded',
+            version: '1.0.0',
+            uptime_seconds: Math.floor(process.uptime()),
+            api_base_reachable: apiBaseReachable,
+            timestamp: new Date().toISOString(),
           },
         };
       }
