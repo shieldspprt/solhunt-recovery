@@ -17,6 +17,14 @@ const TOKEN_PROGRAM_ID = SOLANA_TOKEN_PROGRAM_ID;
 const RENT_PER_ACCOUNT_SOL = 0.00203928;
 const MAX_ACCOUNTS_PER_TX = 15;
 const FEE_PERCENT = 15;
+// Configurable fee percentage via env var (default 15%). Allows ops to A/B test
+// or run promotions without redeploying. Must be a finite number in [0, 100].
+const EFFECTIVE_FEE_PERCENT = (() => {
+  const envVal = process.env.SOLHUNT_FEE_PERCENT;
+  if (envVal === undefined) return FEE_PERCENT;
+  const parsed = parseFloat(envVal);
+  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100 ? parsed : FEE_PERCENT;
+})();
 const ESTIMATED_TX_COST_SOL = 0.000005; // 5000 lamports base fee, just an estimate
 const FEE_WALLET = 'DD4AdYKVcV6kgpmiCEeASRmJyRdKgmaRAbsjKucx8CvY';
 
@@ -106,7 +114,7 @@ export const handler: Handler = async (event) => {
     const numAccounts = accountsToClose.length;
 
     const grossRecoverableSol = numAccounts * RENT_PER_ACCOUNT_SOL;
-    const solhuntFeeSol = grossRecoverableSol * (FEE_PERCENT / 100);
+    const solhuntFeeSol = grossRecoverableSol * (EFFECTIVE_FEE_PERCENT / 100);
     const youReceiveSol = grossRecoverableSol - solhuntFeeSol;
 
     const batchesNeeded = Math.ceil(numAccounts / MAX_ACCOUNTS_PER_TX);
@@ -121,7 +129,7 @@ export const handler: Handler = async (event) => {
         accounts_to_close: numAccounts,
         gross_recoverable_sol: parseFloat(grossRecoverableSol.toFixed(6)),
         solhunt_fee_sol: parseFloat(solhuntFeeSol.toFixed(6)),
-        fee_percent: FEE_PERCENT,
+        fee_percent: EFFECTIVE_FEE_PERCENT,
         you_receive_sol: parseFloat(youReceiveSol.toFixed(6)),
         estimated_tx_cost_sol: parseFloat(totalEstimatedTxCost.toFixed(6)),
         net_to_you_sol: parseFloat(netToYouSol.toFixed(6)),
