@@ -149,6 +149,12 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
     event.waitUntil(self.clients.claim());
 });
 
+// Type assertion for ExtendableEvent - SW events are ExtendableEvent but
+// TypeScript's global types don't always expose it. Use type assertion
+// to satisfy strict mode without requiring @types/web.
+const _extendableEventGuard = {} as ExtendableEvent;
+void _extendableEventGuard; // Silence unused variable warning
+
 // ──────────────────────────────────────────────────────
 // 7. PWA Install Prompt Capture
 //    Defer the native install prompt for better UX timing
