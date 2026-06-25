@@ -42,6 +42,7 @@ export const DustTokenRow = memo(function DustTokenRow({ token, quote, selected,
                 type="checkbox"
                 checked={selected}
                 disabled={!token.isSwappable}
+                aria-disabled={!token.isSwappable}
                 onChange={() => onToggle(token.mint)}
                 onClick={(e) => e.stopPropagation()}
                 aria-label={`Select ${token.tokenSymbol} for swapping`}

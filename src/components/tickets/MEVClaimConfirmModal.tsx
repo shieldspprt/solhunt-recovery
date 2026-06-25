@@ -131,6 +131,7 @@ export function MEVClaimConfirmModal() {
                             type="button"
                             onClick={executeClaim}
                             disabled={!feeConsent}
+                            aria-disabled={!feeConsent}
                             aria-label={`Confirm claim of ${formatSOLValue(claimEstimate.netReceivedSOL)} — ${claimEstimate.selectedCount} MEV reward${claimEstimate.selectedCount === 1 ? '' : 's'}`}
                             className="flex-1 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white shadow-lg shadow-shield-accent/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none hover:bg-shield-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent focus-visible:ring-offset-2 focus-visible:ring-offset-shield-bg"
                         >

@@ -411,6 +411,7 @@ export function WalletScanner() {
           onClick={handleScan}
           aria-label={state === 'loading' ? 'Cancel wallet scan' : 'Execute wallet scan'}
           disabled={state === 'loading' || !address.trim()}
+          aria-disabled={state === 'loading' || !address.trim()}
           type="button"
           className={[
             'relative px-8 py-4 rounded-xl font-bold text-sm transition-all overflow-hidden group/btn font-mono uppercase tracking-widest',
