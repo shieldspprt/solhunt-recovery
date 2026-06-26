@@ -229,6 +229,7 @@ export function StatsDisplay() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [solPriceUSD, setSolPriceUSD] = useState<number | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
     // Fetch real SOL price from Jupiter for accurate USD estimates
@@ -245,6 +246,9 @@ export function StatsDisplay() {
     // 8s window matches the timeout used elsewhere in the codebase for
     // /api/* calls (e.g. Sanctum tickets, dust scanners, LP harvesters) —
     // consistent UX timeout behaviour across the app.
+    setLoading(true);
+    setError('');
+
     const controller = new AbortController();
     const timeoutSignal = AbortSignal.timeout(8000);
     const signal = AbortSignal.any([controller.signal, timeoutSignal]);
@@ -270,8 +274,9 @@ export function StatsDisplay() {
         setError('Failed to load stats');
       })
       .finally(() => setLoading(false));
+
     return () => controller.abort();
-  }, []);
+  }, [reloadToken]);
 
   if (loading) {
     return <StatsSkeleton />;
@@ -280,13 +285,27 @@ export function StatsDisplay() {
   if (error || !data?.today) {
     return (
       <section className="w-full max-w-2xl mx-auto px-4 py-8" aria-label="Stats unavailable">
-        <p className="text-center text-gray-600 text-sm" role="status">
-          Stats update daily at 9am UTC.
-          {!data?.today && data?.totals?.days_of_data === 0
-            ? ' First scan has not run yet.'
-            : ''
-          }
-        </p>
+        <div className="rounded-xl border border-gray-700/60 bg-gray-900/80 px-4 py-5 text-center">
+          <p className="text-gray-300 text-sm" role="status" aria-live="polite">
+            Stats update daily at 9am UTC.
+            {!data?.today && data?.totals?.days_of_data === 0
+              ? ' First scan has not run yet.'
+              : ''
+            }
+          </p>
+          {error && (
+            <p className="mt-2 text-xs text-red-400">
+              {error}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={() => setReloadToken((value) => value + 1)}
+            className="mt-4 inline-flex items-center justify-center rounded-md border border-gray-700 bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-200 transition-colors hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent"
+          >
+            Retry
+          </button>
+        </div>
       </section>
     );
   }
