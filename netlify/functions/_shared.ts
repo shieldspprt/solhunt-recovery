@@ -48,6 +48,8 @@ export const ALLOWED_ORIGINS: readonly string[] = [
  *   (matches `netlify.toml` security headers).
  * - `Cache-Control: no-store` is the safe default for handler responses —
  *   individual functions can override it.
+ * - `Referrer-Policy: strict-origin-when-cross-origin` limits referrer
+ *   information sent to external origins, reducing privacy leakage.
  */
 export const BASE_SECURITY_HEADERS: Readonly<Record<string, string>> = Object.freeze({
   'Content-Type': 'application/json',
@@ -55,6 +57,7 @@ export const BASE_SECURITY_HEADERS: Readonly<Record<string, string>> = Object.fr
   'X-Frame-Options': 'DENY',
   'Content-Security-Policy': "default-src 'none'; frame-ancestors 'none'",
   'Vary': 'Origin',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
 });
 
 /**
