@@ -108,7 +108,8 @@ function isValidToolName(name: string): name is ToolName {
     'build_revoke_transactions',
     'build_recovery_transaction',
     'preview_recovery',
-    'discover_platform_features'
+    'discover_platform_features',
+    'health_check'
   ].includes(name);
 }
 
@@ -1466,7 +1467,7 @@ Workflow: 1) Call get_wallet_report. 2) If recoverable SOL > 0.001, call preview
       return {
         statusCode: 400,
         headers: buildHeaders(),
-        body: JSON.stringify(createMCPError('TOOL_NOT_FOUND', `Unknown tool: ${toolName || 'undefined'}`, toolName, `Valid tool names are: get_wallet_report, scan_token_approvals, build_revoke_transactions, build_recovery_transaction, preview_recovery, discover_platform_features`))
+        body: JSON.stringify(createMCPError('TOOL_NOT_FOUND', `Unknown tool: ${toolName || 'undefined'}`, toolName, `Valid tool names are: get_wallet_report, scan_token_approvals, build_revoke_transactions, build_recovery_transaction, preview_recovery, discover_platform_features, health_check`))
       };
     }
 
