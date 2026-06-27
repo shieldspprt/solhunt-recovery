@@ -156,14 +156,14 @@
 
             <!-- Solana dApp Store Compliance: Mobile wallet deep links for connection -->
             <!-- BROWSABLE category is REQUIRED for Android to route deep links to installed wallet apps -->
-            <intent-filter android:exported="true">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="solana"/>
             </intent-filter>
 
-            <intent-filter android:exported="true">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
