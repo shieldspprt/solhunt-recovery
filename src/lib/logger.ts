@@ -83,15 +83,13 @@ export const logger = {
     },
     error: (context: string, err?: unknown, metadata: ErrorMetadata = {}): void => {
         if (!IS_PRODUCTION) {
-            // Include metadata in the dev console output too — when chasing
-            // down a componentStack or a custom tag in the Firebase dashboard
-            // the dev console is the first place a contributor looks, so
-            // merging the keys here keeps the local repro path identical to
-            // the production analytics path.
+            // Keep the dev console signal visible without marking every
+            // recoverable app error as a red-stack error in the browser.
+            // Production still forwards the structured payload to analytics.
             if (Object.keys(metadata).length > 0) {
-                console.error(context, err, metadata);
+                console.warn(context, err, metadata);
             } else {
-                console.error(context, err);
+                console.warn(context, err);
             }
         }
         // In production: forward structured context + errorCode to Firebase

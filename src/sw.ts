@@ -61,6 +61,15 @@ interface SolHuntServiceWorkerGlobalScope extends ServiceWorkerGlobalScope {
 
 declare let self: SolHuntServiceWorkerGlobalScope;
 
+/**
+ * Minimal event shape needed by the activate handler.
+ * Keeps the code type-safe without relying on the broader ExtendableEvent
+ * assertion workaround.
+ */
+interface ExtendableEventLike extends Event {
+    waitUntil(promise: Promise<unknown>): void;
+}
+
 // Type guard: VitePWA can inject strings into __WB_MANIFEST but precacheAndRoute only accepts entries.
 // Filter to valid PrecacheEntry objects at runtime to satisfy the type system.
 // Uses `unknown` to bypass internal vs global PrecacheEntry type incompatibility.
@@ -145,7 +154,7 @@ registerRoute(
 // 6. Lifecycle: skip waiting + claim clients for fast updates
 // ──────────────────────────────────────────────────────
 self.skipWaiting();
-self.addEventListener('activate', (event: ExtendableEvent) => {
+self.addEventListener('activate', (event: ExtendableEventLike) => {
     event.waitUntil(self.clients.claim());
 });
 
