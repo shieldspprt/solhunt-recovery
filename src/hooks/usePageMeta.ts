@@ -47,7 +47,7 @@ const DEFAULT_OG_IMAGE = 'https://solhunt.dev/solhunt_og_preview.png';
 export interface PageMeta {
     /** Page title (without "| SolHunt" suffix — added automatically if missing). */
     title: string;
-    /** Meta description. Falls back to a no-op if omitted. */
+    /** Meta description. Falls back to the page title when omitted. */
     description?: string;
     /**
      * When true, sets <meta name="robots" content="noindex, follow">.
@@ -97,6 +97,8 @@ export function setPageMeta(meta: PageMeta): void {
     const normalizedTitle = meta.title.includes('| SolHunt')
         ? meta.title
         : `${meta.title} | SolHunt`;
+    const fallbackDescription = meta.title.replace(/\s*\|\s*SolHunt$/, '').trim() || normalizedTitle;
+    const normalizedDescription = meta.description?.trim() || fallbackDescription;
 
     // Title is special — direct property assignment is the only way.
     document.title = normalizedTitle;
@@ -118,12 +120,14 @@ export function setPageMeta(meta: PageMeta): void {
     // previews between Slack (og:*) and Twitter (twitter:*).
     if (nodes.twitterTitle) nodes.twitterTitle.setAttribute('content', normalizedTitle);
 
-    if (meta.description !== undefined && meta.description !== '') {
-        if (nodes.description) nodes.description.setAttribute('content', meta.description);
-        if (nodes.ogDescription) nodes.ogDescription.setAttribute('content', meta.description);
-        // Mirror to twitter:description for the same reason as twitter:title.
-        if (nodes.twitterDescription) nodes.twitterDescription.setAttribute('content', meta.description);
-    }
+    // Always write a description so we never leave a stale previous-route
+    // description behind when a page omits one. Existing pages that provide
+    // their own description keep that text; omitted descriptions fall back
+    // to the page title, which is a better default than stale metadata.
+    if (nodes.description) nodes.description.setAttribute('content', normalizedDescription);
+    if (nodes.ogDescription) nodes.ogDescription.setAttribute('content', normalizedDescription);
+    // Mirror to twitter:description for the same reason as twitter:title.
+    if (nodes.twitterDescription) nodes.twitterDescription.setAttribute('content', normalizedDescription);
     // OG and Twitter images are global (set once in index.html), but force
     // them to the canonical URL every time to defend against any future code
     // path that may have replaced the node (e.g. a future dynamic-image
