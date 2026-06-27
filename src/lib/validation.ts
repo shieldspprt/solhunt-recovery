@@ -16,7 +16,8 @@ const DANGEROUS_PATTERNS = [
     /javascript:/i,   // JavaScript protocol injection
     /data:/i,         // Data URI injection
     /\$\{/,           // Template literal injection
-    /\`/              // Backtick injection
+    /\`/,              // Backtick injection
+    /[\u200B-\u200F\u202A-\u202E\u2066-\u2069]/, // Invisible/bidi Unicode control characters
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────

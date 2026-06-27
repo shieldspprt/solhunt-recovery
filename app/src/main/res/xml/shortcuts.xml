@@ -7,7 +7,7 @@
     <shortcut
         android:shortcutId="scan_wallet"
         android:enabled="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_shortcut_scan"
         android:shortcutShortLabel="@string/shortcut_scan_short"
         android:shortcutLongLabel="@string/shortcut_scan_long"
     >
@@ -21,7 +21,7 @@
     <shortcut
         android:shortcutId="revoke_approvals"
         android:enabled="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_shortcut_revoke"
         android:shortcutShortLabel="@string/shortcut_revoke_short"
         android:shortcutLongLabel="@string/shortcut_revoke_long"
     >
@@ -35,7 +35,7 @@
     <shortcut
         android:shortcutId="reclaim_rent"
         android:enabled="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_shortcut_rent"
         android:shortcutShortLabel="@string/shortcut_reclaim_short"
         android:shortcutLongLabel="@string/shortcut_reclaim_long"
     >
@@ -49,7 +49,7 @@
     <shortcut
         android:shortcutId="fleet_manager"
         android:enabled="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_shortcut_fleet"
         android:shortcutShortLabel="@string/shortcut_fleet_short"
         android:shortcutLongLabel="@string/shortcut_fleet_long"
     >
