@@ -1,7 +1,7 @@
 {
   "name": "SolHunt",
   "short_name": "SolHunt",
-  "description": "Recover locked SOL, reclaim rent, revoke risky approvals, and harvest unclaimed LP fees, staking tickets, MEV rewards, cNFT accounts, and buffer accounts \u2014 client-side and non-custodial.",
+  "description": "Recover locked SOL, reclaim rent, revoke risky approvals, and harvest unclaimed LP fees, staking tickets, MEV rewards, cNFT accounts, and buffer accounts — client-side and non-custodial.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -121,6 +121,20 @@
       "short_name": "Tickets",
       "description": "Find and close SPL staking accounts",
       "url": "/?engine=tickets",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any"
+        }
+      ]
+    },
+    {
+      "name": "Fleet Manager",
+      "short_name": "Fleet",
+      "description": "Monitor agent wallets and route to the scan dashboard",
+      "url": "/?engine=fleet",
       "icons": [
         {
           "src": "/icons/icon-192.png",

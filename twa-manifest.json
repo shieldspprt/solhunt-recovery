@@ -40,6 +40,12 @@
       "shortName": "Reclaim",
       "url": "/?engine=reclaim",
       "icons": [{ "src": "https://solhunt.dev/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Fleet Manager",
+      "shortName": "Fleet",
+      "url": "/?engine=fleet",
+      "icons": [{ "src": "https://solhunt.dev/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],
   "generatorApp": "bubblewrap-cli",
