@@ -14,8 +14,8 @@ export function LpFeeHarvesterPage() {
 
     // Prevent search engines from indexing wallet-specific scan results
     usePageMeta({
-        title: 'LP Fee Harvester',
-        description: 'Harvest unclaimed LP fees from Raydium, Orca, and other Solana DEXs using SolHunt\'s LP Fee Harvester — reclaim value earned but not collected.',
+        title: 'LP Fee Harvester | SolHunt',
+        description: 'Scan your Solana positions for unclaimed LP fees and harvest them with SolHunt — client-side, non-custodial, and built for quick recovery.',
         noindex: true,
     });
 
