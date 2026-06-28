@@ -62,6 +62,20 @@
       ]
     },
     {
+      "name": "Preview Recovery",
+      "short_name": "Preview",
+      "description": "Open the scanner to preview locked SOL and recovery options",
+      "url": "/?engine=preview",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png",
+          "purpose": "any"
+        }
+      ]
+    },
+    {
       "name": "Revoke Approvals",
       "short_name": "Revoke",
       "description": "View and revoke token approvals",

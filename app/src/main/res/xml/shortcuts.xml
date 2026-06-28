@@ -19,6 +19,20 @@
         />
     </shortcut>
     <shortcut
+        android:shortcutId="preview_recovery"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_scan"
+        android:shortcutShortLabel="@string/shortcut_preview_short"
+        android:shortcutLongLabel="@string/shortcut_preview_long"
+    >
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="dev.solhunt.app"
+            android:targetClass="dev.solhunt.app.LauncherActivity"
+            android:data="https://solhunt.dev/?engine=preview"
+        />
+    </shortcut>
+    <shortcut
         android:shortcutId="revoke_approvals"
         android:enabled="true"
         android:icon="@drawable/ic_shortcut_revoke"

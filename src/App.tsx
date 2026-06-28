@@ -45,16 +45,18 @@ import '@solana/wallet-adapter-react-ui/styles.css';
  * parameter and lands on the home page — defeating the purpose of the
  * shortcut.
  *
- * PWA manifest declares 6 shortcuts in public/manifest.webmanifest:
+ * PWA manifest declares 8 shortcuts in public/manifest.webmanifest:
  *   - scan       → /scan       (full wallet analysis)
+ *   - preview    → /          (wallet recovery preview / scanner landing)
  *   - revoke     → /scan       (revoke flows live inside the scanner)
  *   - reclaim    → /buffers    (rent reclaim is part of buffer recovery)
  *   - lp-fees    → /lp-fees    (LP Fee Harvester engine)
  *   - buffers    → /buffers    (Buffer Account Recovery engine)
  *   - tickets    → /tickets    (Staking Ticket Finder engine)
+ *   - fleet      → /scan       (MCP/web-only fallback)
  *
- * Android app shortcuts (app/src/main/res/xml/shortcuts.xml) declare 4:
- *   - scan, revoke, reclaim, fleet.
+ * Android app shortcuts (app/src/main/res/xml/shortcuts.xml) declare 6:
+ *   - scan, preview, revoke, reclaim, lp-fees, fleet.
  *   - fleet is MCP/web-only → routed to /scan as a graceful fallback.
  *
  * @see public/manifest.webmanifest — keep this list in sync when adding
@@ -75,6 +77,10 @@ function TwaShortcutRouter() {
         switch (engine) {
             case 'scan':
                 navigate('/scan', { replace: true });
+                break;
+            case 'preview':
+                // Preview Recovery is the home scanner experience.
+                navigate('/', { replace: true });
                 break;
             case 'revoke':
                 // Revoke flows are surfaced inside the scanner page.
