@@ -14,7 +14,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="dev.solhunt.app"
-            android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:targetClass="dev.solhunt.app.LauncherActivity"
             android:data="https://solhunt.dev/?engine=scan"
         />
     </shortcut>
@@ -28,7 +28,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="dev.solhunt.app"
-            android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:targetClass="dev.solhunt.app.LauncherActivity"
             android:data="https://solhunt.dev/?engine=revoke"
         />
     </shortcut>
@@ -42,7 +42,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="dev.solhunt.app"
-            android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:targetClass="dev.solhunt.app.LauncherActivity"
             android:data="https://solhunt.dev/?engine=reclaim"
         />
     </shortcut>
@@ -56,7 +56,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="dev.solhunt.app"
-            android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:targetClass="dev.solhunt.app.LauncherActivity"
             android:data="https://solhunt.dev/?engine=lp-fees"
         />
     </shortcut>
@@ -70,7 +70,7 @@
         <intent
             android:action="android.intent.action.VIEW"
             android:targetPackage="dev.solhunt.app"
-            android:targetClass="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:targetClass="dev.solhunt.app.LauncherActivity"
             android:data="https://solhunt.dev/?engine=fleet"
         />
     </shortcut>
