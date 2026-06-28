@@ -47,6 +47,12 @@ def twaManifest = [
             icon: 'ic_shortcut_scan',
         ],
         [
+            name: 'Preview Recovery',
+            short_name: 'Preview',
+            url: 'https://solhunt.dev/?engine=preview',
+            icon: 'ic_shortcut_scan',
+        ],
+        [
             name: 'Revoke Approvals',
             short_name: 'Revoke',
             url: 'https://solhunt.dev/?engine=revoke',
@@ -57,6 +63,12 @@ def twaManifest = [
             short_name: 'Rent',
             url: 'https://solhunt.dev/?engine=reclaim',
             icon: 'ic_shortcut_rent',
+        ],
+        [
+            name: 'LP Fee Harvester',
+            short_name: 'LP Fees',
+            url: 'https://solhunt.dev/?engine=lp-fees',
+            icon: 'ic_shortcut_fleet',
         ],
         [
             name: 'Fleet Manager',
@@ -190,7 +202,7 @@ android {
 }
 
 task generateShorcutsFile {
-    assert twaManifest.shortcuts.size() < 5, "You can have at most 4 shortcuts."
+    assert twaManifest.shortcuts.size() <= 6, "You can have at most 6 shortcuts."
     twaManifest.shortcuts.eachWithIndex { s, i ->
         assert s.name != null, 'Missing `name` in shortcut #' + i
         assert s.short_name != null, 'Missing `short_name` in shortcut #' + i
@@ -213,11 +225,10 @@ task generateShorcutsFile {
                         'android:shortcutShortLabel': '@string/shortcut_short_name_' + i,
                         'android:shortcutLongLabel': '@string/shortcut_name_' + i) {
                     'intent'(
-                            'android:action': 'android.intent.action.MAIN',
+                            'android:action': 'android.intent.action.VIEW',
                             'android:targetPackage': twaManifest.applicationId,
                             'android:targetClass': twaManifest.applicationId + '.LauncherActivity',
                             'android:data': s.url)
-                    'categories'('android:name': 'android.intent.category.LAUNCHER')
                 }
             }
         }
