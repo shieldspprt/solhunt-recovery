@@ -91,7 +91,7 @@ interface MCPErrorResponse {
   error: string;
   code: MCPErrorCode;
   tool?: string;
-  detail?: string;
+  detail: string;
 }
 
 /** Raw tool arguments from request — untyped at runtime (parsed from JSON).
@@ -657,7 +657,7 @@ function toHttpStatus(code: MCPErrorCode): number {
  * @param tool - Optional tool name that produced this error (useful for debugging).
  * @param detail - Machine-readable additional context (structured error body, etc.).
  */
-function createMCPError(code: MCPErrorCode, message: string, tool?: string, detail?: string): MCPErrorResponse {
+function createMCPError(code: MCPErrorCode, message: string, tool?: string, detail: string = message): MCPErrorResponse {
   return { error: message, code, tool, detail };
 }
 
