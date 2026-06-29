@@ -3,7 +3,7 @@
 // Self-contained. Manages its own state. No props required.
 
 import { useState, useCallback, useEffect, useRef, memo } from 'react';
-import { isValidSolanaAddress } from '@/lib/validation';
+import { isValidSolanaPublicKey } from '@/lib/validation';
 import { shortenAddress } from '@/lib/formatting';
 import { toAppError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
@@ -285,7 +285,7 @@ export function WalletScanner() {
       return;
     }
 
-    if (!isValidSolanaAddress(trimmed)) {
+    if (!isValidSolanaPublicKey(trimmed)) {
       setError('That does not look like a valid Solana address (32–44 characters, base58)');
       return;
     }
