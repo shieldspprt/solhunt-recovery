@@ -75,6 +75,34 @@
         />
     </shortcut>
     <shortcut
+        android:shortcutId="buffers"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_fleet"
+        android:shortcutShortLabel="@string/shortcut_buffers_short"
+        android:shortcutLongLabel="@string/shortcut_buffers_long"
+    >
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="dev.solhunt.app"
+            android:targetClass="dev.solhunt.app.LauncherActivity"
+            android:data="https://solhunt.dev/?engine=buffers"
+        />
+    </shortcut>
+    <shortcut
+        android:shortcutId="tickets"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_scan"
+        android:shortcutShortLabel="@string/shortcut_tickets_short"
+        android:shortcutLongLabel="@string/shortcut_tickets_long"
+    >
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="dev.solhunt.app"
+            android:targetClass="dev.solhunt.app.LauncherActivity"
+            android:data="https://solhunt.dev/?engine=tickets"
+        />
+    </shortcut>
+    <shortcut
         android:shortcutId="fleet_manager"
         android:enabled="true"
         android:icon="@drawable/ic_shortcut_fleet"

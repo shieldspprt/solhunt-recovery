@@ -53,4 +53,8 @@
     <string name="shortcut_lp_fees_long">Open LP Fee Harvester</string>
     <string name="shortcut_fleet_short">Fleet</string>
     <string name="shortcut_fleet_long">Monitor Agent Wallets</string>
+    <string name="shortcut_buffers_short">Buffers</string>
+    <string name="shortcut_buffers_long">Recover SOL from Buffer Accounts</string>
+    <string name="shortcut_tickets_short">Tickets</string>
+    <string name="shortcut_tickets_long">Find Staking Tickets</string>
 </resources>

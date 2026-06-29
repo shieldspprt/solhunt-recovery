@@ -46,6 +46,28 @@ function formatSol(sol: number): string {
   return sol.toFixed(3);
 }
 
+async function readJsonResponse(response: Response): Promise<{ data: unknown; errorText: string | null }> {
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    try {
+      return { data: await response.json(), errorText: null };
+    } catch (err: unknown) {
+      return {
+        data: null,
+        errorText: `Invalid JSON response from server (${response.status} ${response.statusText})`
+      };
+    }
+  }
+
+  const text = await response.text().catch(() => '');
+  return {
+    data: null,
+    errorText: text
+      ? `Unexpected response from server (${response.status} ${response.statusText}): ${text.slice(0, 120)}`
+      : `Unexpected response from server (${response.status} ${response.statusText})`
+  };
+}
+
 // ── Sub-components ────────────────────────────────────────────────────────────
 
 const ScoreBar = memo(function ScoreBar({ score }: { score: number }) {
@@ -296,15 +318,22 @@ export function WalletScanner() {
         slowScanTimeoutRef.current = null;
       }
 
-      const data = await response.json();
-
-      if (!data.success) {
+      const { data, errorText } = await readJsonResponse(response);
+      if (!data || typeof data !== 'object') {
         setState('error');
-        setError(data.error || 'Scan failed. Please try again.');
+        setError(errorText || 'Scan failed. Please try again.');
         return;
       }
 
-      setResult(data.data);
+      const payload = data as Partial<WalletScanResponse> & { success?: boolean; error?: string };
+
+      if (!response.ok || !payload.success) {
+        setState('error');
+        setError(payload.error || errorText || 'Scan failed. Please try again.');
+        return;
+      }
+
+      setResult(payload as WalletScanResponse);
       setState('success');
     } catch (err: unknown) {
       // Don't report errors for aborted requests - they were intentionally cancelled
