@@ -1371,7 +1371,12 @@ export const handler: Handler = async (event) => {
       return {
         statusCode: 400,
         headers: buildHeaders(),
-        body: JSON.stringify(createMCPError('PARSE_ERROR', 'Invalid JSON body'))
+        body: JSON.stringify(createMCPError(
+          'PARSE_ERROR',
+          'Invalid JSON body',
+          undefined,
+          'Request body could not be parsed as JSON. Use valid JSON for direct tool calls or JSON-RPC requests.'
+        ))
       };
     }
 
@@ -1460,7 +1465,12 @@ Workflow: 1) Call get_wallet_report. 2) If recoverable SOL > 0.001, call preview
       return {
         statusCode: 400,
         headers: buildHeaders(),
-        body: JSON.stringify(createMCPError('INVALID_PARAMS', `Unsupported JSON-RPC method: ${body.method}`))
+        body: JSON.stringify(createMCPError(
+          'INVALID_PARAMS',
+          `Unsupported JSON-RPC method: ${body.method}`,
+          undefined,
+          'Expected tools/call, tools/list, initialize, notifications/initialized, ping, or a direct POST with tool and arguments.'
+        ))
       };
     }
 
@@ -1541,6 +1551,11 @@ Workflow: 1) Call get_wallet_report. 2) If recoverable SOL > 0.001, call preview
   return {
     statusCode: 405,
     headers: buildHeaders(true),
-    body: JSON.stringify(createMCPError('METHOD_NOT_ALLOWED', 'HTTP method not allowed. Use GET or POST.'))
+    body: JSON.stringify(createMCPError(
+      'METHOD_NOT_ALLOWED',
+      'HTTP method not allowed. Use GET or POST.',
+      undefined,
+      'Use GET for discovery or POST for direct tool calls and JSON-RPC requests.'
+    ))
   };
 };
