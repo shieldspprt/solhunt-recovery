@@ -28,6 +28,12 @@ export function validateEnvironment(): EnvValidationResult {
         errors.push('VITE_HELIUS_RPC_URL is not configured. The app requires a Helius RPC endpoint.');
     }
 
+    // VITE_SOLANA_FALLBACK_RPC — required for retry scenarios
+    const fallbackRpcUrl = import.meta.env.VITE_SOLANA_FALLBACK_RPC;
+    if (!fallbackRpcUrl || typeof fallbackRpcUrl !== 'string' || fallbackRpcUrl.trim().length === 0) {
+        errors.push('VITE_SOLANA_FALLBACK_RPC is not configured. The app requires a fallback Solana RPC endpoint.');
+    }
+
     // VITE_TREASURY_WALLET — required for service fees
     const treasuryAddress = import.meta.env.VITE_TREASURY_WALLET;
     if (!treasuryAddress || typeof treasuryAddress !== 'string' || treasuryAddress.trim().length === 0) {
