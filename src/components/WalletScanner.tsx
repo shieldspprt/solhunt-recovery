@@ -227,10 +227,10 @@ export function WalletScanner() {
     const signal = AbortSignal.any([controller.signal, timeoutSignal]);
 
     fetch('/api/get-stats?days=1', { signal })
-      .then(res => {
+      .then(async res => {
         if (!res.ok) return null;
         try {
-          return res.json();
+          return await res.json();
         } catch (err: unknown) {
           return null;
         }
