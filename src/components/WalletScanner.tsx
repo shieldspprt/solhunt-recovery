@@ -217,6 +217,15 @@ export function WalletScanner() {
   const abortControllerRef = useRef<AbortController | null>(null);
   const slowScanTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const normalizedAddress = address.trim();
+  const isAddressValid = normalizedAddress.length > 0 && isValidSolanaPublicKey(normalizedAddress);
+  const addressHintId = 'wallet-scan-hint';
+  const errorId = 'wallet-scan-error';
+  const describedByIds = [
+    error ? errorId : null,
+    normalizedAddress.length > 0 && !isAddressValid && state !== 'loading' ? addressHintId : null,
+  ].filter((id): id is string => Boolean(id)).join(' ') || undefined;
+
   // Cleanup function to cancel in-flight requests and timers
   const cleanupScan = useCallback(() => {
     if (abortControllerRef.current) {
@@ -367,8 +376,22 @@ export function WalletScanner() {
 
   // Allow Enter key to trigger scan
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleScan();
-  }, [handleScan]);
+    if (e.key !== 'Enter') return;
+
+    if (state === 'loading') {
+      handlePrimaryAction();
+      return;
+    }
+
+    if (!isAddressValid) {
+      setError(normalizedAddress.length > 0
+        ? 'Enter a valid Solana address before scanning'
+        : 'Paste a wallet address to scan');
+      return;
+    }
+
+    void handleScan();
+  }, [handlePrimaryAction, handleScan, isAddressValid, normalizedAddress, state]);
 
   // Clear results when address changes - also cancels in-flight requests
   const handleAddressChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -422,8 +445,8 @@ export function WalletScanner() {
             onKeyDown={handleKeyDown}
             placeholder="[ Paste Wallet Address ]"
             aria-label="Solana wallet address to scan"
-            aria-invalid={!!error}
-            aria-describedby={error ? 'wallet-scan-error' : undefined}
+            aria-invalid={!!error || (normalizedAddress.length > 0 && !isAddressValid && state !== 'loading')}
+            aria-describedby={describedByIds}
             aria-busy={state === 'loading'}
             maxLength={44}
             inputMode="text"
@@ -433,7 +456,7 @@ export function WalletScanner() {
             className={[
               'relative w-full bg-shield-bg/90 backdrop-blur-xl border rounded-xl px-5 py-4 text-sm text-white',
               'placeholder-shield-muted/50 outline-none transition-all font-mono shadow-inner',
-              error
+              error || (normalizedAddress.length > 0 && !isAddressValid && state !== 'loading')
                 ? 'border-red-500/60 focus:border-red-400 focus:ring-1 focus:ring-red-400'
                 : 'border-shield-border hover:border-shield-accent/50 focus:border-shield-accent focus:ring-1 focus:ring-shield-accent/50'
             ].join(' ')}
@@ -441,12 +464,17 @@ export function WalletScanner() {
             autoComplete="off"
             spellCheck={false}
           />
+          {normalizedAddress.length > 0 && !isAddressValid && state !== 'loading' && (
+            <p id={addressHintId} className="mt-2 pl-1 text-xs text-red-400" role="note">
+              Enter a valid Solana wallet address before scanning.
+            </p>
+          )}
         </div>
         <button
           onClick={handlePrimaryAction}
-          aria-label={state === 'loading' ? 'Cancel wallet scan' : 'Execute wallet scan'}
-          disabled={!address.trim() && state !== 'loading'}
-          aria-disabled={!address.trim() && state !== 'loading'}
+          aria-label={state === 'loading' ? 'Cancel wallet scan' : isAddressValid ? 'Execute wallet scan' : 'Enter a valid wallet address first'}
+          disabled={state !== 'loading' && !isAddressValid}
+          aria-disabled={state !== 'loading' && !isAddressValid}
           type="button"
           className={[
             'relative px-8 py-4 rounded-xl font-bold text-sm transition-all overflow-hidden group/btn font-mono uppercase tracking-widest',
@@ -467,7 +495,7 @@ export function WalletScanner() {
           ) : (
             <span className="flex items-center gap-2">
               <span className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 ease-out" />
-              <span className="relative z-10">Execute</span>
+              <span className="relative z-10">{isAddressValid ? 'EXECUTE' : normalizedAddress.length > 0 ? 'INVALID' : 'PASTE'}</span>
             </span>
           )}
         </button>
@@ -475,7 +503,7 @@ export function WalletScanner() {
 
       {/* Validation error */}
       {error && state !== 'loading' && (
-        <p id="wallet-scan-error" className="mt-2 text-red-400 text-xs pl-1" role="alert">{error}</p>
+        <p id={errorId} className="mt-2 text-red-400 text-xs pl-1" role="alert">{error}</p>
       )}
 
       {/* Loading state */}
