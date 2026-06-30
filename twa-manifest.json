@@ -20,8 +20,8 @@
     "path": "./solhunt-upload-key.keystore",
     "alias": "solhunt"
   },
-  "appVersionName": "1",
-  "appVersionCode": 1,
+  "appVersionName": "2",
+  "appVersionCode": 2,
   "shortcuts": [
     {
       "name": "Scan Wallet",
@@ -92,5 +92,5 @@
   "fileHandlers": [],
   "launchHandlerClientMode": "",
   "displayOverride": [],
-  "appVersion": "1"
+  "appVersion": "2"
 }
