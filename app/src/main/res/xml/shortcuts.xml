@@ -22,8 +22,8 @@
         android:shortcutId="preview_recovery"
         android:enabled="true"
         android:icon="@drawable/ic_shortcut_fleet"
-        android:shortcutShortLabel="Preview"
-        android:shortcutLongLabel="Preview Recovery"
+        android:shortcutShortLabel="@string/shortcut_preview_short"
+        android:shortcutLongLabel="@string/shortcut_preview_long"
     >
         <intent
             android:action="android.intent.action.VIEW"
