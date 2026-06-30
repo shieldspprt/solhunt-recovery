@@ -215,7 +215,6 @@ export function WalletScanner() {
 
   // Refs for managing async operations and timeouts
   const abortControllerRef = useRef<AbortController | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const slowScanTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Cleanup function to cancel in-flight requests and timers
@@ -223,10 +222,6 @@ export function WalletScanner() {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
-    }
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
     }
     if (slowScanTimeoutRef.current) {
       clearTimeout(slowScanTimeoutRef.current);
@@ -359,6 +354,17 @@ export function WalletScanner() {
     }
   }, [address, cleanupScan]);
 
+  const handlePrimaryAction = useCallback(() => {
+    if (state === 'loading') {
+      cleanupScan();
+      setState('idle');
+      setIsSlow(false);
+      return;
+    }
+
+    void handleScan();
+  }, [cleanupScan, handleScan, state]);
+
   // Allow Enter key to trigger scan
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleScan();
@@ -437,10 +443,10 @@ export function WalletScanner() {
           />
         </div>
         <button
-          onClick={handleScan}
+          onClick={handlePrimaryAction}
           aria-label={state === 'loading' ? 'Cancel wallet scan' : 'Execute wallet scan'}
-          disabled={state === 'loading' || !address.trim()}
-          aria-disabled={state === 'loading' || !address.trim()}
+          disabled={!address.trim() && state !== 'loading'}
+          aria-disabled={!address.trim() && state !== 'loading'}
           type="button"
           className={[
             'relative px-8 py-4 rounded-xl font-bold text-sm transition-all overflow-hidden group/btn font-mono uppercase tracking-widest',
@@ -456,7 +462,7 @@ export function WalletScanner() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
               </svg>
-              SCANNING
+              CANCEL
             </span>
           ) : (
             <span className="flex items-center gap-2">

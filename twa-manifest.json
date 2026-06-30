@@ -58,6 +58,18 @@
       "shortName": "Fleet",
       "url": "/?engine=fleet",
       "icons": [{ "src": "https://solhunt.dev/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Buffer Recovery",
+      "shortName": "Buffers",
+      "url": "/?engine=buffers",
+      "icons": [{ "src": "https://solhunt.dev/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Ticket Finder",
+      "shortName": "Tickets",
+      "url": "/?engine=tickets",
+      "icons": [{ "src": "https://solhunt.dev/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ],
   "generatorApp": "bubblewrap-cli",
