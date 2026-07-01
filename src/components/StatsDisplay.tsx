@@ -385,13 +385,13 @@ export function StatsDisplay() {
             </svg>
             <span className="text-xs text-gray-400 font-medium">Today's post draft</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <CopyButton text={today.x_draft} label="Copy post" />
             <a
               href={`https://x.com/intent/tweet?text=${encodeURIComponent(today.x_draft)}`}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`Post draft to X (opens in new tab): "${today.x_draft.slice(0, 50)}${today.x_draft.length > 50 ? '…' : ''}"`}
+              aria-label={`Post draft to X (opens in new tab): \"${today.x_draft.slice(0, 50)}${today.x_draft.length > 50 ? '…' : ''}\"`}
               className="text-xs px-3 py-1.5 rounded-md font-medium bg-black hover:bg-gray-900 text-white border border-gray-700 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent"
             >
               Post to X →
