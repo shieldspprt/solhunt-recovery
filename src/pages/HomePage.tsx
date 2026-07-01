@@ -113,6 +113,8 @@ export const HomePage = memo(function HomePage() {
                                                 to={engine.howItWorksRoute}
                                                 className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-shield-border bg-shield-bg/50 px-3 py-2 text-xs font-semibold text-shield-text hover:bg-shield-border/50 hover:text-shield-accent transition-all duration-300"
                                                 onClick={(e) => e.stopPropagation()}
+                                                aria-label={`Learn how ${engine.name} works`}
+                                                title={`Learn how ${engine.name} works`}
                                             >
                                                 <BookOpen className="h-3.5 w-3.5" aria-hidden="true" />
                                                 How it works
@@ -120,6 +122,8 @@ export const HomePage = memo(function HomePage() {
                                             <Link
                                                 to={engine.route}
                                                 className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-shield-accent/10 border border-shield-accent/20 px-3 py-2 text-xs font-semibold text-shield-accent hover:bg-shield-accent hover:text-shield-bg transition-all duration-300 group/btn"
+                                                aria-label={`Open ${engine.name}`}
+                                                title={`Open ${engine.name}`}
                                             >
                                                 Launch Tool
                                                 <ArrowRight className="h-3.5 w-3.5 group-hover/btn:translate-x-0.5 transition-transform" aria-hidden="true" />

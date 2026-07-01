@@ -1,6 +1,6 @@
 /**
  * SolHunt Service Worker
- * Cache version: 2026-07-01-2
+ * Cache version: 2026-07-01-3
  *
  * Bumping the version stamp: both runtime cache buckets below include the
  * `vYYYYMMDD-N` suffix (where N is the within-day revision index). When this
@@ -8,7 +8,7 @@
  * `static-assets` caches from the previous install. Workbox's
  * `cleanupOutdatedCaches()` (called above) deletes any cache whose name
  * doesn't appear in the current precache manifest — so renaming both buckets
- * to `google-fonts-v20260701-2` and `static-assets-v20260701-2` forces a
+ * to `google-fonts-v20260701-3` and `static-assets-v20260701-3` forces a
  * one-time invalidation, then the new caches take over.
  *
  * Both buckets MUST use the SAME suffix — bumping only one (which happened
@@ -137,7 +137,7 @@ for (const pattern of NETWORK_ONLY_PATTERNS) {
 // ──────────────────────────────────────────────────────
 registerRoute(
   /^https:\/\/fonts\.(googleapis|gstatic)\.com/,
-  new NetworkFirst({ cacheName: 'google-fonts-v20260701-2', networkTimeoutSeconds: 5 })
+  new NetworkFirst({ cacheName: 'google-fonts-v20260701-3', networkTimeoutSeconds: 5 })
 );
 
 // ──────────────────────────────────────────────────────
@@ -146,7 +146,7 @@ registerRoute(
 // ──────────────────────────────────────────────────────
 registerRoute(
   /\.(?:js|css)$/,
-  new StaleWhileRevalidate({ cacheName: 'static-assets-v20260701-2' })
+  new StaleWhileRevalidate({ cacheName: 'static-assets-v20260701-3' })
 );
 
 // ──────────────────────────────────────────────────────
