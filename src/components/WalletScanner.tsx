@@ -427,8 +427,8 @@ export function WalletScanner() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-shield-accent opacity-60"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-shield-accent"></span>
             </span>
-            <span className="text-[10px] sm:text-xs font-mono text-shield-muted uppercase tracking-widest">
-              Live Network: <span className="text-white font-bold">{liveStats.scanned.toLocaleString()}</span> scanned • <span className="text-shield-accent font-bold drop-shadow-[0_0_8px_rgba(20,241,149,0.5)]">{liveStats.sol} SOL</span> Located
+            <span className="text-[10px] sm:text-xs font-mono text-shield-muted uppercase tracking-widest whitespace-normal text-center leading-snug">
+              Live Network: <span className="text-white font-bold">{liveStats.scanned.toLocaleString()}</span> scanned • <span className="text-shield-accent font-bold drop-shadow-[0_0_8px_rgba(20,241,149,0.5)]">{formatSol(liveStats.sol)} SOL</span> located
             </span>
           </div>
         </div>
