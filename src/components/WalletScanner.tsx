@@ -52,6 +52,7 @@ async function readJsonResponse(response: Response): Promise<{ data: unknown; er
     try {
       return { data: await response.json(), errorText: null };
     } catch (err: unknown) {
+      logger.warn('WalletScanner JSON parse failed:', err instanceof Error ? err.message : String(err));
       return {
         data: null,
         errorText: `Invalid JSON response from server (${response.status} ${response.statusText})`
@@ -59,7 +60,10 @@ async function readJsonResponse(response: Response): Promise<{ data: unknown; er
     }
   }
 
-  const text = await response.text().catch(() => '');
+  const text = await response.text().catch((err: unknown) => {
+    logger.warn('WalletScanner text read failed:', err instanceof Error ? err.message : String(err));
+    return '';
+  });
   return {
     data: null,
     errorText: text
