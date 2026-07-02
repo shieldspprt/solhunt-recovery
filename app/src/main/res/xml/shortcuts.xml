@@ -21,7 +21,7 @@
     <shortcut
         android:shortcutId="preview_recovery"
         android:enabled="true"
-        android:icon="@drawable/ic_shortcut_scan"
+        android:icon="@drawable/ic_shortcut_rent"
         android:shortcutShortLabel="@string/shortcut_preview_short"
         android:shortcutLongLabel="@string/shortcut_preview_long"
     >
