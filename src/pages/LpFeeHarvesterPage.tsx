@@ -6,7 +6,7 @@ import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { LPHarvesterCard } from '@/modules/lp-harvester';
 import { ENGINE_METADATA } from '@/config/constants';
 
-const ENGINE = ENGINE_METADATA[4]; // Harvest LP Fees
+const ENGINE = ENGINE_METADATA.find(e => e.id === 5)!;
 
 export function LpFeeHarvesterPage() {
     const { connected } = useWallet();

@@ -51,6 +51,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                         <p className="mb-6 text-shield-muted">
                             An unexpected error occurred. Please refresh the page and try again.
                         </p>
+                        {this.state.error && import.meta.env.DEV && (
+                            <div className="mb-6 rounded-lg border border-shield-border bg-shield-bg/50 p-4 text-left font-mono text-xs text-shield-danger max-h-40 overflow-auto">
+                                <p className="font-bold">{this.state.error.name}: {this.state.error.message}</p>
+                                <p className="mt-2 text-shield-muted/70 whitespace-pre-wrap">{this.state.error.stack}</p>
+                            </div>
+                        )}
                         <button
                             onClick={this.handleReset}
                             className="inline-flex items-center gap-2 rounded-xl bg-shield-accent px-6 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"

@@ -1,8 +1,7 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import {
-    getCloseableAccounts,
     calculateReclaimEstimate,
     buildReclaimTransactions,
 } from '@/lib/reclaimRent';
@@ -21,9 +20,7 @@ export function useReclaimRent() {
     const { publicKey, sendTransaction } = useWallet();
 
     const {
-        scanResult,
         closeableAccounts,
-        setCloseableAccounts,
 
         reclaimStatus,
         reclaimResult,
@@ -34,14 +31,6 @@ export function useReclaimRent() {
         setReclaimError,
         clearReclaim,
     } = useAppStore();
-
-    // 1. React to ScanResult changes and extract closeable accounts
-    useEffect(() => {
-        if (scanResult) {
-            const accounts = getCloseableAccounts(scanResult);
-            setCloseableAccounts(accounts);
-        }
-    }, [scanResult, setCloseableAccounts]);
 
     // 2. Derive the estimate based on current closeable accounts
     // We do this dynamically so the UI always has the latest math

@@ -37,6 +37,7 @@ import type {
     BufferCloseStatus,
     BufferCloseResult,
 } from '@/modules/buffer-recovery/types';
+import { getCloseableAccounts } from '@/lib/reclaimRent';
 
 interface AppStore {
     // Agentic SEO
@@ -250,8 +251,15 @@ export const useAppStore = create<AppStore>((set) => ({
 
     setAgentWallet: (wallet) => set({ agentWallet: wallet }),
     setScanStatus: (status) => set({ scanStatus: status }),
-    setScanResult: (result) =>
-        set({ scanResult: result, scanStatus: 'scan_complete', scanError: null }),
+    setScanResult: (result) => {
+        const closeable = getCloseableAccounts(result);
+        set({
+            scanResult: result,
+            scanStatus: 'scan_complete',
+            scanError: null,
+            closeableAccounts: closeable,
+        });
+    },
     setScanError: (error) =>
         set({ scanError: error, scanStatus: 'error' }),
     clearScan: () =>

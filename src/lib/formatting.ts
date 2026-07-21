@@ -2,7 +2,7 @@
  * Shortens a Solana address for display: "AbCd...WxYz"
  */
 export function shortenAddress(address: string, chars = 4): string {
-    if (!address) return '';
+    if (typeof address !== 'string' || !address) return '';
     if (address.length <= chars * 2 + 3) return address;
     return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }
@@ -11,17 +11,16 @@ export function shortenAddress(address: string, chars = 4): string {
  * Formats a SOL amount to a user-friendly string with appropriate decimal places.
  */
 export function formatSOL(lamports: number): string {
+    if (typeof lamports !== 'number' || isNaN(lamports)) return '0 SOL';
     const sol = lamports / 1e9;
-    if (sol === 0) return '0 SOL';
-    if (sol < 0.001) return `${sol.toFixed(6)} SOL`;
-    if (sol < 1) return `${sol.toFixed(4)} SOL`;
-    return `${sol.toFixed(2)} SOL`;
+    return formatSOLValue(sol);
 }
 
 /**
  * Formats SOL from a SOL value (not lamports).
  */
 export function formatSOLValue(sol: number): string {
+    if (typeof sol !== 'number' || isNaN(sol)) return '0 SOL';
     if (sol === 0) return '0 SOL';
     if (sol < 0.001) return `${sol.toFixed(6)} SOL`;
     if (sol < 1) return `${sol.toFixed(4)} SOL`;
@@ -32,8 +31,9 @@ export function formatSOLValue(sol: number): string {
  * Formats a token amount with its decimals to a user-friendly string.
  */
 export function formatTokenAmount(rawAmount: string, decimals: number): string {
-    const amount = parseFloat(rawAmount) / Math.pow(10, decimals);
-    if (amount === 0) return '0';
+    if (typeof rawAmount !== 'string') return '0';
+    const amount = parseFloat(rawAmount) / Math.pow(10, decimals || 0);
+    if (isNaN(amount) || amount === 0) return '0';
     if (amount < 0.001) return '< 0.001';
     if (amount < 1) return amount.toFixed(4);
     if (amount < 1000) return amount.toFixed(2);
@@ -45,6 +45,7 @@ export function formatTokenAmount(rawAmount: string, decimals: number): string {
  * Formats a human-readable token balance (already adjusted for decimals).
  */
 export function formatBalance(balance: number): string {
+    if (typeof balance !== 'number' || isNaN(balance)) return '0';
     if (balance === 0) return '0';
     if (balance < 0.001) return '< 0.001';
     if (balance < 1) return balance.toFixed(4);
@@ -57,6 +58,7 @@ export function formatBalance(balance: number): string {
  * Formats a number with specified decimals.
  */
 export function formatNumber(value: number, decimals = 2): string {
+    if (typeof value !== 'number' || isNaN(value)) return '0';
     return value.toLocaleString(undefined, {
         minimumFractionDigits: 0,
         maximumFractionDigits: decimals,
@@ -67,6 +69,7 @@ export function formatNumber(value: number, decimals = 2): string {
  * Formats a value as USD currency using the user's browser locale.
  */
 export function formatUSD(value: number): string {
+    if (typeof value !== 'number' || isNaN(value)) return '$0.00';
     if (value === 0) return '$0.00';
     if (value < 0.01) return '< $0.01';
     return new Intl.NumberFormat(navigator.language ?? 'en-US', {
@@ -85,6 +88,7 @@ export const formatCurrency = formatUSD;
  * Defaults to $150/SOL when no price is provided.
  */
 export function estimateUSD(solAmount: number, solPriceUSD = 150): string {
+    if (typeof solAmount !== 'number' || isNaN(solAmount)) return '~$0.00';
     return `~${formatUSD(solAmount * solPriceUSD)}`;
 }
 
@@ -92,6 +96,7 @@ export function estimateUSD(solAmount: number, solPriceUSD = 150): string {
  * Formats a duration in milliseconds to a human-readable string.
  */
 export function formatDuration(ms: number): string {
+    if (typeof ms !== 'number' || isNaN(ms)) return '0ms';
     if (ms < 1000) return `${ms}ms`;
     const seconds = (ms / 1000).toFixed(1);
     return `${seconds}s`;
