@@ -1,10 +1,11 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useMemo } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { scanWalletForDelegations } from '@/lib/scanner';
 import { logScanStarted, logScanComplete, logScanError } from '@/lib/analytics';
 import { SCAN_COOLDOWN_MS, ERROR_CODES, ERROR_MESSAGES } from '@/config/constants';
-import type { AppError } from '@/types';
+import { isAppError, toAppError } from '@/lib/errors';
+import { isValidSolanaPublicKey } from '@/lib/validation';
 
 /**
  * Hook that wraps the scanner logic with wallet adapter integration,
@@ -26,15 +27,28 @@ export function useWalletScanner() {
         clearScan,
     } = useAppStore();
 
+    // Memoize wallet validation errors to prevent unnecessary object creation
+    const walletNotConnectedError = useMemo(() => ({
+        code: ERROR_CODES.WALLET_NOT_CONNECTED,
+        message: ERROR_MESSAGES.WALLET_NOT_CONNECTED,
+        technicalDetail: 'publicKey and agentWallet are both null',
+    }), []);
+
     const scan = useCallback(async () => {
         const targetWallet = publicKey?.toBase58() || agentWallet;
 
         // Check wallet connection
         if (!targetWallet) {
+            setScanError(walletNotConnectedError);
+            return;
+        }
+
+        // Validate wallet address format before making any RPC calls
+        if (!isValidSolanaPublicKey(targetWallet)) {
             setScanError({
-                code: ERROR_CODES.WALLET_NOT_CONNECTED,
-                message: ERROR_MESSAGES.WALLET_NOT_CONNECTED,
-                technicalDetail: 'publicKey and agentWallet are both null',
+                code: ERROR_CODES.INVALID_ADDRESS,
+                message: ERROR_MESSAGES.INVALID_ADDRESS,
+                technicalDetail: `Invalid address format: ${targetWallet.substring(0, 10)}...`,
             });
             return;
         }
@@ -73,25 +87,27 @@ export function useWalletScanner() {
                     .length,
                 scanDurationMs: result.scanDurationMs,
             });
-        } catch (error) {
-            const appError: AppError =
-                error && typeof error === 'object' && 'code' in error
-                    ? (error as AppError)
-                    : {
-                        code: ERROR_CODES.UNKNOWN,
-                        message: ERROR_MESSAGES.UNKNOWN,
-                        technicalDetail:
-                            error instanceof Error ? error.message : String(error),
-                    };
+        } catch (err: unknown) {
+            // Use type guard for safer, cleaner error handling
+            const appError = isAppError(err)
+                ? err
+                : toAppError(err, 'SCAN_FAILED');
 
             setScanError(appError);
             logScanError(appError.code);
         }
-    }, [publicKey, agentWallet, connection, setScanStatus, setScanResult, setScanError]);
+    }, [publicKey, agentWallet, connection, setScanStatus, setScanResult, setScanError, walletNotConnectedError]);
 
+    // isOnCooldown is now wrapped in useCallback for consistency
+    // Returns whether the scan is currently on cooldown
     const isOnCooldown = useCallback(() => {
         return Date.now() - lastScanTimeRef.current < SCAN_COOLDOWN_MS;
     }, []);
+
+    // Memoize derived boolean states to prevent unnecessary re-renders
+    const isScanning = useMemo(() => scanStatus === 'scanning', [scanStatus]);
+    const hasResults = useMemo(() => scanStatus === 'scan_complete', [scanStatus]);
+    const hasError = useMemo(() => scanStatus === 'error', [scanStatus]);
 
     return {
         scan,
@@ -100,8 +116,8 @@ export function useWalletScanner() {
         scanError,
         clearScan,
         isOnCooldown,
-        isScanning: scanStatus === 'scanning',
-        hasResults: scanStatus === 'scan_complete',
-        hasError: scanStatus === 'error',
+        isScanning,
+        hasResults,
+        hasError,
     };
 }

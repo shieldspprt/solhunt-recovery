@@ -9,6 +9,7 @@ import {
 } from '../../constants';
 import type { LPPosition } from '../../types';
 import { KNOWN_TOKEN_DECIMALS, KNOWN_TOKEN_SYMBOLS } from '../../utils/addresses';
+import { toValidPublicKey } from '@/lib/validation';
 
 interface ParsedTokenAmount {
     amount?: string;
@@ -46,7 +47,7 @@ function toBase58(value: unknown): string {
         if (typeof fn === 'function') {
             try {
                 return fn.call(value);
-            } catch {
+            } catch (_e: unknown) {
                 return '';
             }
         }
@@ -88,7 +89,13 @@ async function fetchRaydiumPools(): Promise<ParsedPoolInfo[]> {
         return cachedPools;
     }
 
-    const response = await fetch(RAYDIUM_LIQUIDITY_LIST_API, { cache: 'no-store' });
+    // 15s timeout: the Raydium liquidity list endpoint returns a large JSON
+    // payload (every Raydium pool on mainnet) and warrants a longer budget
+    // than the per-account fetches. Without this, a stalled Raydium CDN
+    // freezes the LP scan UI indefinitely. Mirrors the AbortSignal.timeout
+    // pattern added to dustScanner.ts (commit 7ea243b) and dustSwapper.ts
+    // (commit 871e02f).
+    const response = await fetch(RAYDIUM_LIQUIDITY_LIST_API, { cache: 'no-store', signal: AbortSignal.timeout(15000) });
     if (!response.ok) {
         throw new Error(`Raydium liquidity list request failed (${response.status}).`);
     }
@@ -262,7 +269,7 @@ async function scanRaydiumClmmPositions(
                     owner: new PublicKey(walletAddress),
                 });
                 break;
-            } catch {
+            } catch (_e: unknown) {
                 // Try next method shape.
             }
         }
@@ -360,7 +367,7 @@ async function scanRaydiumClmmPositions(
         }
 
         return positions;
-    } catch {
+    } catch (_e: unknown) {
         return [];
     }
 }
@@ -369,6 +376,9 @@ export async function scanRaydiumPositions(
     walletAddress: string,
     connection: Connection
 ): Promise<LPPosition[]> {
+    // Validate wallet address before processing
+    toValidPublicKey(walletAddress);
+
     const [clmmResult, ammResult] = await Promise.allSettled([
         scanRaydiumClmmPositions(walletAddress, connection),
         scanRaydiumAmmPositions(walletAddress, connection),

@@ -1,4 +1,3 @@
-import { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
 import {
   Connection, Keypair, Transaction,
@@ -6,6 +5,11 @@ import {
   TransactionInstruction
 } from '@solana/web3.js';
 import bs58 from 'bs58';
+import {
+  type Handler,
+  buildCorsHeaders,
+  safeLogWarn,
+} from './_shared';
 
 // ── Hard limits — in code, not config ────────────────────────────────────────
 const DD_WALLET          = 'DD4AdYKVcV6kgpmiCEeASRmJyRdKgmaRAbsjKucx8CvY';
@@ -28,6 +32,10 @@ function checkAuth(headers: Record<string, string | undefined>): boolean {
   return diff === 0;
 }
 
+interface SpendLogRow {
+  amount_lamports: number;
+}
+
 // ── Daily spend check ─────────────────────────────────────────────────────────
 async function getTodaySpendLamports(): Promise<number> {
   const supabase = createClient(
@@ -40,32 +48,35 @@ async function getTodaySpendLamports(): Promise<number> {
     .from('dd_spend_log')
     .select('amount_lamports')
     .gte('sent_at', todayStart.toISOString());
-  return (data || []).reduce((sum: number, r: any) => sum + r.amount_lamports, 0);
+  return (data || []).reduce((sum: number, r: SpendLogRow) => sum + r.amount_lamports, 0);
 }
 
 // ── Handler ───────────────────────────────────────────────────────────────────
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin
-  };
+  const headers = buildCorsHeaders(event, {
+    methods: 'POST, OPTIONS',
+    extra: { 'Access-Control-Allow-Headers': 'Content-Type, Authorization' },
+  });
 
   if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers, body: JSON.stringify({ error: 'POST only' }) };
   }
-  if (!checkAuth(event.headers as any)) {
+  if (!checkAuth(event.headers)) {
     return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
-  let body: any;
+  /** Typed request body for DD sign endpoint */
+  interface DDSignRequest {
+    to_wallet: string;
+    memo: string;
+    [key: string]: unknown; // catch extra fields — rejected below
+  }
+
+  let body: DDSignRequest;
   try {
-    body = JSON.parse(event.body || '{}');
-  } catch {
+    body = JSON.parse(event.body || '{}') as DDSignRequest;
+  } catch (_err: unknown) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON' }) };
   }
 
@@ -91,7 +102,7 @@ export const handler: Handler = async (event) => {
   let recipientPubkey: PublicKey;
   try {
     recipientPubkey = new PublicKey(to_wallet);
-  } catch {
+  } catch (_err: unknown) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid wallet address' }) };
   }
 
@@ -108,14 +119,23 @@ export const handler: Handler = async (event) => {
   try {
     const rawKey = process.env.DD_PRIVATE_KEY;
     if (!rawKey) {
-      console.error('DD_PRIVATE_KEY not set');
+      // Warn — config issue, recoverable with restart
+      safeLogWarn('[dd-sign] DD_PRIVATE_KEY not set — check Netlify env vars');
       return { statusCode: 500, headers, body: JSON.stringify({ error: 'Configuration error' }) };
     }
 
-    const ddKeypair = Keypair.fromSecretKey(bs58.decode(rawKey));
+    let ddKeypair: Keypair;
+    try {
+      ddKeypair = Keypair.fromSecretKey(bs58.decode(rawKey));
+    } catch (_err: unknown) {
+      // Malformed key — reject cleanly, not as internal error
+      safeLogWarn('[dd-sign] DD_PRIVATE_KEY is not a valid base58-encoded secret key');
+      return { statusCode: 500, headers, body: JSON.stringify({ error: 'Configuration error' }) };
+    }
 
     if (ddKeypair.publicKey.toBase58() !== DD_WALLET) {
-      console.error('CRITICAL: keypair mismatch');
+      // Warn — keypair mismatch means wrong key loaded, but not a crash
+      safeLogWarn('[dd-sign] Keypair public key does not match DD_WALLET constant');
       return { statusCode: 500, headers, body: JSON.stringify({ error: 'Internal error' }) };
     }
 
@@ -144,27 +164,40 @@ export const handler: Handler = async (event) => {
 
     tx.sign(ddKeypair);
 
-    const signature = await connection.sendRawTransaction(
-      tx.serialize(),
-      { skipPreflight: false, maxRetries: 3 }
-    );
+    let signature: string;
+    try {
+      signature = await connection.sendRawTransaction(
+        tx.serialize(),
+        { skipPreflight: false, maxRetries: 3 }
+      );
+    } catch (rpcErr: unknown) {
+      safeLogWarn('[dd-sign] RPC sendRawTransaction failed:', rpcErr instanceof Error ? rpcErr.message : String(rpcErr));
+      return { statusCode: 502, headers, body: JSON.stringify({ error: 'RPC send failed. Try again.' }) };
+    }
 
-    await connection.confirmTransaction(
-      { signature, blockhash, lastValidBlockHeight },
-      'confirmed'
-    );
+    try {
+      await connection.confirmTransaction(
+        { signature, blockhash, lastValidBlockHeight },
+        'confirmed'
+      );
+    } catch (confirmErr: unknown) {
+      safeLogWarn('[dd-sign] confirmTransaction failed (tx may still be pending):', confirmErr instanceof Error ? confirmErr.message : String(confirmErr));
+      // Don't fail the response — tx was sent, confirmation is best-effort
+    }
 
-    // Log spend
+    // Log spend — must never break the response
     const supabase = createClient(
       process.env.SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_KEY!
     );
-    await supabase.from('dd_spend_log').insert({
+    void supabase.from('dd_spend_log').insert({
       tx_signature: signature,
       amount_lamports: FIXED_LAMPORTS,
       to_wallet,
       memo_preview: memo.slice(0, 50),
       sent_at: new Date().toISOString()
+    }).then(({ error: dbErr }) => {
+      if (dbErr) safeLogWarn('[dd-sign] Failed to log spend to Supabase:', dbErr.message);
     });
 
     return {
@@ -177,12 +210,12 @@ export const handler: Handler = async (event) => {
       })
     };
 
-  } catch (e: any) {
-    console.error('dd-sign error:', e.message);
+  } catch (e: unknown) {
+    safeLogWarn('dd-sign error:', e instanceof Error ? e.message : String(e));
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: 'Transaction failed: ' + e.message })
+      body: JSON.stringify({ error: 'Transaction failed: ' + (e instanceof Error ? e.message : String(e)) })
     };
   }
 };

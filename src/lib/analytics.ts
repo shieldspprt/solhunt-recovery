@@ -1,18 +1,63 @@
 import { logEvent as firebaseLogEvent } from 'firebase/analytics';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { analytics, db, isFirebaseConfigured } from '@/config/firebase';
+import { logger } from '@/lib/logger';
+
+// Typed event params — prevents typos and ensures consistency
+type EventParams = Record<string, string | number | boolean | null>;
+
+type AnalyticsEventName =
+    | 'wallet_connected'
+    | 'scan_started'
+    | 'scan_complete'
+    | 'scan_error'
+    | 'revoke_initiated'
+    | 'revoke_complete'
+    | 'reclaim_initiated'
+    | 'reclaim_complete'
+    | 'dust_scan_complete'
+    | 'dust_swap_initiated'
+    | 'dust_swap_complete'
+    | 'dust_burn_reclaim_initiated'
+    | 'dust_burn_reclaim_complete'
+    | 'ticket_scan_started'
+    | 'ticket_scan_complete'
+    | 'ticket_claim_initiated'
+    | 'ticket_claim_complete'
+    | 'lp_scan_started'
+    | 'lp_scan_complete'
+    | 'lp_harvest_initiated'
+    | 'lp_harvest_complete'
+    | 'cnft_scan_started'
+    | 'cnft_scan_complete'
+    | 'cnft_burn_initiated'
+    | 'cnft_burn_complete'
+    | 'mev_scan_started'
+    | 'mev_scan_complete'
+    | 'mev_claim_initiated'
+    | 'mev_claim_complete'
+    | 'buffer_scan_complete'
+    | 'buffer_close_initiated'
+    | 'buffer_close_complete'
+    | 'decommission_scan_started'
+    | 'decommission_scan_complete'
+    | 'decommission_scan_failed'
+    | 'decommission_recovery_initiated'
+    | 'decommission_recovery_complete'
+    | 'decommission_recovery_failed';
 
 /**
  * Safely logs an analytics event. No-op if Firebase is not configured.
  * Never logs wallet addresses or identifying information — per spec Section 9.
  */
-function logEvent(eventName: string, params: Record<string, string | number | boolean | null>) {
+export function logEvent(eventName: string, params: EventParams): void {
     if (!isFirebaseConfigured || !analytics) return;
 
     try {
-        firebaseLogEvent(analytics, eventName, params);
-    } catch {
+        firebaseLogEvent(analytics, eventName as AnalyticsEventName, params);
+    } catch (err: unknown) {
         // Silently fail — analytics should never break the app
+        logger.warn('Analytics event failed:', err instanceof Error ? err.message : String(err));
     }
 }
 
@@ -33,8 +78,9 @@ async function logScanEvent(data: {
             timestamp: serverTimestamp(),
             ...data,
         });
-    } catch {
+    } catch (err: unknown) {
         // Silently fail — logging should never break the app
+        logger.warn('Firestore scan event write failed:', err instanceof Error ? err.message : String(err));
     }
 }
 
@@ -305,4 +351,40 @@ export function logBufferCloseComplete(data: {
     reclaimedSOL: number;
 }): void {
     logEvent('buffer_close_complete', data);
+}
+
+// ─── Engine 8 Events (Decommission Scanner) ────────────────────────
+
+export function logDecommissionScanStarted(): void {
+    logEvent('decommission_scan_started', { timestamp: Date.now() });
+}
+
+export function logDecommissionScanComplete(data: {
+    positionsFound: number;
+    recoverableCount: number;
+    totalRecoverableUSD: number | null;
+    windingDownCount: number;
+}): void {
+    logEvent('decommission_scan_complete', {
+        positionsFound: data.positionsFound,
+        recoverableCount: data.recoverableCount,
+        totalRecoverableUSD: data.totalRecoverableUSD ?? 0,
+        windingDownCount: data.windingDownCount,
+    });
+}
+
+export function logDecommissionScanFailed(errorCode: string): void {
+    logEvent('decommission_scan_failed', { errorCode, timestamp: Date.now() });
+}
+
+export function logDecommissionRecoveryComplete(data: {
+    recoveredCount: number;
+    redirectCount: number;
+    failedCount: number;
+}): void {
+    logEvent('decommission_recovery_complete', data);
+}
+
+export function logDecommissionRecoveryFailed(errorCode: string): void {
+    logEvent('decommission_recovery_failed', { errorCode, timestamp: Date.now() });
 }

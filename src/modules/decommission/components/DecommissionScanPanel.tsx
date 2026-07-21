@@ -10,7 +10,7 @@ export function DecommissionScanPanel({ startScan }: Props) {
     return (
         <div className="glass-card rounded-3xl p-8 sm:p-12 text-center mt-6">
             <div className="mb-8 mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-shield-border/30 border border-shield-border/50">
-                <span className="text-4xl">🪦</span>
+                <span className="text-4xl" aria-hidden="true">🪦</span>
             </div>
 
             <h1 className="text-3xl font-extrabold text-shield-text mb-6">
@@ -33,7 +33,7 @@ export function DecommissionScanPanel({ startScan }: Props) {
             </div>
 
             <div className="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-5 max-w-2xl mx-auto mb-10 text-left flex gap-4">
-                <span className="text-2xl">⚠️</span>
+                <span className="text-2xl" aria-hidden="true">⚠️</span>
                 <div>
                     <strong className="text-orange-400 block mb-1">Important: Do not burn tokens from dead protocols.</strong>
                     <span className="text-shield-muted text-sm">
@@ -43,7 +43,9 @@ export function DecommissionScanPanel({ startScan }: Props) {
             </div>
 
             <button
+                type="button"
                 onClick={startScan}
+                aria-label="Scan for decommissioned protocol positions"
                 className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-shield-accent px-10 py-5 text-lg font-bold text-shield-bg transition-all hover:bg-shield-highlight hover:shadow-xl hover:shadow-shield-accent/20 hover:-translate-y-1"
             >
                 <span>Scan My Wallet →</span>

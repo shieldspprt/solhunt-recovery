@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Shield } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export function PrivacyPage() {
+    usePageMeta({
+        title: 'Privacy Policy',
+        description: 'SolHunt is a client-side, non-custodial wallet recovery tool. We never access your private keys, hold your assets, or store your wallet data on any server.',
+        noindex: true,
+    });
+
     return (
         <PageWrapper>
             <div className="mx-auto max-w-3xl px-4 py-12 animate-fade-in-up">
@@ -11,18 +18,19 @@ export function PrivacyPage() {
                     <Link
                         to="/"
                         className="inline-flex items-center gap-2 text-sm text-shield-muted hover:text-shield-accent transition-colors mb-6"
+                        aria-label="Back to SolHunt"
                     >
-                        <ArrowLeft className="h-4 w-4" />
+                        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                         Back to SolHunt
                     </Link>
                     <div className="flex items-center gap-3 mb-4">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
-                            <Shield className="h-5 w-5 text-shield-accent" />
+                            <Shield className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                         </div>
                         <h1 className="text-3xl font-bold text-shield-text">Privacy Policy</h1>
                     </div>
                     <p className="text-shield-muted text-sm">
-                        Last updated: March 27, 2025
+                        Last updated: May 13, 2026
                     </p>
                 </div>
 
@@ -32,7 +40,7 @@ export function PrivacyPage() {
                         <h2 className="text-xl font-semibold text-shield-text mb-3">1. Introduction</h2>
                         <p>
                             SolHunt ("we," "us," or "our") operates the website at{' '}
-                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline">solhunt.dev</a>{' '}
+                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline" rel="noopener noreferrer">solhunt.dev</a>{' '}
                             and its associated applications (the "Service"). This Privacy Policy explains how we collect, use, and protect information when you use our Service.
                         </p>
                     </section>
@@ -138,9 +146,9 @@ export function PrivacyPage() {
                         <h2 className="text-xl font-semibold text-shield-text mb-3">11. Contact</h2>
                         <p>
                             For any questions or concerns about this Privacy Policy, please contact us at{' '}
-                            <a href="https://x.com/solhuntapp" className="text-shield-accent hover:underline" target="_blank" rel="noopener noreferrer">@solhuntapp</a>{' '}
+                            <a href="https://x.com/solhuntdev" className="text-shield-accent hover:underline" target="_blank" rel="noopener noreferrer">@solhuntdev</a>{' '}
                             on X (Twitter) or visit{' '}
-                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline">solhunt.dev</a>.
+                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline" rel="noopener noreferrer">solhunt.dev</a>.
                         </p>
                     </section>
                 </div>
@@ -148,7 +156,7 @@ export function PrivacyPage() {
                 {/* Footer */}
                 <div className="mt-12 pt-8 border-t border-shield-border">
                     <p className="text-sm text-shield-muted">
-                        © 2025 SolHunt. All rights reserved.
+                        © 2026 SolHunt. All rights reserved.
                     </p>
                 </div>
             </div>

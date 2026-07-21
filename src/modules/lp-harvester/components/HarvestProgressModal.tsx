@@ -1,4 +1,6 @@
+import { useId } from 'react';
 import { CheckCircle2, ExternalLink, Loader2, X, XCircle } from 'lucide-react';
+import { SOLSCAN_TX_URL } from '@/config/constants';
 import type { HarvestResult, HarvestResultItem, LPHarvestStatus } from '../types';
 import { formatLPUSD, formatLPSOL } from '../utils/formatting';
 
@@ -30,6 +32,7 @@ export function HarvestProgressModal({
 }: HarvestProgressModalProps) {
     if (!open) return null;
 
+    const titleId = useId();
     const processing = status === 'harvesting' || status === 'compounding' || status === 'sending_fee';
 
     const firstSignature = result?.items.find((item) => item.signature)?.signature
@@ -43,38 +46,46 @@ export function HarvestProgressModal({
                 onClick={() => {
                     if (!processing) onClose();
                 }}
+                aria-hidden="true"
             />
 
-            <div className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div
+                className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+            >
                 {!processing && (
                     <button
+                        type="button"
                         onClick={onClose}
+                        aria-label="Close LP harvest progress"
                         className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     >
-                        <X className="h-5 w-5" />
+                        <X className="h-5 w-5" aria-hidden="true" />
                     </button>
                 )}
 
                 <div className="p-6 sm:p-8">
                     {processing && (
                         <div className="mb-3 flex items-center justify-center">
-                            <Loader2 className="h-6 w-6 animate-spin text-shield-accent" />
+                            <Loader2 className="h-6 w-6 animate-spin text-shield-accent" aria-hidden="true" />
                         </div>
                     )}
 
                     {status === 'complete' && (
                         <div className="mb-3 flex items-center justify-center">
-                            <CheckCircle2 className="h-9 w-9 text-shield-success" />
+                            <CheckCircle2 className="h-9 w-9 text-shield-success" aria-hidden="true" />
                         </div>
                     )}
 
                     {status === 'error' && (
                         <div className="mb-3 flex items-center justify-center">
-                            <XCircle className="h-9 w-9 text-shield-danger" />
+                            <XCircle className="h-9 w-9 text-shield-danger" aria-hidden="true" />
                         </div>
                     )}
 
-                    <h2 className="text-xl font-bold text-shield-text text-center mb-2">
+                    <h2 id={titleId} className="text-xl font-bold text-shield-text text-center mb-2">
                         {statusText(status)}
                     </h2>
 
@@ -132,16 +143,19 @@ export function HarvestProgressModal({
                         <div className="mt-5 flex flex-col gap-3">
                             {firstSignature && (
                                 <a
-                                    href={`https://solscan.io/tx/${firstSignature}`}
+                                    href={SOLSCAN_TX_URL(firstSignature)}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    aria-label="View LP harvest transaction on Solscan (opens in new tab)"
                                     className="inline-flex items-center justify-center gap-2 text-sm font-medium text-shield-accent hover:text-white transition-colors"
                                 >
-                                    View transaction <ExternalLink className="h-4 w-4" />
+                                    View transaction <ExternalLink className="h-4 w-4" aria-hidden="true" />
                                 </a>
                             )}
                             <button
+                                type="button"
                                 onClick={onClose}
+                                aria-label="Done — close LP harvest progress"
                                 className="w-full rounded-xl border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                             >
                                 Done

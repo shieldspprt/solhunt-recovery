@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { CheckCircle2, AlertTriangle, Search, RefreshCw } from 'lucide-react';
 import { DelegationRow } from '@/components/scanner/DelegationRow';
 import { RevokeButton } from '@/components/revoke/RevokeButton';
@@ -12,6 +12,7 @@ import { DustBurnConfirmModal } from '@/components/dust/DustBurnConfirmModal';
 import { DustBurnProgressModal } from '@/components/dust/DustBurnProgressModal';
 import { formatDuration } from '@/lib/formatting';
 import type { ScanResult } from '@/types';
+import { EngineErrorBoundary } from '@/components/common/EngineErrorBoundary';
 
 interface ScanResultsProps {
     result: ScanResult;
@@ -20,9 +21,13 @@ interface ScanResultsProps {
 
 export const ScanResults = memo(function ScanResults({ result, onScanAgain }: ScanResultsProps) {
     const { delegations, totalTokenAccounts, scanDurationMs } = result;
-    const highRiskCount = delegations.filter((d) => d.riskLevel === 'HIGH').length;
-    const mediumRiskCount = delegations.filter((d) => d.riskLevel === 'MEDIUM').length;
-    const hasDelegations = delegations.length > 0;
+    
+    // Memoize derived calculations to prevent unnecessary recomputation
+    const { highRiskCount, mediumRiskCount, hasDelegations } = useMemo(() => ({
+        highRiskCount: delegations.filter((d) => d.riskLevel === 'HIGH').length,
+        mediumRiskCount: delegations.filter((d) => d.riskLevel === 'MEDIUM').length,
+        hasDelegations: delegations.length > 0,
+    }), [delegations]);
 
     return (
         <div id="engine-1" className="w-full max-w-4xl mx-auto space-y-6">
@@ -30,10 +35,10 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
             {!hasDelegations && (
                 <div className="rounded-2xl border border-shield-success/30 bg-shield-success/5 p-8 sm:p-10 text-center">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-success/10">
-                        <CheckCircle2 className="h-10 w-10 text-shield-success" />
+                        <CheckCircle2 className="h-10 w-10 text-shield-success" aria-hidden="true" />
                     </div>
                     <h2 className="text-2xl font-bold text-shield-text mb-2">
-                        ✅ Your wallet is clean!
+                        <span aria-hidden="true">✅</span> Your wallet is clean!
                     </h2>
                     <p className="text-shield-muted mb-1">
                         No dangerous permissions found.
@@ -42,10 +47,12 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
                         Scanned {totalTokenAccounts} token accounts in {formatDuration(scanDurationMs)}
                     </p>
                     <button
+                        type="button"
                         onClick={onScanAgain}
+                        aria-label="Scan wallet again"
                         className="inline-flex items-center gap-2 rounded-xl bg-shield-card border border-shield-border px-6 py-3 font-medium text-shield-text hover:bg-shield-border/50 transition-colors"
                     >
-                        <RefreshCw className="h-4 w-4" />
+                        <RefreshCw className="h-4 w-4" aria-hidden="true" />
                         Scan Again
                     </button>
                 </div>
@@ -58,11 +65,11 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
                     <div className="rounded-2xl border border-shield-danger/30 bg-shield-danger/5 p-6 sm:p-8">
                         <div className="flex items-start gap-4">
                             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-shield-danger/10 flex-shrink-0">
-                                <AlertTriangle className="h-6 w-6 text-shield-danger" />
+                                <AlertTriangle className="h-6 w-6 text-shield-danger" aria-hidden="true" />
                             </div>
                             <div className="flex-1">
                                 <h2 className="text-xl font-bold text-shield-text mb-3">
-                                    ⚠️ {delegations.length} Dangerous Permission{delegations.length !== 1 ? 's' : ''} Found
+                                    <span aria-hidden="true">⚠️</span> {delegations.length} Dangerous Permission{delegations.length !== 1 ? 's' : ''} Found
                                 </h2>
 
                                 {/* Risk summary */}
@@ -90,38 +97,40 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
                         </div>
 
                         <div className="mt-4 text-xs text-shield-muted">
-                            <Search className="h-3 w-3 inline mr-1" />
+                            <Search className="h-3 w-3 inline mr-1" aria-hidden="true" />
                             Scanned {totalTokenAccounts} token accounts in {formatDuration(scanDurationMs)}
                         </div>
                     </div>
 
-                    {/* Results table */}
-                    <div className="rounded-2xl border border-shield-border bg-shield-card overflow-hidden">
-                        <table className="w-full">
-                            <thead className="hidden sm:table-header-group">
-                                <tr className="border-b border-shield-border bg-shield-bg/50">
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Risk</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Token</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Your Balance</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Delegate</th>
-                                    <th className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Permission</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {delegations.map((delegation) => (
-                                    <DelegationRow
-                                        key={delegation.tokenAccountAddress}
-                                        delegation={delegation}
-                                    />
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    {/* Results table — wrapped in per-engine error boundary */}
+                    <EngineErrorBoundary engineId="1">
+                        <div className="rounded-2xl border border-shield-border bg-shield-card overflow-hidden">
+                            <table className="w-full">
+                                <thead className="hidden sm:table-header-group">
+                                    <tr className="border-b border-shield-border bg-shield-bg/50">
+                                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Risk</th>
+                                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Token</th>
+                                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Your Balance</th>
+                                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Delegate</th>
+                                        <th scope="col" className="py-3 px-4 text-left text-xs font-medium text-shield-muted uppercase tracking-wider">Permission</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {delegations.map((delegation) => (
+                                        <DelegationRow
+                                            key={delegation.tokenAccountAddress}
+                                            delegation={delegation}
+                                        />
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
 
-                    {/* Sticky revoke bar */}
-                    <div className="sticky bottom-0 z-40 -mx-4 sm:mx-0 px-4 sm:px-0 py-4 bg-gradient-to-t from-shield-bg via-shield-bg to-transparent">
-                        <RevokeButton delegations={delegations} />
-                    </div>
+                        {/* Sticky revoke bar */}
+                        <div className="sticky bottom-0 z-40 -mx-4 sm:mx-0 px-4 sm:px-0 py-4 bg-gradient-to-t from-shield-bg via-shield-bg to-transparent">
+                            <RevokeButton delegations={delegations} />
+                        </div>
+                    </EngineErrorBoundary>
                 </>
             )}
 
@@ -145,10 +154,12 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
             {hasDelegations && (
                 <div className="text-center">
                     <button
+                        type="button"
                         onClick={onScanAgain}
+                        aria-label="Scan wallet again"
                         className="inline-flex items-center gap-2 text-sm text-shield-muted hover:text-shield-text transition-colors"
                     >
-                        <RefreshCw className="h-4 w-4" />
+                        <RefreshCw className="h-4 w-4" aria-hidden="true" />
                         Scan Again
                     </button>
                 </div>

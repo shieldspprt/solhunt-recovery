@@ -15,6 +15,10 @@ import {
 import type { LPPosition } from '../../types';
 import { KNOWN_TOKEN_SYMBOLS } from '../../utils/addresses';
 import { createReadonlyWallet, toBase58, toUiAmount } from '../../utils/readonlyWallet';
+import { toValidPublicKey } from '@/lib/validation';
+import { withRetry } from '@/lib/rpcRetry';
+import { logger } from '@/lib/logger';
+import { IS_PRODUCTION } from '@/config/constants';
 
 interface ParsedTokenAccountInfo {
     mint: string;
@@ -42,6 +46,9 @@ export async function scanOrcaPositions(
     walletAddress: string,
     connection: Connection
 ): Promise<LPPosition[]> {
+    // Validate wallet address before processing
+    toValidPublicKey(walletAddress);
+
     const walletPublicKey = new PublicKey(walletAddress);
     const programId = new PublicKey(ORCA_WHIRLPOOL_PROGRAM_ID);
     const readonlyWallet = createReadonlyWallet(walletPublicKey);
@@ -53,10 +60,14 @@ export async function scanOrcaPositions(
     );
     const client = buildWhirlpoolClient(ctx);
 
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
-        walletPublicKey,
-        { programId: TOKEN_PROGRAM_ID },
-        'confirmed'
+    // Wrap RPC call with retry for dApp Store compliance - handles transient failures
+    const tokenAccounts = await withRetry(
+        () => connection.getParsedTokenAccountsByOwner(
+            walletPublicKey,
+            { programId: TOKEN_PROGRAM_ID },
+            'confirmed'
+        ),
+        { operationName: 'getParsedTokenAccountsByOwner' }
     );
 
     const nftMints = tokenAccounts.value
@@ -180,8 +191,17 @@ export async function scanOrcaPositions(
                 lastHarvestedAt: null,
                 isSelected: true,
             });
-        } catch {
-            // Not an Orca position mint (or failed to fetch) — skip.
+        } catch (err: unknown) {
+            // Not an Orca position mint (or failed to fetch) — log and continue.
+            // Silently skip to avoid spamming users with non-critical parsing errors.
+            // Gate on the project's IS_PRODUCTION constant rather than
+            // process.env.NODE_ENV: Vite's `define: { 'process.env': {} }`
+            // replaces the entire object at build time, so NODE_ENV is always
+            // undefined in the bundle and the old check never fired.
+            if (!IS_PRODUCTION) {
+                const msg = err instanceof Error ? err.message : String(err);
+                logger.warn(`[OrcaScanner] Skipped mint ${mintAddress.slice(0, 8)}...: ${msg.slice(0, 100)}`);
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { memo, useMemo, useState } from 'react';
 import { PROTOCOL_INFO } from '@/config/constants';
 import type { StakingProtocol } from '@/types';
 
@@ -7,7 +7,7 @@ interface ProtocolBadgeProps {
     size?: 'sm' | 'md';
 }
 
-export function ProtocolBadge({ protocol, size = 'sm' }: ProtocolBadgeProps) {
+export const ProtocolBadge = memo(function ProtocolBadge({ protocol, size = 'sm' }: ProtocolBadgeProps) {
     const [logoFailed, setLogoFailed] = useState(false);
     const info = PROTOCOL_INFO[protocol] || PROTOCOL_INFO.unknown;
 
@@ -32,20 +32,26 @@ export function ProtocolBadge({ protocol, size = 'sm' }: ProtocolBadgeProps) {
                 'inline-flex items-center gap-1.5 border border-shield-border bg-shield-bg/70 text-shield-text',
                 styles.container,
             ].join(' ')}
+            title={`${info.displayName} protocol`}
+            aria-label={`${info.displayName} protocol`}
         >
             {info.logoUri && !logoFailed ? (
                 <img
                     src={info.logoUri}
-                    alt={info.displayName}
+                    alt={`${info.displayName} logo`}
+                    width={20}
+                    height={20}
+                    loading="lazy"
+                    decoding="async"
                     onError={() => setLogoFailed(true)}
                     className={`${styles.icon} rounded-full`}
                 />
             ) : (
-                <span className={`${styles.icon} inline-flex items-center justify-center rounded-full bg-shield-accent/20 text-[10px] font-semibold text-shield-accent`}>
+                <span className={`${styles.icon} inline-flex items-center justify-center rounded-full bg-shield-accent/20 text-[10px] font-semibold text-shield-accent`} aria-hidden="true">
                     {initial}
                 </span>
             )}
             <span className="font-medium">{info.displayName}</span>
         </span>
     );
-}
+});

@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { useBufferRecovery } from '../hooks/useBufferRecovery';
 import { BufferRow } from './BufferRow';
 import { ConfirmCloseModal } from './ConfirmCloseModal';
 import { Search, Code2, TrendingUp, Info } from 'lucide-react';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { estimateBufferClose } from '../lib/bufferCloser';
 
-export function BufferRecoveryCard() {
+export const BufferRecoveryCard = memo(function BufferRecoveryCard() {
     const {
         isScanning,
         isClosing,
@@ -22,6 +23,14 @@ export function BufferRecoveryCard() {
 
     const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
+    const closeEstimate = useMemo(() => {
+        if (!bufferScanResult) return null;
+        const selectedBuffers = bufferScanResult.closeableBuffers.filter(
+            b => selectedBufferAddresses.includes(b.address)
+        );
+        return estimateBufferClose(selectedBuffers);
+    }, [bufferScanResult, selectedBufferAddresses]);
+
     const handleInitialScan = () => {
         runScan();
     };
@@ -36,7 +45,7 @@ export function BufferRecoveryCard() {
             <div className="mx-auto w-full max-w-4xl">
                 <div className="glass-card rounded-2xl p-8 text-center border border-shield-border/30">
                     <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-shield-accent/10 border border-shield-accent/20 mb-6 mx-auto">
-                        <Code2 className="h-8 w-8 text-shield-accent" />
+                        <Code2 className="h-8 w-8 text-shield-accent" aria-hidden="true" />
                     </div>
                     <h2 className="text-2xl font-bold text-shield-text mb-3">Scan for Forgotten Buffers</h2>
                     <p className="text-shield-muted mb-8 max-w-lg mx-auto leading-relaxed">
@@ -44,11 +53,13 @@ export function BufferRecoveryCard() {
                         If your deployment failed or you iterated quickly, these SOL are still sitting on-chain.
                     </p>
                     <button
+                        type="button"
                         onClick={handleInitialScan}
                         data-agent-target="scan-buffers-btn"
+                        aria-label="Scan wallet for buffer accounts"
                         className="inline-flex items-center gap-2 rounded-xl bg-shield-accent hover:bg-shield-accent/90 text-white font-bold px-8 py-4 text-lg shadow-lg shadow-shield-accent/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                     >
-                        <Search className="h-5 w-5" />
+                        <Search className="h-5 w-5" aria-hidden="true" />
                         Scan Wallet for Buffers
                     </button>
                     <p className="mt-4 text-xs text-shield-muted">
@@ -74,7 +85,9 @@ export function BufferRecoveryCard() {
                 <h3 className="text-lg font-bold text-shield-danger mb-2">Scan Failed</h3>
                 <p className="text-shield-muted mb-6">{bufferScanError.message}</p>
                 <button
+                    type="button"
                     onClick={runScan}
+                    aria-label="Retry buffer scan"
                     className="px-6 py-2 rounded-xl bg-shield-card border border-shield-border hover:bg-shield-border/20 transition-all font-semibold"
                 >
                     Try Again
@@ -94,7 +107,7 @@ export function BufferRecoveryCard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="glass-card rounded-2xl p-6 border border-shield-border/30 flex items-center gap-4">
                     <div className="h-12 w-12 rounded-xl bg-shield-accent/10 flex items-center justify-center">
-                        <Code2 className="h-6 w-6 text-shield-accent" />
+                        <Code2 className="h-6 w-6 text-shield-accent" aria-hidden="true" />
                     </div>
                     <div>
                         <p className="text-xs text-shield-muted uppercase tracking-wider font-medium">Buffers Found</p>
@@ -103,7 +116,7 @@ export function BufferRecoveryCard() {
                 </div>
                 <div className="glass-card rounded-2xl p-6 border border-shield-accent/20 bg-shield-accent/5 flex items-center gap-4">
                     <div className="h-12 w-12 rounded-xl bg-shield-accent/20 flex items-center justify-center">
-                        <TrendingUp className="h-6 w-6 text-shield-accent" />
+                        <TrendingUp className="h-6 w-6 text-shield-accent" aria-hidden="true" />
                     </div>
                     <div>
                         <p className="text-xs text-shield-muted uppercase tracking-wider font-medium">Reclaimable</p>
@@ -116,7 +129,9 @@ export function BufferRecoveryCard() {
                 <div className="glass-card rounded-2xl p-12 text-center border border-shield-border/30">
                     <p className="text-shield-muted">No abandoned buffers found in this wallet. 🛡️</p>
                     <button
+                        type="button"
                         onClick={clearBuffers}
+                        aria-label="Return to start"
                         className="mt-4 text-sm text-shield-accent hover:underline"
                     >
                         Back to start
@@ -127,13 +142,17 @@ export function BufferRecoveryCard() {
                     <div className="flex items-center justify-between px-2">
                         <div className="flex items-center gap-4">
                             <button
+                                type="button"
                                 onClick={selectAllBuffers}
+                                aria-label="Select all buffers"
                                 className="text-xs font-bold text-shield-accent hover:text-shield-accent/80 transition-colors"
                             >
                                 Select All
                             </button>
                             <button
+                                type="button"
                                 onClick={deselectAllBuffers}
+                                aria-label="Deselect all buffers"
                                 className="text-xs font-bold text-shield-muted hover:text-shield-text transition-colors"
                             >
                                 Deselect All
@@ -158,7 +177,7 @@ export function BufferRecoveryCard() {
                     <div className="sticky bottom-6 glass-card rounded-2xl p-6 border border-shield-accent/40 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-6 animate-fade-in-up">
                         <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-xl bg-shield-accent/10 flex items-center justify-center">
-                                <Info className="h-5 w-5 text-shield-accent" />
+                                <Info className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                             </div>
                             <div>
                                 <p className="text-sm font-bold text-shield-text">
@@ -170,9 +189,11 @@ export function BufferRecoveryCard() {
                             </div>
                         </div>
                         <button
+                            type="button"
                             onClick={() => setIsConfirmModalOpen(true)}
                             disabled={selectedCount === 0 || isClosing}
                             data-agent-target="close-buffers-btn"
+                            aria-label={selectedCount === 0 ? 'Select buffers first to close and reclaim SOL' : `Close and reclaim ${selectedSOL.toFixed(3)} SOL from ${selectedCount} buffer${selectedCount === 1 ? '' : 's'}`}
                             className="w-full sm:w-auto px-10 py-4 rounded-xl bg-shield-accent hover:bg-shield-accent/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-lg shadow-lg shadow-shield-accent/25 transition-all"
                         >
                             Close and Reclaim SOL
@@ -181,14 +202,18 @@ export function BufferRecoveryCard() {
                 </div>
             )}
 
-            <ConfirmCloseModal
-                isOpen={isConfirmModalOpen}
-                onClose={() => setIsConfirmModalOpen(false)}
-                onConfirm={handleConfirmClose}
-                isClosing={isClosing}
-                count={selectedCount}
-                totalSOL={selectedSOL}
-            />
+            {closeEstimate && (
+                <ConfirmCloseModal
+                    isOpen={isConfirmModalOpen}
+                    onClose={() => setIsConfirmModalOpen(false)}
+                    onConfirm={handleConfirmClose}
+                    isClosing={isClosing}
+                    estimate={closeEstimate}
+                />
+            )}
         </div>
     );
-}
+});
+
+// Add display name for better debugging
+BufferRecoveryCard.displayName = 'BufferRecoveryCard';

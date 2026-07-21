@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { CheckSquare, Square, Zap, ExternalLink } from 'lucide-react';
 import { formatSOLValue, estimateUSD, shortenAddress } from '@/lib/formatting';
 import { SOLSCAN_ACCOUNT_URL } from '@/config/constants';
@@ -9,31 +10,35 @@ interface MEVClaimRowProps {
     onToggle: () => void;
 }
 
-export function MEVClaimRow({ item, isSelected, onToggle }: MEVClaimRowProps) {
+export const MEVClaimRow = memo(function MEVClaimRow({ item, isSelected, onToggle }: MEVClaimRowProps) {
     return (
         <label
             className={`flex items-center gap-3 rounded-xl border p-3 cursor-pointer transition-colors ${isSelected
                     ? 'border-shield-primary/50 bg-shield-primary/10'
                     : 'border-shield-border bg-shield-bg/40 hover:border-shield-primary/30'
                 }`}
+            role="checkbox"
+            aria-checked={isSelected}
+            aria-label={`Select Jito MEV reward from epoch ${item.epoch} for ${formatSOLValue(item.totalSOL)}`}
         >
             <input
                 type="checkbox"
                 className="sr-only"
                 checked={isSelected}
                 onChange={onToggle}
+                aria-hidden="true"
             />
             <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center text-shield-muted transition-colors hover:text-shield-primary">
                 {isSelected ? (
-                    <CheckSquare className="h-5 w-5 text-shield-primary" />
+                    <CheckSquare className="h-5 w-5 text-shield-primary" aria-hidden="true" />
                 ) : (
-                    <Square className="h-5 w-5" />
+                    <Square className="h-5 w-5" aria-hidden="true" />
                 )}
             </div>
 
             <div className="flex flex-1 flex-col">
                 <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4 text-shield-accent" fill="currentColor" />
+                    <Zap className="h-4 w-4 text-shield-accent" fill="currentColor" aria-hidden="true" />
                     <span className="text-sm font-semibold text-shield-text">
                         Jito MEV Reward
                     </span>
@@ -47,12 +52,13 @@ export function MEVClaimRow({ item, isSelected, onToggle }: MEVClaimRowProps) {
                     <a
                         href={SOLSCAN_ACCOUNT_URL(item.stakeAccount)}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 hover:text-shield-text transition-colors"
                         onClick={(e) => e.stopPropagation()}
+                        aria-label="View stake account on Solscan (opens in new tab)"
                     >
                         {shortenAddress(item.stakeAccount, 4)}
-                        <ExternalLink className="h-3 w-3" />
+                        <ExternalLink className="h-3 w-3" aria-hidden="true" />
                     </a>
                 </div>
             </div>
@@ -65,4 +71,4 @@ export function MEVClaimRow({ item, isSelected, onToggle }: MEVClaimRowProps) {
             </div>
         </label>
     );
-}
+});

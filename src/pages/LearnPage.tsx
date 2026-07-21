@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { BookOpen, ExternalLink, ChevronRight, Shield, Code2, Server, Cpu, Sparkles, Terminal, FileText, Zap } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { ENGINE_METADATA } from '@/config/constants';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface LearnContent {
     title: string;
@@ -17,7 +18,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '1': {
         title: 'Revoke Permissions',
         description: 'Understand SPL Token Delegation and how to safely revoke allowances.',
-        icon: <Shield className="h-5 w-5" />,
+        icon: <Shield className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -52,7 +53,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '2': {
         title: 'Reclaim Rent',
         description: 'Learn about Solana State Rent and the lifecycle of Token Accounts.',
-        icon: <Cpu className="h-5 w-5" />,
+        icon: <Cpu className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -87,7 +88,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '3': {
         title: 'Sweep Dust',
         description: 'Clear fractional token dust via Jupiter swaps and SPL Burn mechanics.',
-        icon: <Sparkles className="h-5 w-5" />,
+        icon: <Sparkles className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -115,7 +116,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '4': {
         title: 'Claim Stakes',
         description: 'Understand Delayed Unstaking and state tickets for LST protocols.',
-        icon: <Server className="h-5 w-5" />,
+        icon: <Server className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -151,7 +152,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '5': {
         title: 'Harvest LP Fees',
         description: 'Extract unclaimed yields from Concentrated Liquidity Market Makers.',
-        icon: <Zap className="h-5 w-5" />,
+        icon: <Zap className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -183,7 +184,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '7': {
         title: 'MEV & Priority Fees',
         description: 'Learn how Jito Block Engine tips are distributed and claimed via Merkle Proofs.',
-        icon: <Terminal className="h-5 w-5" />,
+        icon: <Terminal className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -218,7 +219,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '9': {
         title: 'Dead Protocol Rescue',
         description: 'Salvage trapped liquidity from sunset DeFi protocols using Anchor IDLs.',
-        icon: <Code2 className="h-5 w-5" />,
+        icon: <Code2 className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -253,7 +254,7 @@ const LEARN_CONTENT_MAP: Record<string, LearnContent> = {
     '10': {
         title: 'Recover Program Buffers',
         description: 'Understand the Upgradable BPF Loader and how to salvage failed deployments.',
-        icon: <FileText className="h-5 w-5" />,
+        icon: <FileText className="h-5 w-5" aria-hidden="true" />,
         conceptIntro: (
             <div className="space-y-4 text-shield-muted leading-relaxed">
                 <p>
@@ -294,6 +295,12 @@ export function LearnPage() {
     // Default to engine 1 if no specific engine is selected or an invalid one is passed
     const activeEngineId = id && LEARN_CONTENT_MAP[id] ? id : '1';
     const activeContent = LEARN_CONTENT_MAP[activeEngineId];
+
+    usePageMeta({
+        title: `Learn: ${activeContent.title}`,
+        description: activeContent.description,
+        noindex: true,
+    }, [activeEngineId]);
 
     // Ensure URL matches active state
     useEffect(() => {
@@ -395,7 +402,7 @@ export function LearnPage() {
 
                                     <section>
                                         <h3 className="flex items-center gap-2 text-xl font-bold text-white mb-6 border-b border-shield-border border-dashed pb-3">
-                                            <ExternalLink className="h-5 w-5 text-shield-success" />
+                                            <ExternalLink className="h-5 w-5 text-shield-success" aria-hidden="true" />
                                             Official Documentation
                                         </h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -411,7 +418,7 @@ export function LearnPage() {
                                                         <span className="font-semibold text-shield-text group-hover:text-shield-success transition-colors truncate pr-4">
                                                             {resource.label}
                                                         </span>
-                                                        <ExternalLink className="h-4 w-4 text-shield-muted group-hover:text-shield-success flex-shrink-0" />
+                                                        <ExternalLink className="h-4 w-4 text-shield-muted group-hover:text-shield-success flex-shrink-0" aria-hidden="true" />
                                                     </div>
                                                     <span className="text-xs text-shield-muted mt-1 truncate">
                                                         {new URL(resource.url).hostname}

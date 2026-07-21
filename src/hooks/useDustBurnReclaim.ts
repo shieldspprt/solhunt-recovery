@@ -16,6 +16,7 @@ import {
 import type { AppError, DustBurnProgressItem, DustBurnResult, DustToken } from '@/types';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
 import { createAppError } from '@/lib/errors';
+import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 
 export function useDustBurnReclaim() {
     const { connection } = useConnection();
@@ -198,8 +199,8 @@ export function useDustBurnReclaim() {
                             message: 'Burned and closed successfully.',
                         }))
                     );
-                } catch (error) {
-                    const batchDetail = error instanceof Error ? error.message : String(error);
+                } catch (err: unknown) {
+                    const batchDetail = err instanceof Error ? err.message : String(err);
 
                     // A single bad token can fail the entire batch because Solana txs are atomic.
                     // Retry each token in a single-token transaction so one failure does not block others.
@@ -239,9 +240,9 @@ export function useDustBurnReclaim() {
                                 reclaimedSOL: TOKEN_ACCOUNT_RENT_LAMPORTS / 1e9,
                                 message: 'Recovered via single-token retry.',
                             }]);
-                        } catch (singleError) {
+                        } catch (singleErr: unknown) {
                             failedCount += 1;
-                            const singleDetail = singleError instanceof Error ? singleError.message : String(singleError);
+                            const singleDetail = singleErr instanceof Error ? singleErr.message : String(singleErr);
                             updateProgress([{
                                 mint: token.mint,
                                 tokenSymbol: token.tokenSymbol,
@@ -282,13 +283,17 @@ export function useDustBurnReclaim() {
                     feeTx.feePayer = publicKey;
                     feeTx.recentBlockhash = blockhash;
 
+                    // Security audit: verify fee transaction only contains allowed instructions
+                    // (SystemProgram.transfer to TREASURY_WALLET + compute budget priority fee ixs)
+                    verifyTransactionSecurity(feeTx, publicKey);
+
                     const feeSignature = await sendTransaction(feeTx, connection);
                     await confirmTransactionRobust(connection, feeSignature, 'confirmed');
 
                     signatures.push(feeSignature);
                 }
-            } catch (error) {
-                feeTransferError = error instanceof Error ? error.message : String(error);
+            } catch (err: unknown) {
+                feeTransferError = err instanceof Error ? err.message : String(err);
             }
 
             const reclaimedSOL = burnedCount * (TOKEN_ACCOUNT_RENT_LAMPORTS / 1e9);
@@ -310,11 +315,11 @@ export function useDustBurnReclaim() {
                 burnedCount: result.burnedCount,
                 reclaimedSOL: result.reclaimedSOL,
             });
-        } catch (error) {
+        } catch (err: unknown) {
             const appError: AppError =
-                error && typeof error === 'object' && 'code' in error
-                    ? (error as AppError)
-                    : createAppError('DUST_BURN_FAILED', error instanceof Error ? error.message : String(error));
+                err && typeof err === 'object' && 'code' in err
+                    ? (err as AppError)
+                    : createAppError('DUST_BURN_FAILED', err instanceof Error ? err.message : String(err));
             setDustBurnError(appError);
             logDustBurnComplete({
                 success: false,

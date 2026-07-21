@@ -1,46 +1,116 @@
+import { useCallback, useState, useEffect, useRef } from 'react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { useRevoke } from '@/hooks/useRevoke';
 import { estimateTransactionCost } from '@/lib/revoke';
 import { formatSOLValue, estimateUSD } from '@/lib/formatting';
 import { ShieldAlert, X } from 'lucide-react';
 import type { TokenDelegation } from '@/types';
+import { memo } from 'react';
 
 interface RevokeConfirmModalProps {
     delegations: TokenDelegation[];
 }
 
-export function RevokeConfirmModal({ delegations }: RevokeConfirmModalProps) {
+export const RevokeConfirmModal = memo(function RevokeConfirmModal({ delegations }: RevokeConfirmModalProps) {
     const { revokeStatus, clearRevoke } = useAppStore();
     const { revoke } = useRevoke();
+
+    // Guard: protect against undefined or malformed delegations prop — must be first
+    if (!delegations) return null;
 
     // Only show when state is awaiting_confirmation
     if (revokeStatus !== 'awaiting_confirmation') return null;
 
+    const [feeConsent, setFeeConsent] = useState(false);
+    const modalRef = useRef<HTMLDivElement>(null);
+    const cancelButtonRef = useRef<HTMLButtonElement>(null);
+    const previousActiveElement = useRef<HTMLElement | null>(null);
+
     const cost = estimateTransactionCost(delegations.length);
 
+    // Handle Escape key to close modal — stable callback, no deps beyond clearRevoke
+    const handleEscape = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape') clearRevoke();
+    }, [clearRevoke]);
+
+    const handleBackdropClick = useCallback(() => {
+        clearRevoke();
+    }, [clearRevoke]);
+
+    // Handle focus trap
+    const handleTabKey = useCallback((e: KeyboardEvent, first: HTMLElement | undefined, last: HTMLElement | undefined) => {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first?.focus();
+        }
+    }, []);
+
+    useEffect(() => {
+        previousActiveElement.current = document.activeElement as HTMLElement;
+        document.addEventListener('keydown', handleEscape);
+        const cancelBtn = cancelButtonRef.current;
+        const timer = setTimeout(() => cancelBtn?.focus(), 0);
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            previousActiveElement.current?.focus();
+            clearTimeout(timer);
+        };
+    }, [handleEscape]);
+
+    useEffect(() => {
+        const modal = modalRef.current;
+        if (!modal) return;
+        const focusable = modal.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const handler = (e: KeyboardEvent) => handleTabKey(e, first, last);
+        modal.addEventListener('keydown', handler);
+        return () => modal.removeEventListener('keydown', handler);
+    }, [handleTabKey]);
+
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div 
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="revoke-modal-title"
+        >
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-shield-bg/80 backdrop-blur-sm"
-                onClick={clearRevoke}
+                onClick={handleBackdropClick}
+                aria-hidden="true"
             />
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div 
+                ref={modalRef}
+                className="relative w-full max-w-md overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            >
                 <button
+                    type="button"
                     onClick={clearRevoke}
+                    aria-label="Close revoke confirmation modal"
                     className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                 >
-                    <X className="h-5 w-5" />
+                    <X className="h-5 w-5" aria-hidden="true" />
                 </button>
 
                 <div className="p-6 sm:p-8">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-danger/10">
-                        <ShieldAlert className="h-8 w-8 text-shield-danger" />
+                        <ShieldAlert className="h-8 w-8 text-shield-danger" aria-hidden="true" />
                     </div>
 
-                    <h2 className="text-xl font-bold text-center text-shield-text mb-6">
+                    <h2 
+                        id="revoke-modal-title"
+                        className="text-xl font-bold text-center text-shield-text mb-6"
+                    >
                         Revoke {delegations.length} token permission{delegations.length !== 1 ? 's' : ''}?
                     </h2>
 
@@ -92,16 +162,42 @@ export function RevokeConfirmModal({ delegations }: RevokeConfirmModalProps) {
                         </p>
                     </div>
 
+                    {/* Fee Disclosure & Consent */}
+                    <div className="rounded-xl border border-shield-accent/30 bg-shield-accent/5 p-4 mb-6">
+                        <label
+                            htmlFor="fee-consent-checkbox"
+                            className="flex items-start gap-3 cursor-pointer select-none"
+                        >
+                            <input
+                                id="fee-consent-checkbox"
+                                type="checkbox"
+                                checked={feeConsent}
+                                onChange={(e) => setFeeConsent(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-shield-border bg-shield-bg text-shield-accent focus:ring-shield-accent focus:ring-offset-0 cursor-pointer"
+                            />
+                            <span className="text-xs text-shield-text leading-relaxed">
+                                I understand that a service fee of <span className="font-semibold text-shield-accent">{formatSOLValue(cost.serviceFeeSOL)}</span> and network fees of approximately <span className="font-semibold text-shield-accent">{formatSOLValue(cost.networkFeeSOL)}</span> will be deducted from my wallet upon confirmation.
+                            </span>
+                        </label>
+                    </div>
+
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
+                            type="button"
+                            ref={cancelButtonRef}
                             onClick={clearRevoke}
-                            className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
+                            aria-label="Cancel and close modal"
+                            className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors focus:outline-none focus:ring-2 focus:ring-shield-accent/50"
                         >
                             Cancel
                         </button>
                         <button
+                            type="button"
                             onClick={() => revoke(delegations)}
-                            className="flex-1 rounded-xl bg-shield-danger px-4 py-3 font-semibold text-white hover:bg-shield-danger/90 shadow-lg shadow-shield-danger/20 transition-colors"
+                            disabled={!feeConsent}
+                            aria-label={`Revoke ${delegations.length} token permission${delegations.length !== 1 ? 's' : ''}${!feeConsent ? ' — consent to fee required' : ''}`}
+                            aria-disabled={!feeConsent}
+                            className="flex-1 rounded-xl bg-shield-danger px-4 py-3 font-semibold text-white shadow-lg shadow-shield-danger/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none hover:bg-shield-danger/90 focus:outline-none focus:ring-2 focus:ring-shield-danger/50"
                         >
                             Revoke {delegations.length} Permissions
                         </button>
@@ -110,4 +206,4 @@ export function RevokeConfirmModal({ delegations }: RevokeConfirmModalProps) {
             </div>
         </div>
     );
-}
+});

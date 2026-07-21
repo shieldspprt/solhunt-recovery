@@ -8,6 +8,9 @@ import {
 } from '../types';
 import { DEAD_PROTOCOLS } from '../registry/protocols';
 import { estimatePositionValue } from './positionValueEstimator';
+import { withRetry } from '@/lib/rpcRetry';
+import { isValidSolanaPublicKey } from '@/lib/validation';
+import { createAppError } from '@/lib/errors';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -16,14 +19,22 @@ export async function scanForDeadProtocolPositions(
     connection: Connection,
     onProgress: (progress: DecommissionScanProgress) => void
 ): Promise<DecommissionScanResult> {
+    // SECURITY: Validate wallet address before making any RPC calls to prevent
+    // injection attacks and ensure consistent error handling.
+    if (!isValidSolanaPublicKey(walletAddress)) {
+        throw createAppError(
+            'INVALID_ADDRESS',
+            `Invalid wallet address provided to decommission scanner: ${walletAddress.substring(0, 10)}...`
+        );
+    }
 
     const walletPubkey = new PublicKey(walletAddress);
 
     // Get all token accounts
-    const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+    const tokenAccounts = await withRetry(() => connection.getParsedTokenAccountsByOwner(
         walletPubkey,
         { programId: TOKEN_PROGRAM_ID }
-    );
+    ));
 
     const activeProtocols = DEAD_PROTOCOLS.filter(p => !!p.positionTokenMints?.length);
     const items: DecommissionPositionItem[] = [];

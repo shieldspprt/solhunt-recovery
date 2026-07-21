@@ -39,7 +39,44 @@ def twaManifest = [
     // - short_name: Shorter string used if |name| is too long.
     // - url: Absolute path of the URL to launch the app with (e.g '/create').
     // - icon: Name of the resource in the drawable folder to use as an icon.
-    shortcuts: [],
+    shortcuts: [
+        [
+            name: 'Scan Wallet',
+            short_name: 'Scan',
+            url: 'https://solhunt.dev/?engine=scan',
+            icon: 'ic_shortcut_scan',
+        ],
+        [
+            name: 'Preview Recovery',
+            short_name: 'Preview',
+            url: 'https://solhunt.dev/?engine=preview',
+            icon: 'ic_shortcut_scan',
+        ],
+        [
+            name: 'Revoke Approvals',
+            short_name: 'Revoke',
+            url: 'https://solhunt.dev/?engine=revoke',
+            icon: 'ic_shortcut_revoke',
+        ],
+        [
+            name: 'Reclaim Rent',
+            short_name: 'Rent',
+            url: 'https://solhunt.dev/?engine=reclaim',
+            icon: 'ic_shortcut_rent',
+        ],
+        [
+            name: 'LP Fee Harvester',
+            short_name: 'LP Fees',
+            url: 'https://solhunt.dev/?engine=lp-fees',
+            icon: 'ic_shortcut_fleet',
+        ],
+        [
+            name: 'Fleet Manager',
+            short_name: 'Fleet',
+            url: 'https://solhunt.dev/?engine=fleet',
+            icon: 'ic_shortcut_fleet',
+        ],
+    ],
     // The duration of fade out animation in milliseconds to be played when removing splash screen.
     splashScreenFadeOutDuration: 300,
     generatorApp: 'bubblewrap-cli', // Application that generated the Android Project
@@ -165,7 +202,7 @@ android {
 }
 
 task generateShorcutsFile {
-    assert twaManifest.shortcuts.size() < 5, "You can have at most 4 shortcuts."
+    assert twaManifest.shortcuts.size() <= 6, "You can have at most 6 shortcuts."
     twaManifest.shortcuts.eachWithIndex { s, i ->
         assert s.name != null, 'Missing `name` in shortcut #' + i
         assert s.short_name != null, 'Missing `short_name` in shortcut #' + i
@@ -188,11 +225,10 @@ task generateShorcutsFile {
                         'android:shortcutShortLabel': '@string/shortcut_short_name_' + i,
                         'android:shortcutLongLabel': '@string/shortcut_name_' + i) {
                     'intent'(
-                            'android:action': 'android.intent.action.MAIN',
+                            'android:action': 'android.intent.action.VIEW',
                             'android:targetPackage': twaManifest.applicationId,
                             'android:targetClass': twaManifest.applicationId + '.LauncherActivity',
                             'android:data': s.url)
-                    'categories'('android:name': 'android.intent.category.LAUNCHER')
                 }
             }
         }

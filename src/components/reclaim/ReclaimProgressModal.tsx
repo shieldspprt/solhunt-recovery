@@ -5,8 +5,9 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { SOLSCAN_TX_URL } from '@/config/constants';
 import { formatSOLValue } from '@/lib/formatting';
 import { CheckCircle2, XCircle, ExternalLink, RefreshCw, X } from 'lucide-react';
+import { memo } from 'react';
 
-export function ReclaimProgressModal() {
+export const ReclaimProgressModal = memo(function ReclaimProgressModal() {
     const { reclaimStatus, reclaimResult, reclaimError, clearReclaim } = useAppStore();
     const { closeableAccounts, executeReclaim } = useReclaimRent();
 
@@ -28,21 +29,38 @@ export function ReclaimProgressModal() {
     }, [isProcessing, clearReclaim]);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reclaim-progress-title"
+        >
             {/* Backdrop */}
-            <div
-                className="absolute inset-0 bg-shield-bg/90 backdrop-blur-sm"
+            <button
+                className={`absolute inset-0${isProcessing ? ' cursor-default pointer-events-none' : ' cursor-pointer'} bg-shield-bg/90 backdrop-blur-sm`}
                 onClick={handleClose}
+                aria-label="Close modal overlay"
+                aria-hidden="true"
+                tabIndex={isProcessing ? -1 : 0}
+                onKeyDown={(e) => {
+                    if ((e.key === 'Enter' || e.key === ' ') && !isProcessing) {
+                        e.preventDefault();
+                        handleClose();
+                    }
+                }}
+                type="button"
             />
 
             {/* Modal Content */}
             <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 {!isProcessing && (
                     <button
+                        type="button"
                         onClick={handleClose}
+                        aria-label="Close reclaim progress modal"
                         className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     >
-                        <X className="h-5 w-5" />
+                        <X className="h-5 w-5" aria-hidden="true" />
                     </button>
                 )}
 
@@ -52,7 +70,7 @@ export function ReclaimProgressModal() {
                     {reclaimStatus === 'building_transaction' && (
                         <>
                             <LoadingSpinner size="lg" className="mb-6" />
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Building Transaction</h2>
+                            <h2 id="reclaim-progress-title" className="text-xl font-bold text-shield-text mb-2">Building Transaction</h2>
                             <p className="text-shield-muted text-sm">Preparing to close {closeableAccounts.length} accounts...</p>
                         </>
                     )}
@@ -63,7 +81,7 @@ export function ReclaimProgressModal() {
                                 <div className="absolute inset-0 bg-shield-success/20 rounded-full animate-ping" />
                                 <LoadingSpinner size="lg" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Waiting for Signature</h2>
+                            <h2 id="reclaim-progress-title" className="text-xl font-bold text-shield-text mb-2">Waiting for Signature</h2>
                             <p className="text-shield-muted text-sm px-4">
                                 Please check your wallet extension and approve the transaction.
                             </p>
@@ -73,7 +91,7 @@ export function ReclaimProgressModal() {
                     {reclaimStatus === 'confirming' && (
                         <>
                             <LoadingSpinner size="lg" className="mb-6" />
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Confirming on Solana</h2>
+                            <h2 id="reclaim-progress-title" className="text-xl font-bold text-shield-text mb-2">Confirming on Solana</h2>
                             <p className="text-shield-muted text-sm">This usually takes a few seconds...</p>
                         </>
                     )}
@@ -82,9 +100,9 @@ export function ReclaimProgressModal() {
                     {reclaimStatus === 'complete' && reclaimResult?.success && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500">
                             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-shield-success/10 border border-shield-success/20">
-                                <CheckCircle2 className="h-12 w-12 text-shield-success" />
+                                <CheckCircle2 className="h-12 w-12 text-shield-success" aria-hidden="true" />
                             </div>
-                            <h2 className="text-2xl font-bold text-shield-text mb-2">SOL Reclaimed!</h2>
+                            <h2 id="reclaim-progress-title" className="text-2xl font-bold text-shield-text mb-2">SOL Reclaimed!</h2>
                             <p className="text-shield-muted mb-6">
                                 Successfully closed {reclaimResult.closedCount} accounts and reclaimed{' '}
                                 <span className="font-mono text-shield-text font-bold">~{formatSOLValue(reclaimResult.reclaimedSOL)}</span>.
@@ -96,14 +114,17 @@ export function ReclaimProgressModal() {
                                         href={SOLSCAN_TX_URL(reclaimResult.signature)}
                                         target="_blank"
                                         rel="noopener noreferrer"
+                                        aria-label="View transaction on Solscan (opens in new tab)"
                                         className="inline-flex items-center gap-2 text-sm font-medium text-shield-success hover:text-white transition-colors"
                                     >
-                                        View on Solscan <ExternalLink className="h-4 w-4" />
+                                        View on Solscan <ExternalLink className="h-4 w-4" aria-hidden="true" />
                                     </a>
                                 )}
 
                                 <button
+                                    type="button"
                                     onClick={clearReclaim}
+                                    aria-label="Dismiss recovery result and return to scanner"
                                     className="w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors mt-4"
                                 >
                                     Done
@@ -116,9 +137,9 @@ export function ReclaimProgressModal() {
                     {reclaimStatus === 'error' && reclaimError && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500 w-full">
                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-danger/10">
-                                <XCircle className="h-8 w-8 text-shield-danger" />
+                                <XCircle className="h-8 w-8 text-shield-danger" aria-hidden="true" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Reclaim Failed</h2>
+                            <h2 id="reclaim-progress-title" className="text-xl font-bold text-shield-text mb-2">Reclaim Failed</h2>
 
                             <div className="rounded-lg bg-shield-danger/10 border border-shield-danger/20 p-4 mb-6 mt-4 text-left">
                                 <p className="text-sm font-medium text-shield-danger mb-1">{reclaimError.message}</p>
@@ -129,16 +150,20 @@ export function ReclaimProgressModal() {
 
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button
+                                    type="button"
                                     onClick={clearReclaim}
+                                    aria-label="Cancel reclaim"
                                     className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={executeReclaim}
+                                    aria-label="Retry reclaiming SOL"
                                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                                 >
-                                    <RefreshCw className="h-4 w-4" />
+                                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
                                     Try Again
                                 </button>
                             </div>
@@ -149,4 +174,4 @@ export function ReclaimProgressModal() {
             </div>
         </div>
     );
-}
+});

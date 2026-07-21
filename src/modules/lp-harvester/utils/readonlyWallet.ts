@@ -27,7 +27,7 @@ export function toBase58(value: unknown): string {
         if (typeof fn === 'function') {
             try {
                 return fn.call(value) as string;
-            } catch {
+            } catch (_err: unknown) {
                 return '';
             }
         }

@@ -5,14 +5,18 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { SOLSCAN_TX_URL } from '@/config/constants';
 import { CheckCircle2, XCircle, ExternalLink, RefreshCw, X } from 'lucide-react';
 import type { TokenDelegation } from '@/types';
+import { memo } from 'react';
 
 interface RevokeProgressModalProps {
     delegations: TokenDelegation[];
 }
 
-export function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
+export const RevokeProgressModal = memo(function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
     const { revokeStatus, revokeResult, revokeError, clearRevoke } = useAppStore();
     const { revoke } = useRevoke();
+
+    // Guard: protect against undefined or malformed delegations prop
+    if (!delegations) return null;
 
     // Hide if not in active revoking flow or completed/error state
     if (
@@ -32,21 +36,30 @@ export function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
     }, [isProcessing, clearRevoke]);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="revoke-progress-title"
+        >
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-shield-bg/90 backdrop-blur-sm"
                 onClick={handleClose}
+                aria-label="Close dialog by clicking backdrop"
+                aria-hidden="true"
             />
 
             {/* Modal Content */}
             <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 {!isProcessing && (
                     <button
+                        type="button"
                         onClick={handleClose}
+                        aria-label="Close modal"
                         className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     >
-                        <X className="h-5 w-5" />
+                        <X className="h-5 w-5" aria-hidden="true" />
                     </button>
                 )}
 
@@ -56,7 +69,7 @@ export function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
                     {revokeStatus === 'building_transaction' && (
                         <>
                             <LoadingSpinner size="lg" className="mb-6" />
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Building Transaction</h2>
+                            <h2 id="revoke-progress-title" className="text-xl font-bold text-shield-text mb-2">Building Transaction</h2>
                             <p className="text-shield-muted text-sm">Preparing to revoke {delegations.length} permissions...</p>
                         </>
                     )}
@@ -67,7 +80,7 @@ export function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
                                 <div className="absolute inset-0 bg-shield-accent/20 rounded-full animate-ping" />
                                 <LoadingSpinner size="lg" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Waiting for Signature</h2>
+                            <h2 id="revoke-progress-title" className="text-xl font-bold text-shield-text mb-2">Waiting for Signature</h2>
                             <p className="text-shield-muted text-sm px-4">
                                 Please check your wallet extension and approve the transaction.
                             </p>
@@ -77,7 +90,7 @@ export function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
                     {revokeStatus === 'confirming' && (
                         <>
                             <LoadingSpinner size="lg" className="mb-6" />
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Confirming on Solana</h2>
+                            <h2 id="revoke-progress-title" className="text-xl font-bold text-shield-text mb-2">Confirming on Solana</h2>
                             <p className="text-shield-muted text-sm">This usually takes a few seconds...</p>
                         </>
                     )}
@@ -86,9 +99,9 @@ export function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
                     {revokeStatus === 'complete' && revokeResult?.success && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500">
                             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-shield-success/10">
-                                <CheckCircle2 className="h-12 w-12 text-shield-success" />
+                                <CheckCircle2 className="h-12 w-12 text-shield-success" aria-hidden="true" />
                             </div>
-                            <h2 className="text-2xl font-bold text-shield-text mb-2">Protected!</h2>
+                            <h2 id="revoke-progress-title" className="text-2xl font-bold text-shield-text mb-2">Protected!</h2>
                             <p className="text-shield-muted mb-6">
                                 Successfully revoked {revokeResult.revokedCount} permission(s).
                             </p>
@@ -99,14 +112,17 @@ export function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
                                         href={SOLSCAN_TX_URL(revokeResult.signature)}
                                         target="_blank"
                                         rel="noopener noreferrer"
+                                        aria-label="View revocation transaction on Solscan"
                                         className="inline-flex items-center gap-2 text-sm font-medium text-shield-accent hover:text-white transition-colors"
                                     >
-                                        View on Solscan <ExternalLink className="h-4 w-4" />
+                                        View on Solscan <ExternalLink className="h-4 w-4" aria-hidden="true" />
                                     </a>
                                 )}
 
                                 <button
+                                    type="button"
                                     onClick={clearRevoke}
+                                    aria-label="Done — return to scan results"
                                     className="w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors mt-4"
                                 >
                                     Done
@@ -119,9 +135,9 @@ export function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
                     {revokeStatus === 'error' && revokeError && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500 w-full">
                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-danger/10">
-                                <XCircle className="h-8 w-8 text-shield-danger" />
+                                <XCircle className="h-8 w-8 text-shield-danger" aria-hidden="true" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Revocation Failed</h2>
+                            <h2 id="revoke-progress-title" className="text-xl font-bold text-shield-text mb-2">Revocation Failed</h2>
 
                             <div className="rounded-lg bg-shield-danger/10 border border-shield-danger/20 p-4 mb-6 mt-4 text-left">
                                 <p className="text-sm font-medium text-shield-danger mb-1">{revokeError.message}</p>
@@ -132,16 +148,20 @@ export function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
 
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button
+                                    type="button"
                                     onClick={clearRevoke}
+                                    aria-label="Cancel and close modal"
                                     className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={() => revoke(delegations)}
+                                    aria-label="Retry revoking all token permissions"
                                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                                 >
-                                    <RefreshCw className="h-4 w-4" />
+                                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
                                     Try Again
                                 </button>
                             </div>
@@ -152,4 +172,4 @@ export function RevokeProgressModal({ delegations }: RevokeProgressModalProps) {
             </div>
         </div>
     );
-}
+});

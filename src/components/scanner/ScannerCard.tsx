@@ -3,17 +3,23 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { useWalletScanner } from '@/hooks/useWalletScanner';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { shortenAddress, copyToClipboard } from '@/lib/formatting';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, memo } from 'react';
 import toast from 'react-hot-toast';
 import { Copy, Check } from 'lucide-react';
-import { useAppStore } from '@/hooks/useAppStore';
+import { useWalletStatus } from '@/hooks/useStoreSelectors';
 
-export function ScannerCard() {
+// Memoized to prevent unnecessary re-renders when parent components update
+// This component only depends on internal state and global stores
+export const ScannerCard = memo(function ScannerCard() {
     const { publicKey } = useWallet();
-    const agentWallet = useAppStore(s => s.agentWallet);
+    const { agentWallet } = useWalletStatus();
     const { scan, isScanning, isOnCooldown } = useWalletScanner();
     const [copied, setCopied] = useState(false);
     const [scanStatusText, setScanStatusText] = useState('');
+    // Track the "Copied!" reset timeout so it can be cleared on unmount or re-click.
+    // Without this, navigating away within 2s of a copy triggers a state update on an
+    // unmounted component (React warning) and overlapping clicks can clobber the timer.
+    const copyResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Cycle through status messages during scan
     useEffect(() => {
@@ -38,13 +44,30 @@ export function ScannerCard() {
         return () => clearInterval(interval);
     }, [isScanning]);
 
+    // Clear pending copy-reset timer on unmount to avoid setState-after-unmount warnings
+    useEffect(() => {
+        return () => {
+            if (copyResetTimeoutRef.current) {
+                clearTimeout(copyResetTimeoutRef.current);
+                copyResetTimeoutRef.current = null;
+            }
+        };
+    }, []);
+
     const handleCopy = async () => {
         if (!publicKey) return;
         const success = await copyToClipboard(publicKey.toBase58());
         if (success) {
             setCopied(true);
             toast.success('Address copied!');
-            setTimeout(() => setCopied(false), 2000);
+            // Cancel any in-flight reset so overlapping clicks restart the 2s window cleanly
+            if (copyResetTimeoutRef.current) {
+                clearTimeout(copyResetTimeoutRef.current);
+            }
+            copyResetTimeoutRef.current = setTimeout(() => {
+                setCopied(false);
+                copyResetTimeoutRef.current = null;
+            }, 2000);
         }
     };
 
@@ -54,6 +77,8 @@ export function ScannerCard() {
     return (
         <div
             className="w-full max-w-2xl mx-auto"
+            role="region"
+            aria-label="Solana wallet scanner"
             aria-live="polite"
             aria-busy={isScanning}
         >
@@ -62,7 +87,7 @@ export function ScannerCard() {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10">
-                            <Shield className="h-5 w-5 text-shield-accent" />
+                            <Shield className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                         </div>
                         <div>
                             <p className="text-xs text-shield-muted uppercase tracking-wider">Connected Wallet</p>
@@ -72,14 +97,15 @@ export function ScannerCard() {
                         </div>
                     </div>
                     <button
+                        type="button"
                         onClick={handleCopy}
-                        className="p-2 rounded-lg hover:bg-shield-border/50 transition-colors text-shield-muted hover:text-shield-text"
-                        title="Copy address"
+                        className="p-2 rounded-lg hover:bg-shield-border/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent/50 transition-colors text-shield-muted hover:text-shield-text"
+                        aria-label="Copy wallet address to clipboard"
                     >
                         {copied ? (
-                            <Check className="h-4 w-4 text-shield-success" />
+                            <Check className="h-4 w-4 text-shield-success" aria-hidden="true" />
                         ) : (
-                            <Copy className="h-4 w-4" />
+                            <Copy className="h-4 w-4" aria-hidden="true" />
                         )}
                     </button>
                 </div>
@@ -95,17 +121,20 @@ export function ScannerCard() {
                             We&apos;ll scan your token accounts for active delegations
                         </p>
                         <div className="flex items-center justify-center gap-1 text-xs text-shield-muted mb-6">
-                            <Clock className="h-3 w-3" />
+                            <Clock className="h-3 w-3" aria-hidden="true" />
                             <span>Takes 5–15 seconds</span>
                         </div>
                         <button
+                            type="button"
                             id="start-scan-button"
                             data-agent-target="start-scan-btn"
                             onClick={scan}
                             disabled={isOnCooldown()}
+                            aria-disabled={isOnCooldown()}
+                            aria-label="Start Solana token account scan"
                             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-shield-accent hover:bg-shield-accent/90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold px-8 py-4 text-lg shadow-lg shadow-shield-accent/25 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                         >
-                            <Search className="h-5 w-5" />
+                            <Search className="h-5 w-5" aria-hidden="true" />
                             Start Scan
                         </button>
                     </div>
@@ -113,4 +142,9 @@ export function ScannerCard() {
             </div>
         </div>
     );
-}
+});
+
+// Display name for React DevTools debugging
+ScannerCard.displayName = 'ScannerCard';
+
+export default ScannerCard;

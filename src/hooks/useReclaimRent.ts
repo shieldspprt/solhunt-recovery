@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import {
@@ -33,10 +33,11 @@ export function useReclaimRent() {
     } = useAppStore();
 
     // 2. Derive the estimate based on current closeable accounts
-    // We do this dynamically so the UI always has the latest math
-    const estimate = closeableAccounts.length > 0
-        ? calculateReclaimEstimate(closeableAccounts)
-        : null;
+    // Memoized to prevent re-calculation on every render when dependencies haven't changed
+    const estimate = useMemo(() => {
+        if (closeableAccounts.length === 0) return null;
+        return calculateReclaimEstimate(closeableAccounts);
+    }, [closeableAccounts]);
 
     /**
      * Opens the confirmation modal
@@ -87,7 +88,8 @@ export function useReclaimRent() {
             let totalClosed = 0;
 
             // Sequential processing, similar to useRevoke
-            for (const tx of transactions) {
+            for (const reclaimTx of transactions) {
+                const tx = reclaimTx.transaction;
                 try {
                     // Security audit: verify transaction only contains allowed instructions
                     verifyTransactionSecurity(tx, publicKey);
@@ -100,16 +102,14 @@ export function useReclaimRent() {
                     // Robust polling to avoid WebSocket failures
                     await confirmTransactionRobust(connection, signature, 'confirmed');
 
-                    // Count closed accounts in this batch
-                    // If this is the FIRST tx, it has an extra fee transfer instruction
-                    const isFirstTx = tx === transactions[0] && estimate.serviceFeeSOL > 0;
-                    const closedAccountsInTx = isFirstTx
-                        ? tx.instructions.length - 1
-                        : tx.instructions.length;
+                    // Use the explicit closeCount from the builder rather than
+                    // subtracting from tx.instructions.length. The transaction
+                    // also carries priority-fee ComputeBudget instructions and
+                    // (for the first batch) a service-fee transfer, so any
+                    // length-based math is fragile and over-counts on success.
+                    totalClosed += reclaimTx.closeCount;
 
-                    totalClosed += closedAccountsInTx;
-
-                } catch (txError) {
+                } catch (txError: unknown) {
                     const errorMessage = txError instanceof Error ? txError.message : String(txError);
 
                     // User Cancelled
@@ -168,14 +168,14 @@ export function useReclaimRent() {
                 reclaimedSOL: approxReclaimedSOL,
             });
 
-        } catch (error) {
+        } catch (err: unknown) {
             const appError: AppError =
-                error && typeof error === 'object' && 'code' in error
-                    ? (error as AppError)
+                err && typeof err === 'object' && 'code' in err
+                    ? (err as AppError)
                     : {
-                        code: ERROR_CODES.TX_FAILED,
-                        message: ERROR_CODES.RECLAIM_TX_FAILED,
-                        technicalDetail: error instanceof Error ? error.message : String(error),
+                        code: ERROR_CODES.RECLAIM_TX_FAILED,
+                        message: ERROR_MESSAGES.RECLAIM_TX_FAILED,
+                        technicalDetail: err instanceof Error ? err.message : String(err),
                     };
 
             setReclaimError(appError);
@@ -200,6 +200,14 @@ export function useReclaimRent() {
         clearReclaim();
     }, [clearReclaim]);
 
+    // Memoize derived boolean states to prevent unnecessary re-renders
+    const isReclaiming = useMemo(
+        () => reclaimStatus === 'building_transaction' || reclaimStatus === 'awaiting_signature' || reclaimStatus === 'confirming',
+        [reclaimStatus]
+    );
+    const isComplete = useMemo(() => reclaimStatus === 'complete', [reclaimStatus]);
+    const hasError = useMemo(() => reclaimStatus === 'error', [reclaimStatus]);
+
     return {
         closeableAccounts,
         reclaimEstimate: estimate,
@@ -212,11 +220,8 @@ export function useReclaimRent() {
         cancelReclaim,
         clearReclaim,
 
-        isReclaiming:
-            reclaimStatus === 'building_transaction' ||
-            reclaimStatus === 'awaiting_signature' ||
-            reclaimStatus === 'confirming',
-        isComplete: reclaimStatus === 'complete',
-        hasError: reclaimStatus === 'error',
+        isReclaiming,
+        isComplete,
+        hasError,
     };
 }

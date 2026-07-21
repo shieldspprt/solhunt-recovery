@@ -2,9 +2,19 @@
 // Runs daily at 9am UTC via Netlify scheduler
 // Scans 500 recent active Solana wallets and saves aggregate stats
 
-import { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
 import { Connection, PublicKey } from '@solana/web3.js';
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  errorBody,
+  getErrorMessage,
+  methodNotAllowed,
+  safeLogError,
+  safeLogInfo,
+  safeLogWarn,
+} from './_shared';
 
 // ── Config ────────────────────────────────────────────────────────────────────
 
@@ -62,7 +72,7 @@ async function getRecentActiveWallets(limit: number): Promise<ActiveWallet[]> {
         );
 
         if (!response.ok) {
-          console.error(`Error fetching from Helius: ${response.status} ${response.statusText}`);
+          safeLogError(`Error fetching from Helius: ${response.status} ${response.statusText}`);
           return;
         }
         
@@ -83,8 +93,8 @@ async function getRecentActiveWallets(limit: number): Promise<ActiveWallet[]> {
             }
           }
         }
-      } catch (e: any) {
-        console.error(`Failed to fetch transactions for ${program}:`, e.message);
+      } catch (e: unknown) {
+        safeLogError(`Failed to fetch transactions for ${program}:`, e instanceof Error ? e.message : String(e));
       }
     })
   );
@@ -104,7 +114,7 @@ async function getRecentActiveWallets(limit: number): Promise<ActiveWallet[]> {
     .slice(0, limit)
     .map(([address, sourceProject]) => ({ address, sourceProject }));
 
-  console.log(`Found ${wallets.length} unique active wallets (shuffled)`);
+  safeLogInfo(`Found ${wallets.length} unique active wallets (shuffled)`);
   return wallets;
 }
 
@@ -134,8 +144,8 @@ async function scanWallet(address: string, connection: Connection): Promise<{
       closeable: closeableCount,
       recoverable_sol: closeableCount * RENT_PER_ACCOUNT_SOL
     };
-  } catch (e: any) {
-    return { address, closeable: 0, recoverable_sol: 0, error: e.message };
+  } catch (e: unknown) {
+    return { address, closeable: 0, recoverable_sol: 0, error: e instanceof Error ? e.message : String(e) };
   }
 }
 
@@ -164,7 +174,7 @@ async function scanAllWallets(wallets: ActiveWallet[]): Promise<{
         .filter(r => !r.error && r.recoverable_sol >= MIN_RECOVERABLE_SOL)
     );
 
-    console.log(`Scanned ${Math.min(i + SCAN_BATCH_SIZE, wallets.length)}/${wallets.length}`);
+    safeLogInfo(`Scanned ${Math.min(i + SCAN_BATCH_SIZE, wallets.length)}/${wallets.length}`);
 
     // Rate limit delay between batches
     if (i + SCAN_BATCH_SIZE < wallets.length) {
@@ -202,8 +212,8 @@ function computeStats(
   const worst = sorted.find(w => !excludeWorstWallets.has(w.address)) || sorted[0];
 
   if (excludeWorstWallets.size > 0) {
-    console.log(`Excluding ${excludeWorstWallets.size} recent worst wallets:`, Array.from(excludeWorstWallets));
-    console.log(`Selected worst wallet: ${worst?.address || 'none'} (${worst?.recoverable_sol.toFixed(4) || 0} SOL)`);
+    safeLogInfo(`Excluding ${excludeWorstWallets.size} recent worst wallets:`, Array.from(excludeWorstWallets));
+    safeLogInfo(`Selected worst wallet: ${worst?.address || 'none'} (${worst?.recoverable_sol.toFixed(4) || 0} SOL)`);
   }
 
   const projectStats = new Map<string, number>();
@@ -243,8 +253,8 @@ async function generateXDraft(stats: ReturnType<typeof computeStats>, date: stri
         solPrice = data.data.SOL.price;
       }
     }
-  } catch (e: any) {
-    console.warn('Failed to fetch SOL price from Jupiter:', e.message);
+  } catch (e: unknown) {
+    safeLogWarn('Failed to fetch SOL price from Jupiter:', e instanceof Error ? e.message : String(e));
   }
 
   const totalUsd = (stats.total_recoverable_sol * solPrice).toFixed(0);
@@ -294,7 +304,18 @@ Check free at solhunt.dev ↓`;
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 export const handler: Handler = async (event) => {
-  const headers = { 'Content-Type': 'application/json' };
+  // daily-stats is invoked either by the Netlify scheduler (POST) or by an
+  // authorized internal caller. Always no-store so a manual retry always
+  // sees fresh data; the scheduler rate-limits itself.
+  const headers = buildCorsHeaders(event, { methods: 'POST, GET, OPTIONS' });
+
+  if (event.httpMethod === 'OPTIONS') {
+    return corsPreflightResponse(event, { methods: 'POST, GET, OPTIONS' });
+  }
+
+  if (event.httpMethod !== 'POST' && event.httpMethod !== 'GET') {
+    return methodNotAllowed(event, 'POST, GET, OPTIONS');
+  }
 
   // Security: only allow internal calls or Netlify scheduler
   const secret = event.headers?.['x-internal-secret'] || event.queryStringParameters?.secret;
@@ -324,7 +345,7 @@ export const handler: Handler = async (event) => {
   // }
 
   try {
-    console.log('Starting daily stats run for', today);
+    safeLogInfo('Starting daily stats run for', today);
     const isFast = !!event.queryStringParameters?.fast;
 
     // Step 1: Get wallets
@@ -347,7 +368,7 @@ export const handler: Handler = async (event) => {
       .limit(10);
 
     const excludeWallets = new Set(
-      (recentWorst || []).map((r: any) => r.worst_wallet).filter(Boolean)
+      (recentWorst || []).map((r: { worst_wallet: string | null }) => r.worst_wallet).filter((w): w is string => w !== null)
     );
 
     const stats = computeStats(wallets.length, results, excludeWallets);
@@ -372,8 +393,6 @@ export const handler: Handler = async (event) => {
 
     if (dbError) throw new Error(`DB error: ${dbError.message}`);
 
-    console.log('Daily stats saved:', stats);
-
     return {
       statusCode: 200,
       headers,
@@ -384,12 +403,13 @@ export const handler: Handler = async (event) => {
         x_draft: xDraft
       })
     };
-  } catch (e: any) {
-    console.error('Daily stats failed:', e.message);
+  } catch (e: unknown) {
+    const message = getErrorMessage(e);
+    safeLogError('Daily stats failed:', message);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ success: false, error: e.message })
+      body: errorBody('INTERNAL_ERROR', 'Daily stats run failed', message)
     };
   }
 };

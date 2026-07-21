@@ -28,6 +28,7 @@ import {
     SOL_MINT,
 } from '@/config/constants';
 import { createAppError } from '@/lib/errors';
+import { chunk, safeParseFloat } from '@/lib/arrayUtils';
 import { DEAD_PROTOCOLS } from '@/modules/decommission/registry/protocols';
 import type { DeadProtocol } from '@/modules/decommission/types';
 
@@ -40,29 +41,18 @@ const PROTECTED_MINTS = new Set<string>(
 const jupiterUnsupportedMints = new Set<string>();
 const raydiumUnsupportedMints = new Set<string>();
 
+// Minimum input amount to request a swap quote (below this, APIs return 400)
+const MIN_SWAP_INPUT_LAMPORTS = 10_000;
+
 interface ApiSource {
     url: string;
     headers?: Record<string, string>;
-}
-
-function chunk<T>(items: T[], size: number): T[][] {
-    const chunks: T[][] = [];
-    for (let index = 0; index < items.length; index += size) {
-        chunks.push(items.slice(index, index + size));
-    }
-    return chunks;
 }
 
 function delay(ms: number): Promise<void> {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
-}
-
-function safeParseFloat(value: string | number | undefined): number {
-    if (value === undefined) return 0;
-    const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
-    return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function getPairLiquidityUSD(pair: DexScreenerPair): number {
@@ -112,7 +102,31 @@ async function fetchDexScreenerPairs(mints: string[]): Promise<Map<string, DexSc
 
     for (const mintBatch of mintBatches) {
         const url = `${DEXSCREENER_TOKEN_PRICES_API}/${mintBatch.join(',')}`;
-        const response = await fetch(url);
+        let response: Response;
+        try {
+            // 8s timeout: DexScreener is usually fast (<2s) but a slow batch
+            // of 30 mints can hit rate limits. Without a timeout, a hung
+            // response stalls the whole dust scan loop until the browser
+            // gives up (often minutes). Matches the AbortSignal.timeout
+            // pattern used elsewhere in the codebase (e.g. positionValueEstimator).
+            response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+        } catch (fetchErr: unknown) {
+            // AbortError is a timeout — surface as a distinct error so the UI
+            // can show "DexScreener timed out, retrying" rather than the
+            // generic "network error" message which misleads users on flaky
+            // connections where the fetch itself was fine.
+            if (fetchErr instanceof DOMException && fetchErr.name === 'AbortError') {
+                throw createAppError(
+                    'DUST_PRICE_FETCH_FAILED',
+                    `DexScreener timed out after 8s for ${mintBatch.length} mints`
+                );
+            }
+            throw createAppError(
+                'DUST_PRICE_FETCH_FAILED',
+                `Network error reaching DexScreener: ${fetchErr instanceof Error ? fetchErr.message : String(fetchErr)}`
+            );
+        }
+
         if (!response.ok) {
             throw createAppError(
                 'DUST_PRICE_FETCH_FAILED',
@@ -120,7 +134,15 @@ async function fetchDexScreenerPairs(mints: string[]): Promise<Map<string, DexSc
             );
         }
 
-        const payload = (await response.json()) as DexScreenerPair[];
+        let payload: DexScreenerPair[];
+        try {
+            payload = (await response.json()) as DexScreenerPair[];
+        } catch (parseErr: unknown) {
+            throw createAppError(
+                'DUST_PRICE_FETCH_FAILED',
+                `DexScreener returned malformed JSON: ${parseErr instanceof Error ? parseErr.message : String(parseErr)}`
+            );
+        }
 
         for (const mint of mintBatch) {
             const bestPair = chooseBestPairForMint(mint, payload);
@@ -235,6 +257,11 @@ async function fetchRaydiumQuote(
         return null;
     }
 
+    // Skip tiny amounts that will cause 400 errors
+    if (Number(inAmountRaw) < MIN_SWAP_INPUT_LAMPORTS) {
+        return null;
+    }
+
     const params = new URLSearchParams({
         inputMint,
         outputMint: SOL_MINT,
@@ -244,16 +271,19 @@ async function fetchRaydiumQuote(
     });
 
     const url = `${RAYDIUM_QUOTE_API}?${params.toString()}`;
-    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
 
-    let response = await fetch(proxyUrl, { cache: 'no-store' });
+    // 8s timeout: guard against a hung Raydium quote API. The previous
+    // unguarded fetch could stall the dust swap loop indefinitely when
+    // Raydium's edge was slow. Same window as DexScreener for consistency.
+    let response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
     if (response.status === 429) {
         await delay(1000);
-        response = await fetch(proxyUrl, { cache: 'no-store' });
+        response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
     }
 
     if (!response.ok) {
-        if (response.status === 400 || response.status === 404) {
+        // Cache 400/404 as unsupported - 400 means "no route found", 404 means "token not found"
+        if (response.status === 404 || response.status === 400) {
             raydiumUnsupportedMints.add(inputMint);
         }
         return null;
@@ -287,6 +317,11 @@ async function fetchJupiterQuote(
         return null;
     }
 
+    // Skip tiny amounts that will cause 400 errors
+    if (Number(inAmountRaw) < MIN_SWAP_INPUT_LAMPORTS) {
+        return null;
+    }
+
     const params = new URLSearchParams({
         inputMint,
         outputMint: SOL_MINT,
@@ -297,23 +332,27 @@ async function fetchJupiterQuote(
 
     for (const source of getJupiterQuoteSources()) {
         const url = `${source.url}?${params.toString()}`;
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
 
-        let response = await fetch(proxyUrl, {
+        // 8s timeout: mirror the Raydium fetch above — a hung Jupiter
+        // quote API previously stalled the swap loop indefinitely.
+        let response = await fetch(url, {
             headers: source.headers,
             cache: 'no-store',
+            signal: AbortSignal.timeout(8000),
         });
 
         if (response.status === 429) {
             await delay(1000);
-            response = await fetch(proxyUrl, {
+            response = await fetch(url, {
                 headers: source.headers,
                 cache: 'no-store',
+                signal: AbortSignal.timeout(8000),
             });
         }
 
         if (!response.ok) {
-            if (response.status === 400 || response.status === 404) {
+            // Cache 400/404 as unsupported - 400 means "no route found", 404 means "token not found"
+            if (response.status === 404 || response.status === 400) {
                 jupiterUnsupportedMints.add(inputMint);
             }
             continue;
@@ -352,6 +391,7 @@ export async function getSwapQuotes(dustTokens: DustToken[]): Promise<Map<string
 
     const candidates = dustTokens
         .filter((token) => token.uiBalance > 0)
+        .filter((token) => Number(token.rawBalance) >= MIN_SWAP_INPUT_LAMPORTS)
         .slice(0, DUST_MAX_TOKENS_PER_SESSION);
 
     const batches = chunk(candidates, 5);

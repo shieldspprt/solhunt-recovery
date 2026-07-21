@@ -6,12 +6,14 @@ import { scanForBuffers } from '../lib/bufferScanner';
 import { createCloseBufferInstructions } from '../lib/bufferCloser';
 import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 import { confirmTransactionRobust } from '@/lib/withTimeout';
+import { createAppError } from '@/lib/errors';
 import {
     logBufferScanComplete,
     logBufferCloseInitiated,
     logBufferCloseComplete
 } from '@/lib/analytics';
 import { RECENT_BUFFER_THRESHOLD_MS } from '../constants';
+import { logger } from '@/lib/logger';
 import toast from 'react-hot-toast';
 
 export function useBufferRecovery() {
@@ -43,7 +45,7 @@ export function useBufferRecovery() {
 
         try {
             setBufferScanStatus('scanning');
-            const buffers = await scanForBuffers(targetWallet, connection);
+            const buffers = await scanForBuffers(targetWallet);
 
             const closeable = buffers.filter(b => b.status === 'closeable');
             const totalLocked = buffers.reduce((acc, b) => acc + b.lamports, 0);
@@ -65,16 +67,18 @@ export function useBufferRecovery() {
                 hasRecentBuffers: buffers.some(b => Date.now() - b.createdAt < RECENT_BUFFER_THRESHOLD_MS)
             });
         } catch (error: unknown) {
-            console.error('Buffer scan failed:', error);
-            const message = error instanceof Error ? error.message : 'Failed to scan for program buffers';
+            // logger.error (not logger.warn) so the failure reaches Firebase
+            // Analytics as an `app_error` event in production. logger.warn is
+            // dev-only — production users' buffer-scan failures were silently
+            // invisible until users reported them manually. The error code
+            // (BUFFER_SCAN_FAILED) matches what createAppError below uses, so
+            // a single string in the Firebase dashboard groups scan-side
+            // crashes by root cause.
+            logger.error('BUFFER_SCAN_FAILED', error);
             const technicalDetail = error instanceof Error ? error.toString() : String(error);
-            setBufferScanError({
-                code: 'BUFFER_SCAN_FAILED',
-                message,
-                technicalDetail
-            });
+            setBufferScanError(createAppError('BUFFER_SCAN_FAILED', technicalDetail));
         }
-    }, [targetWallet, connection, setBufferScanStatus, setBufferScanResult, setBufferScanError]);
+    }, [targetWallet, setBufferScanStatus, setBufferScanResult, setBufferScanError]);
 
     const performClose = useCallback(async () => {
         if (!publicKey || selectedBufferAddresses.length === 0 || !bufferScanResult) return;
@@ -97,8 +101,8 @@ export function useBufferRecovery() {
 
             const instructions = createCloseBufferInstructions(
                 publicKey.toBase58(),
-                selectedBufferAddresses,
-                totalSOL + serviceFee
+                selectedBuffers.map(b => ({ address: b.address, lamports: b.lamports })),
+                selectedBuffers.reduce((acc, b) => acc + b.lamports, 0)
             );
 
             const transaction = new Transaction().add(...instructions);
@@ -126,15 +130,17 @@ export function useBufferRecovery() {
 
             await runScan();
         } catch (error: unknown) {
-            console.error('Buffer close failed:', error);
-            const message = error instanceof Error ? error.message : 'Failed to close buffer accounts';
+            // logger.error (not logger.warn) so the close-time failure reaches
+            // Firebase Analytics in production. Buffer-close runs after the
+            // user has signed and the transaction is on-chain — silent failure
+            // here would leave the user's wallet debited but the recovery
+            // result store showing no error, which is the exact "did my SOL
+            // get reclaimed?" support incident the prior warn-only logging
+            // caused. Error code matches createAppError below for dashboard
+            // consistency with the scan path.
+            logger.error('BUFFER_CLOSE_FAILED', error);
             const technicalDetail = error instanceof Error ? error.toString() : String(error);
-            const appError = {
-                code: 'BUFFER_CLOSE_FAILED',
-                message,
-                technicalDetail
-            };
-            setBufferCloseError(appError);
+            setBufferCloseError(createAppError('BUFFER_CLOSE_FAILED', technicalDetail));
             logBufferCloseComplete({
                 success: false,
                 closedCount: 0,

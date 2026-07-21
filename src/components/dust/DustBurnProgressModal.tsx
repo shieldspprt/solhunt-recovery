@@ -1,3 +1,4 @@
+import { useCallback, memo } from 'react';
 import { CheckCircle2, ExternalLink, Flame, RefreshCw, X, XCircle } from 'lucide-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { useDustBurnReclaim } from '@/hooks/useDustBurnReclaim';
@@ -5,7 +6,11 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { SOLSCAN_TX_URL } from '@/config/constants';
 import { formatSOLValue } from '@/lib/formatting';
 
-export function DustBurnProgressModal() {
+// Memoized to prevent re-renders when sibling engines in ScanResults update
+// (Reclaim, Revoke, etc). Same memo pattern as DustProgressModal and
+// ReclaimProgressModal — keeps the dust burn flow responsive while the
+// other engines churn.
+export const DustBurnProgressModal = memo(function DustBurnProgressModal() {
     const {
         dustBurnStatus,
         dustBurnResult,
@@ -24,26 +29,37 @@ export function DustBurnProgressModal() {
 
     const isProcessing = dustBurnStatus === 'burning';
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         if (!isProcessing) {
             clearDustBurn();
         }
-    };
+    }, [isProcessing, clearDustBurn]);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div
-                className="absolute inset-0 bg-shield-bg/90 backdrop-blur-sm"
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dust-burn-progress-title"
+        >
+            <button
+                type="button"
+                aria-label="Close dialog by clicking backdrop"
+                aria-hidden="true"
+                tabIndex={-1}
+                className="absolute inset-0 bg-shield-bg/90 backdrop-blur-sm cursor-default"
                 onClick={handleClose}
             />
 
             <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 {!isProcessing && (
                     <button
+                        type="button"
                         onClick={handleClose}
+                        aria-label="Close account burn dialog"
                         className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     >
-                        <X className="h-5 w-5" />
+                        <X className="h-5 w-5" aria-hidden="true" />
                     </button>
                 )}
 
@@ -53,7 +69,7 @@ export function DustBurnProgressModal() {
                             <div className="flex items-center justify-center mb-4">
                                 <LoadingSpinner size="md" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text text-center mb-2">
+                            <h2 id="dust-burn-progress-title" className="text-xl font-bold text-shield-text text-center mb-2">
                                 Burning Dust & Closing Accounts
                             </h2>
                             <p className="text-sm text-shield-muted text-center mb-5">
@@ -80,9 +96,9 @@ export function DustBurnProgressModal() {
                     {dustBurnStatus === 'complete' && dustBurnResult && (
                         <div className="text-center animate-in slide-in-from-bottom-4 duration-500">
                             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-shield-success/10 border border-shield-success/20">
-                                <CheckCircle2 className="h-12 w-12 text-shield-success" />
+                                <CheckCircle2 className="h-12 w-12 text-shield-success" aria-hidden="true" />
                             </div>
-                            <h2 className="text-2xl font-bold text-shield-text mb-2">
+                            <h2 id="dust-burn-progress-title" className="text-2xl font-bold text-shield-text mb-2">
                                 Burn & Reclaim Complete
                             </h2>
                             <p className="text-shield-muted mb-3">
@@ -106,14 +122,17 @@ export function DustBurnProgressModal() {
                                     href={SOLSCAN_TX_URL(dustBurnResult.signatures[0])}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    aria-label="View first transaction on Solscan (opens in new tab)"
                                     className="inline-flex items-center gap-2 text-sm font-medium text-shield-accent hover:text-white transition-colors"
                                 >
-                                    View first transaction <ExternalLink className="h-4 w-4" />
+                                    View first transaction <ExternalLink className="h-4 w-4" aria-hidden="true" />
                                 </a>
                             )}
 
                             <button
+                                type="button"
                                 onClick={clearDustBurn}
+                                aria-label="Done"
                                 className="mt-5 w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                             >
                                 Done
@@ -124,9 +143,9 @@ export function DustBurnProgressModal() {
                     {dustBurnStatus === 'error' && dustBurnError && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500">
                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-danger/10">
-                                <XCircle className="h-8 w-8 text-shield-danger" />
+                                <XCircle className="h-8 w-8 text-shield-danger" aria-hidden="true" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text text-center mb-2">
+                            <h2 id="dust-burn-progress-title" className="text-xl font-bold text-shield-text text-center mb-2">
                                 Burn & Reclaim Failed
                             </h2>
 
@@ -139,16 +158,20 @@ export function DustBurnProgressModal() {
 
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button
+                                    type="button"
                                     onClick={cancelBurnReclaim}
+                                    aria-label="Cancel burn and close dialog"
                                     className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={executeBurnReclaim}
+                                    aria-label="Retry burn and reclaim"
                                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                                 >
-                                    <RefreshCw className="h-4 w-4" />
+                                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
                                     Try Again
                                 </button>
                             </div>
@@ -157,7 +180,7 @@ export function DustBurnProgressModal() {
 
                     {!isProcessing && dustBurnStatus === 'error' && !dustBurnError && (
                         <div className="text-center text-shield-muted py-10">
-                            <Flame className="h-8 w-8 mx-auto mb-2" />
+                            <Flame className="h-8 w-8 mx-auto mb-2" aria-hidden="true" />
                             Unknown burn/reclaim error.
                         </div>
                     )}
@@ -165,4 +188,4 @@ export function DustBurnProgressModal() {
             </div>
         </div>
     );
-}
+});

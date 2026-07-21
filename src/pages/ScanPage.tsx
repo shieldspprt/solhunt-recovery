@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, memo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
@@ -6,11 +6,13 @@ import { ScannerCard } from '@/components/scanner/ScannerCard';
 import { ScanResults } from '@/components/scanner/ScanResults';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { useWalletScanner } from '@/hooks/useWalletScanner';
-import { useAppStore } from '@/hooks/useAppStore';
+import { useWalletStatus } from '@/hooks/useStoreSelectors';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
-export function ScanPage() {
+// Memoized to prevent unnecessary re-renders when parent state changes
+export const ScanPage = memo(function ScanPage() {
     const { connected } = useWallet();
-    const agentWallet = useAppStore(s => s.agentWallet);
+    const { agentWallet } = useWalletStatus();
     const location = useLocation();
     const {
         scanResult,
@@ -18,17 +20,29 @@ export function ScanPage() {
         clearScan
     } = useWalletScanner();
 
+    // noindex: scan results are wallet-specific
+    usePageMeta({
+        title: 'Scan',
+        description: 'Scan your Solana wallet for recoverable SOL, token approvals, and hidden value across 9 recovery engines — instantly and client-side.',
+        noindex: true,
+    });
+
+    // Memoize the hash value to prevent unnecessary effect re-runs
+    // Extract just the hash to avoid triggering effect when other location properties change
+    const hash = useMemo(() => location.hash?.replace('#', '') || '', [location.hash]);
+
     useEffect(() => {
-        if (!hasResults || !location.hash) return;
-        const id = location.hash.replace('#', '');
+        if (!hasResults || !hash) return;
+        
         const timer = setTimeout(() => {
-            const target = document.getElementById(id);
+            const target = document.getElementById(hash);
             if (target) {
                 target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }, 120);
+        
         return () => clearTimeout(timer);
-    }, [hasResults, location.hash]);
+    }, [hasResults, hash]);
 
     return (
         <PageWrapper>
@@ -60,4 +74,4 @@ export function ScanPage() {
             </div>
         </PageWrapper>
     );
-}
+});

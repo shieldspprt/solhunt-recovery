@@ -1,10 +1,11 @@
+import { memo } from 'react';
 import { formatLPUSD } from '../utils/formatting';
 
 interface PositionValueBadgeProps {
     valueUSD: number;
 }
 
-export function PositionValueBadge({ valueUSD }: PositionValueBadgeProps) {
+export const PositionValueBadge = memo(function PositionValueBadge({ valueUSD }: PositionValueBadgeProps) {
     const classes = valueUSD >= 50
         ? 'border-shield-success/40 bg-shield-success/10 text-shield-success'
         : valueUSD >= 5
@@ -18,4 +19,4 @@ export function PositionValueBadge({ valueUSD }: PositionValueBadgeProps) {
             {formatLPUSD(valueUSD)}
         </span>
     );
-}
+});

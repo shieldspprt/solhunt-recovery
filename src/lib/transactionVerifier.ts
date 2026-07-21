@@ -74,6 +74,23 @@ const ALLOWED_PROGRAM_IDS = new Set<string>([
 ]);
 
 /**
+ * Maximum number of instructions allowed in a single transaction before signing.
+ *
+ * Solana mainnet caps a transaction at 1232 bytes of serialized payload. A
+ * typical ComputeBudget + transfer + closeAccount instruction runs ~120-150
+ * bytes after compilation, so 25 instructions is the safe ceiling for legacy
+ * transactions and matches the limit already enforced on the Legacy path.
+ *
+ * Without this cap on the Versioned path, a maliciously-constructed tx that
+ * calls only ALLOWED programs (e.g. 100× SystemProgram::Transfer to attacker
+ * addresses) would pass the program-whitelist check and reach the user's
+ * wallet for signing. The Legacy path already enforces this — this change
+ * closes the same gap on VersionedTransaction. The cap is shared between
+ * both paths via MAX_TRANSACTION_INSTRUCTIONS so it can't drift apart.
+ */
+const MAX_TRANSACTION_INSTRUCTIONS = 25;
+
+/**
  * Verifies a Legacy Transaction against the program whitelist.
  * Throws if any instruction targets an unknown program.
  */
@@ -126,9 +143,9 @@ export function verifyTransactionSecurity(
         }
 
         // Verify instruction count limit
-        if (tx.instructions.length > 25) {
+        if (tx.instructions.length > MAX_TRANSACTION_INSTRUCTIONS) {
             throw new Error(
-                `SECURITY: Transaction has ${tx.instructions.length} instructions, exceeds limit of 25.`
+                `SECURITY: Transaction has ${tx.instructions.length} instructions, exceeds limit of ${MAX_TRANSACTION_INSTRUCTIONS}.`
             );
         }
     } else {
@@ -140,6 +157,14 @@ export function verifyTransactionSecurity(
             if (feePayer && !feePayer.equals(expectedFeePayer)) {
                 throw new Error('SECURITY: Versioned transaction fee payer does not match connected wallet.');
             }
+        }
+
+        // Verify instruction count limit (closes parity gap with Legacy path —
+        // see MAX_TRANSACTION_INSTRUCTIONS comment for rationale).
+        if (tx.message.compiledInstructions.length > MAX_TRANSACTION_INSTRUCTIONS) {
+            throw new Error(
+                `SECURITY: Versioned transaction has ${tx.message.compiledInstructions.length} instructions, exceeds limit of ${MAX_TRANSACTION_INSTRUCTIONS}.`
+            );
         }
     }
 }

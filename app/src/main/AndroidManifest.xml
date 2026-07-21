@@ -102,11 +102,11 @@
                 android:resource="@color/navigationColorDark" />
 
             <meta-data
-                android:name="androix.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR"
+                android:name="androidx.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR"
                 android:resource="@color/navigationDividerColor" />
 
             <meta-data
-                android:name="androix.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR_DARK"
+                android:name="androidx.browser.trusted.NAVIGATION_BAR_DIVIDER_COLOR_DARK"
                 android:resource="@color/navigationDividerColorDark" />
 
             <meta-data android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
@@ -154,7 +154,21 @@
                 />
             </intent-filter>
 
-            
+            <!-- Solana dApp Store Compliance: Mobile wallet deep links for connection -->
+            <!-- BROWSABLE category is REQUIRED for Android to route deep links to installed wallet apps -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="solana"/>
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="phantom"/>
+            </intent-filter>
 
             
         </activity>

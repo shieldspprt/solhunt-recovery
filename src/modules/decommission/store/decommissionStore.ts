@@ -12,6 +12,9 @@ interface DecommissionStoreState {
     scanResult: DecommissionScanResult | null;
     scanError: string | null;
     scanProgress: DecommissionScanProgress | null;
+    /** Live SOL/USD price fetched at scan start. 0 means not yet fetched
+     * or fetch failed — callers should fall back to FALLBACK_SOL_PRICE_USD. */
+    solPriceUSD: number;
     recoveryStatus: DecommissionRecoveryStatus;
     recoveryResult: DecommissionRecoveryResult | null;
     recoveryError: string | null;
@@ -22,6 +25,7 @@ interface DecommissionStoreState {
     setScanResult: (r: DecommissionScanResult | null) => void;
     setScanError: (e: string | null) => void;
     setScanProgress: (p: DecommissionScanProgress | null) => void;
+    setSolPriceUSD: (price: number) => void;
     setRecoveryStatus: (s: DecommissionRecoveryStatus) => void;
     setRecoveryResult: (r: DecommissionRecoveryResult | null) => void;
     setRecoveryError: (e: string | null) => void;
@@ -38,6 +42,7 @@ export const useDecommissionStore = create<DecommissionStoreState>((set, get) =>
     scanResult: null,
     scanError: null,
     scanProgress: null,
+    solPriceUSD: 0,
     recoveryStatus: 'idle',
     recoveryResult: null,
     recoveryError: null,
@@ -48,6 +53,7 @@ export const useDecommissionStore = create<DecommissionStoreState>((set, get) =>
     setScanResult: (r) => set({ scanResult: r }),
     setScanError: (e) => set({ scanError: e }),
     setScanProgress: (p) => set({ scanProgress: p }),
+    setSolPriceUSD: (price) => set({ solPriceUSD: price }),
     setRecoveryStatus: (s) => set({ recoveryStatus: s }),
     setRecoveryResult: (r) => set({ recoveryResult: r }),
     setRecoveryError: (e) => set({ recoveryError: e }),
@@ -73,6 +79,7 @@ export const useDecommissionStore = create<DecommissionStoreState>((set, get) =>
         scanResult: null,
         scanError: null,
         scanProgress: null,
+        solPriceUSD: 0,
         recoveryStatus: 'idle',
         recoveryResult: null,
         recoveryError: null,

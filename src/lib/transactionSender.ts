@@ -18,8 +18,11 @@ import type { AppError } from '@/types';
 
 // ─── Jito Configuration ──────────────────────────────────────
 
-/** Jito Block Engine URL for mainnet */
-export const JITO_BLOCK_ENGINE_URL = 'https://mainnet.block-engine.jito.wtf';
+/** Jito Block Engine URL for mainnet — falls back to env var or default */
+export const JITO_BLOCK_ENGINE_URL = (() => {
+    const envUrl = typeof import.meta !== 'undefined' && import.meta.env?.VITE_JITO_BLOCK_ENGINE_URL;
+    return envUrl || 'https://mainnet.block-engine.jito.wtf';
+})();
 
 /** Jito tip accounts — pick one at random per session */
 export const JITO_TIP_ACCOUNTS = [
@@ -36,7 +39,159 @@ export const JITO_TIP_ACCOUNTS = [
 /** Jito tip: ~0.00005 SOL (50,000 lamports) — modest tip for inclusion priority */
 export const JITO_TIP_LAMPORTS = 50_000;
 
+/** Maximum retry attempts for Jito submission before falling back to RPC */
+export const MAX_JITO_RETRIES = 3;
+
+/**
+ * Run `connection.simulateTransaction` before submitting a signed transaction.
+ * Catches runtime errors (insufficient SOL, account state changes, program
+ * errors, CU overruns) before the user pays network fees for a tx that would
+ * fail on-chain. Set VITE_SIMULATE_BEFORE_SEND=false to disable — default is ON.
+ */
+export const SIMULATE_BEFORE_SEND = (() => {
+    const env = typeof import.meta !== 'undefined' && import.meta.env?.VITE_SIMULATE_BEFORE_SEND;
+    if (env === undefined) return true;
+    return env !== 'false' && env !== '0';
+})();
+
+// ─── Circuit Breaker Configuration ─────────────────────────────
+
+/** Number of consecutive failures before opening the circuit */
+const CIRCUIT_BREAKER_THRESHOLD = 5;
+
+/** Time before attempting to reset circuit (half-open) after being opened */
+const CIRCUIT_BREAKER_RESET_MS = 30000;
+
+/** Circuit breaker state */
+type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+
+interface CircuitBreakerState {
+    state: CircuitState;
+    failureCount: number;
+    lastFailureTime: number;
+}
+
+const circuitBreaker: CircuitBreakerState = {
+    state: 'CLOSED',
+    failureCount: 0,
+    lastFailureTime: 0,
+};
+
+/**
+ * Circuit breaker error - thrown when circuit is open to trigger immediate fallback
+ */
+class CircuitBreakerError extends Error {
+    constructor(public readonly nextRetryAt: Date) {
+        super(`Jito circuit breaker is OPEN until ${nextRetryAt.toISOString()}`);
+        this.name = 'CircuitBreakerError';
+    }
+}
+
+/**
+ * Check if the circuit breaker allows Jito calls.
+ * Returns true if circuit is CLOSED or HALF_OPEN (allowing the call).
+ * Throws CircuitBreakerError if circuit is OPEN.
+ */
+function checkCircuitBreaker(): boolean {
+    const now = Date.now();
+    
+    if (circuitBreaker.state === 'OPEN') {
+        // Check if we should transition to HALF_OPEN
+        if (now - circuitBreaker.lastFailureTime >= CIRCUIT_BREAKER_RESET_MS) {
+            circuitBreaker.state = 'HALF_OPEN';
+            return true;
+        }
+        // Circuit still open - throw error to trigger fallback
+        const nextRetryAt = new Date(circuitBreaker.lastFailureTime + CIRCUIT_BREAKER_RESET_MS);
+        throw new CircuitBreakerError(nextRetryAt);
+    }
+    
+    return true; // CLOSED or HALF_OPEN - allow the call
+}
+
+/**
+ * Record a Jito API failure. Opens circuit if threshold reached.
+ */
+function recordJitoFailure(): void {
+    circuitBreaker.failureCount++;
+    circuitBreaker.lastFailureTime = Date.now();
+    
+    if (circuitBreaker.failureCount >= CIRCUIT_BREAKER_THRESHOLD) {
+        circuitBreaker.state = 'OPEN';
+    }
+}
+
+/**
+ * Record a Jito API success. Resets failure count and closes circuit.
+ */
+function recordJitoSuccess(): void {
+    circuitBreaker.failureCount = 0;
+    circuitBreaker.lastFailureTime = 0;
+    circuitBreaker.state = 'CLOSED';
+}
+
 // ─── Helpers ──────────────────────────────────────────────
+
+/**
+ * Sleep for a given number of milliseconds.
+ */
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/** Base delay for exponential backoff (200ms) */
+const BASE_RETRY_DELAY_MS = 100;
+/** Maximum delay cap for retries (3 seconds) */
+const MAX_RETRY_DELAY_MS = 3000;
+
+/**
+ * Calculate delay with full jitter to prevent thundering herd.
+ * Returns a random value between 0 and the calculated exponential delay.
+ *
+ * @see https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
+ */
+function getJitteredDelay(attempt: number): number {
+    const exponentialDelay = Math.min(BASE_RETRY_DELAY_MS * Math.pow(2, attempt), MAX_RETRY_DELAY_MS);
+    // Full jitter: random value between 0 and exponential delay
+    return Math.floor(Math.random() * exponentialDelay);
+}
+
+/**
+ * Submit a signed transaction via Jito Block Engine with exponential backoff retry.
+ * Returns the signature string on success.
+ * Retries up to maxRetries times before throwing.
+ */
+async function submitToJitoWithRetry(
+    serializedTx: Uint8Array,
+    maxRetries: number = MAX_JITO_RETRIES
+): Promise<string> {
+    let lastError: Error | null = null;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            checkCircuitBreaker();
+            const result = await submitToJito(serializedTx);
+            recordJitoSuccess(); // Reset circuit breaker on success
+            return result;
+        } catch (err: unknown) {
+            lastError = err instanceof Error ? err : new Error(String(err));
+            
+            // Don't record circuit breaker errors as Jito failures - they're intentional fallbacks
+            if (!(lastError instanceof CircuitBreakerError)) {
+                recordJitoFailure();
+            }
+            
+            if (attempt < maxRetries) {
+                // Full jitter exponential backoff prevents thundering herd
+                // when Jito is under load, improving overall success rates
+                const delayMs = getJitteredDelay(attempt);
+                await sleep(delayMs);
+            }
+        }
+    }
+
+    throw lastError;
+}
 
 function getRandomTipAccount(): PublicKey {
     const index = Math.floor(Math.random() * JITO_TIP_ACCOUNTS.length);
@@ -66,6 +221,11 @@ async function submitToJito(
 ): Promise<string> {
     const base58Tx = Buffer.from(serializedTx).toString('base64');
 
+    // 8s timeout: if the Jito Block Engine is hung or unreachable, the
+    // user has already signed the transaction and is waiting. Without a
+    // timeout, the fetch can stall indefinitely and the recovery flow
+    // never reaches the standard-RPC fallback (or any user-facing error).
+    // Mirrors the pattern used in dustScanner.ts:340 (commit 7ea243b).
     const response = await fetch(`${JITO_BLOCK_ENGINE_URL}/api/v1/transactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -75,6 +235,7 @@ async function submitToJito(
             method: 'sendTransaction',
             params: [base58Tx, { encoding: 'base64' }],
         }),
+        signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) {
@@ -124,7 +285,7 @@ function confirmWithTimeout(
             } else {
                 resolve();
             }
-        }).catch((err) => {
+        }).catch((err: unknown) => {
             clearTimeout(timer);
             reject(err);
         });
@@ -132,11 +293,74 @@ function confirmWithTimeout(
 }
 
 /**
+ * Simulate a signed transaction before submitting it on-chain.
+ *
+ * This is a defense-in-depth layer on top of `verifyTransactionSecurity`:
+ *  - `verifyTransactionSecurity` blocks disallowed program IDs.
+ *  - Simulation catches runtime errors that the whitelist cannot detect —
+ *    insufficient SOL for fees, account state changes since the tx was built,
+ *    custom program errors, account-not-found, etc.
+ *
+ * Simulation is read-only — it does NOT modify chain state, does NOT cost
+ * fees, and does NOT require signatures to be valid. A failed simulation
+ * means the transaction would fail on-chain, costing the user fees for
+ * nothing. By short-circuiting here, we surface the failure to the caller
+ * without paying the network fee.
+ *
+ * Throws a typed AppError on:
+ *  - Simulation RPC failure
+ *  - Non-null `err` in the simulation response (transaction would fail)
+ *  - `unitsConsumed` exceeding the Solana transaction limit (1.4M units)
+ *  - Empty `logs` with a non-null `err` (RPC returned a truncated response)
+ */
+async function simulateTransactionBeforeSend(
+    connection: Connection,
+    signedTx: Transaction | VersionedTransaction,
+): Promise<void> {
+    const sim = await connection.simulateTransaction(signedTx as VersionedTransaction, {
+        sigVerify: false,
+        replaceRecentBlockhash: true,
+        commitment: 'processed',
+    }).catch((simErr: unknown) => {
+        throw {
+            code: ERROR_CODES.RPC_ERROR,
+            message: ERROR_MESSAGES.RPC_ERROR,
+            technicalDetail: `Simulation RPC failed: ${simErr instanceof Error ? simErr.message : String(simErr)}`,
+        } satisfies AppError;
+    });
+
+    const { err, logs, unitsConsumed } = sim.value;
+
+    // Non-null err → the transaction would fail on-chain. Surface a typed error.
+    if (err !== null && err !== undefined) {
+        const lastLog = Array.isArray(logs) && logs.length > 0
+            ? logs[logs.length - 1]
+            : '(no logs)';
+        throw {
+            code: ERROR_CODES.TX_SIMULATION_FAILED,
+            message: ERROR_MESSAGES.TX_SIMULATION_FAILED,
+            technicalDetail: `Simulation failed: ${typeof err === 'string' ? err : JSON.stringify(err)}. Last log: ${lastLog}`,
+        } satisfies AppError;
+    }
+
+    // CUs over the Solana per-transaction limit (1.4M) means the tx would
+    // never be accepted by a leader — bail before paying for submission.
+    if (typeof unitsConsumed === 'number' && unitsConsumed > 1_400_000) {
+        throw {
+            code: ERROR_CODES.TX_SIMULATION_FAILED,
+            message: ERROR_MESSAGES.TX_SIMULATION_FAILED,
+            technicalDetail: `Transaction would exceed Solana compute budget: ${unitsConsumed} > 1,400,000 CUs`,
+        } satisfies AppError;
+    }
+}
+
+/**
  * Send a signed (legacy OR versioned) transaction with Jito-first strategy.
  *
- * 1. Try Jito Block Engine for faster block inclusion
- * 2. Fall back to standard RPC if Jito fails
- * 3. Confirm the transaction with a hard timeout
+ * 1. Run transaction simulation as a defense-in-depth check
+ * 2. Try Jito Block Engine for faster block inclusion
+ * 3. Fall back to standard RPC if Jito fails
+ * 4. Confirm the transaction with a hard timeout
  */
 export async function sendWithJito(
     signedTx: Transaction | VersionedTransaction,
@@ -145,18 +369,27 @@ export async function sendWithJito(
     const serialized = signedTx.serialize();
     const { blockhash, lastValidBlockHeight } =
         await connection.getLatestBlockhash('confirmed');
+
+    // SECURITY: Simulation catches runtime errors (insufficient SOL, account
+    // state changes, program errors) that the program-whitelist check
+    // (`verifyTransactionSecurity`) cannot detect. Skip simulation only when
+    // explicitly opted out via the env var — default is ON.
+    if (SIMULATE_BEFORE_SEND) {
+        await simulateTransactionBeforeSend(connection, signedTx);
+    }
+
     let signature: string;
 
     try {
-        signature = await submitToJito(serialized as Uint8Array);
-    } catch (jitoError) {
+        signature = await submitToJitoWithRetry(serialized as Uint8Array);
+    } catch (jitoError: unknown) {
         // Jito failed — fall back to standard RPC with timeout
         try {
             signature = await connection.sendRawTransaction(serialized as Buffer, {
                 skipPreflight: true,
                 maxRetries: 3,
             });
-        } catch (rpcError) {
+        } catch (rpcError: unknown) {
             const appError: AppError = {
                 code: ERROR_CODES.RPC_ERROR,
                 message: ERROR_MESSAGES.RPC_ERROR,
@@ -174,12 +407,34 @@ export async function sendWithJito(
 /**
  * Send a signed transaction via standard RPC with retries and
  * skipPreflight for speed. No Jito.
+ *
+ * SECURITY NOTE: Transaction simulation is enforced HERE via
+ * simulateTransactionBeforeSend(), which runs connection.simulateTransaction
+ * against the signed transaction before submission. Simulation catches
+ * runtime errors (insufficient SOL, account state changes, custom program
+ * errors, CU overruns) that program whitelist checks cannot detect.
+ *
+ * Program-whitelist verification (verifyTransactionSecurity) is still
+ * enforced upstream by every caller before signTransaction() — these two
+ * layers are complementary, not redundant.
+ *
+ * skipPreflight: true on sendRawTransaction skips the wallet adapter's
+ * automatic preflight simulation — we already simulated explicitly above,
+ * so a second round-trip would just slow submission without adding safety.
  */
 export async function sendWithRetry(
     signedTx: Transaction | VersionedTransaction,
     connection: Connection
 ): Promise<string> {
     const serialized = signedTx.serialize();
+
+    // SECURITY: Defense-in-depth simulation — catch runtime errors before
+    // the user pays network fees for a tx that would fail on-chain.
+    // Can be disabled via VITE_SIMULATE_BEFORE_SEND=false for emergency
+    // RPC outages where simulation is failing but submission still works.
+    if (SIMULATE_BEFORE_SEND) {
+        await simulateTransactionBeforeSend(connection, signedTx);
+    }
 
     const signature = await connection.sendRawTransaction(serialized as Buffer, {
         skipPreflight: true,

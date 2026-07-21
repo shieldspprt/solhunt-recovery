@@ -5,9 +5,26 @@ import {
     MEV_API_PAGE_SIZE,
     MEV_MIN_CLAIM_LAMPORTS,
 } from '@/config/constants';
+import { fetchSOLPriceUSD } from './solPrice';
 import type { MEVClaimItem } from '@/types';
 import { withTimeout } from './withTimeout';
 import { logger } from './logger';
+import { isValidSolanaPublicKey } from './validation';
+
+/**
+ * Paginated fetch with timeout wrapper for MEV API pages.
+ */
+async function fetchWithTimeout(url: string, body: Record<string, unknown>): Promise<Response> {
+    return withTimeout(
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+        }),
+        10_000,
+        'RPC_TIMEOUT'
+    );
+}
 
 export interface JitoStakerReward {
     stake_account: string;
@@ -37,6 +54,25 @@ export interface JitoStakerReward {
 export async function fetchMEVClaims(
     walletAddress: string
 ): Promise<MEVClaimItem[]> {
+    // SECURITY: Validate wallet address before any external API call.
+    // Mirrors the pattern in bufferScanner.ts and decommissionScanner.ts —
+    // rejecting malformed input up front avoids wasted RPC/API round-trips
+    // and prevents injection of unexpected payloads into the Jito kobe API.
+    // Preserves the function's documented "Never throws — returns [] on any
+    // API error" contract: an invalid wallet address is treated identically
+    // to "no rewards" from the caller's perspective, but the warning is
+    // surfaced via the logger so the misuse is observable in dev/prod logs.
+    if (!isValidSolanaPublicKey(walletAddress)) {
+        logger.warn('MEVClaims.InvalidAddress', {
+            code: 'INVALID_ADDRESS',
+            input_prefix: walletAddress?.substring(0, 10) ?? '',
+        });
+        return [];
+    }
+
+    // Fetch live SOL price first (non-blocking, fallback on error)
+    const solPriceUSD = await fetchSOLPriceUSD();
+
     try {
         const url = `${JITO_KOBE_API_BASE}${JITO_STAKER_REWARDS_ENDPOINT}`;
         const response = await withTimeout(
@@ -68,27 +104,27 @@ export async function fetchMEVClaims(
             );
             for (let page = 1; page <= additionalPages; page++) {
                 try {
-                    const pageResponse = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            wallet: walletAddress,
-                            limit: MEV_API_PAGE_SIZE,
-                            offset: page * MEV_API_PAGE_SIZE,
-                        }),
+                    const pageResponse = await fetchWithTimeout(url, {
+                        wallet: walletAddress,
+                        limit: MEV_API_PAGE_SIZE,
+                        offset: page * MEV_API_PAGE_SIZE,
                     });
                     if (pageResponse.ok) {
                         const pageData = await pageResponse.json();
                         const pageRewards = pageData?.rewards ?? [];
                         rewards = [...rewards, ...pageRewards];
                     }
-                } catch (pageErr) {
-                    logger.error(`fetchMEVClaims page ${page} failed`, pageErr);
+                } catch (_pageErr: unknown) {
+                    // Intentionally discard page-level errors — individual page failures
+                    // are non-fatal for the overall MEV claim scan. Log the error message
+                    // only since the outer try/catch handles the overall failure case.
+                    const msg = _pageErr instanceof Error ? _pageErr.message : String(_pageErr);
+                    logger.warn(`fetchMEVClaims page ${page} failed: ${msg}`);
                 }
             }
         }
 
-        // Filter and transform
+        // Filter and transform using live SOL price
         return rewards
             .filter(
                 (r) =>
@@ -96,17 +132,21 @@ export async function fetchMEVClaims(
                     (r.reward_lamports || 0) + (r.priority_fee_lamports || 0) >=
                     MEV_MIN_CLAIM_LAMPORTS
             )
-            .map((r) => transformReward(r));
-    } catch (err) {
+            .map((r) => transformReward(r, solPriceUSD));
+    } catch (err: unknown) {
         logger.error('fetchMEVClaims failed', err);
         return []; // Never block the rest of Engine 4 scan
     }
 }
 
-function transformReward(r: JitoStakerReward): MEVClaimItem {
+/**
+ * Transform a raw Jito staker reward into a MEVClaimItem.
+ * @param r - Raw reward from Jito API
+ * @param solPriceUSD - Current SOL price in USD (from Jupiter or fallback)
+ */
+function transformReward(r: JitoStakerReward, solPriceUSD: number): MEVClaimItem {
     const totalLamports = (r.reward_lamports ?? 0) + (r.priority_fee_lamports ?? 0);
     const totalSOL = totalLamports / LAMPORTS_PER_SOL;
-    const solPriceHardcoded = 150; // Use reasonable price for USD estimation since no cache available
 
     return {
         stakeAccount: r.stake_account ?? '',
@@ -117,7 +157,7 @@ function transformReward(r: JitoStakerReward): MEVClaimItem {
         priorityFeeLamports: r.priority_fee_lamports ?? 0,
         totalLamports,
         totalSOL,
-        estimatedValueUSD: totalSOL * solPriceHardcoded,
+        estimatedValueUSD: totalSOL * solPriceUSD,
         mevCommissionBps: r.mev_commission_bps ?? 0,
         priorityFeeCommissionBps: r.priority_fee_commission_bps ?? 0,
         tipDistributionAccount: r.tip_distribution_account ?? '',

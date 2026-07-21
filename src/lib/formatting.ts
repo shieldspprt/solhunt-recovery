@@ -1,4 +1,63 @@
 /**
+ * Formatting utilities with performance optimizations.
+ * 
+ * Frequently-used functions (formatBalance, formatSOLValue) use a small
+ * LRU cache to avoid recomputing the same formatted values in lists.
+ */
+
+import { FALLBACK_SOL_PRICE_USD } from './solPrice';
+
+// ─── Memoization Cache ───────────────────────────────────────────────────────
+
+/** Simple LRU cache for memoizing formatting results */
+class LRUCache<K, V> {
+    private cache = new Map<K, V>();
+    private maxSize: number;
+
+    constructor(maxSize: number) {
+        this.maxSize = maxSize;
+    }
+
+    get(key: K): V | undefined {
+        const value = this.cache.get(key);
+        if (value !== undefined) {
+            // Move to end (most recently used)
+            this.cache.delete(key);
+            this.cache.set(key, value);
+        }
+        return value;
+    }
+
+    set(key: K, value: V): void {
+        if (this.cache.has(key)) {
+            this.cache.delete(key);
+        } else if (this.cache.size >= this.maxSize) {
+            // Remove oldest entry
+            const firstKey = this.cache.keys().next().value;
+            if (firstKey !== undefined) {
+                this.cache.delete(firstKey);
+            }
+        }
+        this.cache.set(key, value);
+    }
+}
+
+// Caches for frequently-formatted values (cleared on page reload)
+const balanceCache = new LRUCache<string, string>(100);
+const solValueCache = new LRUCache<string, string>(100);
+
+// ─── Type Guards ─────────────────────────────────────────────────────────────
+
+/**
+ * Returns true if value is a finite, non-NaN number.
+ */
+function isValidNumber(value: unknown): value is number {
+    return typeof value === 'number' && Number.isFinite(value);
+}
+
+// ─── Address Formatting ──────────────────────────────────────────────────────
+
+/**
  * Shortens a Solana address for display: "AbCd...WxYz"
  */
 export function shortenAddress(address: string, chars = 4): string {
@@ -7,25 +66,41 @@ export function shortenAddress(address: string, chars = 4): string {
     return `${address.slice(0, chars)}...${address.slice(-chars)}`;
 }
 
+// ─── SOL Formatting ──────────────────────────────────────────────────────────
+
 /**
- * Formats a SOL amount to a user-friendly string with appropriate decimal places.
+ * Formats a SOL amount (not lamports) to a user-friendly string.
+ * Use for displaying SOL values returned from APIs or user input.
+ * For lamports, divide by 1e9 first.
+ * 
+ * Results are memoized for performance in large lists.
  */
-export function formatSOL(lamports: number): string {
-    if (typeof lamports !== 'number' || isNaN(lamports)) return '0 SOL';
-    const sol = lamports / 1e9;
-    return formatSOLValue(sol);
+export function formatSOL(sol: number): string {
+    if (!isValidNumber(sol)) return '0 SOL';
+    
+    const cacheKey = `sol:${sol}`;
+    const cached = solValueCache.get(cacheKey);
+    if (cached) return cached;
+    
+    let result: string;
+    if (sol === 0) result = '0 SOL';
+    else if (sol < 0.001) result = `${sol.toFixed(6)} SOL`;
+    else if (sol < 1) result = `${sol.toFixed(4)} SOL`;
+    else result = `${sol.toFixed(2)} SOL`;
+    
+    solValueCache.set(cacheKey, result);
+    return result;
 }
 
 /**
  * Formats SOL from a SOL value (not lamports).
+ * Memoized for performance in lists.
  */
 export function formatSOLValue(sol: number): string {
-    if (typeof sol !== 'number' || isNaN(sol)) return '0 SOL';
-    if (sol === 0) return '0 SOL';
-    if (sol < 0.001) return `${sol.toFixed(6)} SOL`;
-    if (sol < 1) return `${sol.toFixed(4)} SOL`;
-    return `${sol.toFixed(2)} SOL`;
+    return formatSOL(sol); // Delegates to cached version
 }
+
+// ─── Token/Balance Formatting ────────────────────────────────────────────────
 
 /**
  * Formats a token amount with its decimals to a user-friendly string.
@@ -43,16 +118,28 @@ export function formatTokenAmount(rawAmount: string, decimals: number): string {
 
 /**
  * Formats a human-readable token balance (already adjusted for decimals).
+ * Memoized for performance in large token lists.
  */
 export function formatBalance(balance: number): string {
-    if (typeof balance !== 'number' || isNaN(balance)) return '0';
+    if (!isValidNumber(balance)) return '0';
     if (balance === 0) return '0';
-    if (balance < 0.001) return '< 0.001';
-    if (balance < 1) return balance.toFixed(4);
-    if (balance < 1000) return balance.toFixed(2);
-    if (balance < 1_000_000) return `${(balance / 1000).toFixed(1)}K`;
-    return `${(balance / 1_000_000).toFixed(1)}M`;
+    
+    const cacheKey = `bal:${balance}`;
+    const cached = balanceCache.get(cacheKey);
+    if (cached) return cached;
+    
+    let result: string;
+    if (balance < 0.001) result = '< 0.001';
+    else if (balance < 1) result = balance.toFixed(4);
+    else if (balance < 1000) result = balance.toFixed(2);
+    else if (balance < 1_000_000) result = `${(balance / 1000).toFixed(1)}K`;
+    else result = `${(balance / 1_000_000).toFixed(1)}M`;
+    
+    balanceCache.set(cacheKey, result);
+    return result;
 }
+
+// ─── Number/USD Formatting ───────────────────────────────────────────────────
 
 /**
  * Formats a number with specified decimals.
@@ -85,12 +172,18 @@ export const formatCurrency = formatUSD;
 
 /**
  * Formats SOL amount as USD estimate using an optional SOL price.
- * Defaults to $150/SOL when no price is provided.
+ * Defaults to FALLBACK_SOL_PRICE_USD (from @/lib/solPrice) when no price
+ * is provided. This is the single source of truth shared with the live
+ * Jupiter price fetch — components that have a live price should pass
+ * it explicitly; the default ensures consistent fallback behavior
+ * across all 30+ call sites that omit a price argument.
  */
-export function estimateUSD(solAmount: number, solPriceUSD = 150): string {
-    if (typeof solAmount !== 'number' || isNaN(solAmount)) return '~$0.00';
+export function estimateUSD(solAmount: number, solPriceUSD: number = FALLBACK_SOL_PRICE_USD): string {
+    if (!isValidNumber(solAmount) || !isValidNumber(solPriceUSD)) return '~$0.00';
     return `~${formatUSD(solAmount * solPriceUSD)}`;
 }
+
+// ─── Time/Utility Formatting ─────────────────────────────────────────────────
 
 /**
  * Formats a duration in milliseconds to a human-readable string.
@@ -109,7 +202,7 @@ export async function copyToClipboard(text: string): Promise<boolean> {
     try {
         await navigator.clipboard.writeText(text);
         return true;
-    } catch {
+    } catch (err: unknown) {
         return false;
     }
 }

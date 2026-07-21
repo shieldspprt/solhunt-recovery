@@ -1,13 +1,85 @@
-import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, PrecacheEntry } from 'workbox-precaching';
+/**
+ * SolHunt Service Worker
+ * Cache version: 2026-07-06-2
+ *
+ * Bumping the version stamp: both runtime cache buckets below include the
+ * `vYYYYMMDD-N` suffix (where N is the within-day revision index). When this
+ * file ships, existing PWA users still have the old `google-fonts` /
+ * `static-assets` caches from the previous install. Workbox's
+ * `cleanupOutdatedCaches()` (called above) deletes any cache whose name
+ * doesn't appear in the current precache manifest — so renaming both buckets
+ * to `google-fonts-v20260706-2` and `static-assets-v20260706-2` forces a
+ * one-time invalidation, then the new caches take over.
+ *
+ * Both buckets MUST use the SAME suffix — bumping only one (which happened
+ * in the -2 cut: static-assets moved to -2 but google-fonts stayed at the
+ * unrevised v20260622) leaves the unmoved bucket serving the previous
+ * deploy's assets to returning users. For fonts that's usually harmless
+ * (font files are immutable across deploys) but it breaks the invariant the
+ * "cache version" stamp promises — the header comment says everything
+ * invalidates together, so they should.
+ *
+ * Bump this version (and the bucket suffixes) whenever you ship changes
+ * to the app shell, fonts, or any cached static asset — even if the SW
+ * file content hasn't materially changed. Without the bump, returning
+ * users keep seeing cached JS from the previous deploy until they
+ * manually clear site data, which is exactly the failure mode that
+ * caused stale bundles to ship security fixes hours late during the
+ * 2026-04 recovery incident.
+ *
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope
+ */
+import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL, type PrecacheEntry } from 'workbox-precaching';
 import { registerRoute, NavigationRoute } from 'workbox-routing';
-import { NetworkFirst, NetworkOnly } from 'workbox-strategies';
+import { NetworkFirst, NetworkOnly, StaleWhileRevalidate } from 'workbox-strategies';
+import { logger } from '@/lib/logger';
 
-declare let self: ServiceWorkerGlobalScope;
+// ──────────────────────────────────────────────────────
+// Type Definitions for Service Worker Events
+// ──────────────────────────────────────────────────────
+
+/** 
+ * The BeforeInstallPromptEvent is fired when the PWA meets installability criteria.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/BeforeInstallPromptEvent
+ */
+interface BeforeInstallPromptEvent extends Event {
+    readonly platforms: string[];
+    readonly userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+    prompt(): Promise<void>;
+}
+
+
+
+/**
+ * Extends ServiceWorkerGlobalScope with SolHunt-specific additions.
+ * Allows the app to access the deferred install prompt captured by the SW.
+ * @see https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope
+ */
+interface SolHuntServiceWorkerGlobalScope extends ServiceWorkerGlobalScope {
+    deferredInstallPrompt: BeforeInstallPromptEvent | null;
+}
+
+declare let self: SolHuntServiceWorkerGlobalScope;
+
+/**
+ * Minimal event shape needed by the activate handler.
+ * Keeps the code type-safe without relying on the broader ExtendableEvent assertion workaround.
+ */
+interface ExtendableEventLike extends Event {
+    waitUntil(promise: Promise<unknown>): void;
+}
+
+// Type guard: VitePWA can inject strings into __WB_MANIFEST but precacheAndRoute only accepts entries.
+// Filter to valid PrecacheEntry objects at runtime to satisfy the type system.
+// Uses `unknown` to bypass internal vs global PrecacheEntry type incompatibility.
+function isPrecacheEntry(entry: unknown): entry is PrecacheEntry {
+    return typeof entry === 'object' && entry !== null && 'url' in entry;
+}
 
 // ──────────────────────────────────────────────────────
 // 1. Precache static build assets (injected by vite-plugin-pwa)
-// ──────────────────────────────────────────────────────
-precacheAndRoute(self.__WB_MANIFEST as unknown as Array<PrecacheEntry>);
+// The manifest entries are typed via global ServiceWorkerGlobalScope augmentation
+precacheAndRoute(self.__WB_MANIFEST.filter(isPrecacheEntry));
 cleanupOutdatedCaches();
 
 // ──────────────────────────────────────────────────────
@@ -20,9 +92,9 @@ const navigationRoute = new NavigationRoute(
   {
     // Do NOT intercept navigation to these paths
     denylist: [
-      /^\/.netlify\//,
+      /^\.netlify\//,
       /^\/api\//,
-      /^\/.well-known\//,
+      /^\.well-known\//,
     ],
   }
 );
@@ -65,16 +137,47 @@ for (const pattern of NETWORK_ONLY_PATTERNS) {
 // ──────────────────────────────────────────────────────
 registerRoute(
   /^https:\/\/fonts\.(googleapis|gstatic)\.com/,
-  new NetworkFirst({ cacheName: 'google-fonts', networkTimeoutSeconds: 5 })
+  new NetworkFirst({
+    cacheName: 'google-fonts-v20260706-2',
+    networkTimeoutSeconds: 5,
+  })
 );
 
 // ──────────────────────────────────────────────────────
-// 5. Lifecycle: skip waiting + claim clients for fast updates
-//    Note: self.* methods resolve at runtime in the SW context
+// 5. App shell: Stale-while-revalidate for faster loads
+//    Show cached version immediately, update in background
 // ──────────────────────────────────────────────────────
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const sw = self as any;
-sw.skipWaiting();
-sw.addEventListener('activate', (event: any) => {
-  event.waitUntil(sw.clients.claim());
+registerRoute(
+  /\.(?:js|css)$/,
+  new StaleWhileRevalidate({ cacheName: 'static-assets-v20260706-2' })
+);
+
+// ──────────────────────────────────────────────────────
+// 6. Lifecycle: skip waiting + claim clients for fast updates
+// ──────────────────────────────────────────────────────
+self.skipWaiting();
+self.addEventListener('activate', (event: ExtendableEventLike) => {
+    event.waitUntil(self.clients.claim());
 });
+
+// ──────────────────────────────────────────────────────
+// 7. PWA Install Prompt Capture
+//    Defer the native install prompt for better UX timing
+// ──────────────────────────────────────────────────────
+const handleBeforeInstallPrompt = (event: Event): void => {
+    const installEvent = event as BeforeInstallPromptEvent;
+    installEvent.preventDefault();
+    self.deferredInstallPrompt = installEvent;
+    self.clients.matchAll({ type: 'window' }).then(clients => {
+        clients.forEach(client => {
+            try {
+                client.postMessage({ type: 'INSTALL_AVAILABLE', data: { available: true } });
+            } catch (_e: unknown) {
+                logger.warn('Failed to notify client of install availability:', _e instanceof Error ? _e.message : String(_e));
+            }
+        });
+    }).catch((err: unknown) => {
+        logger.warn('Failed to match clients for install notification:', err instanceof Error ? err.message : String(err));
+    });
+};
+self.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);

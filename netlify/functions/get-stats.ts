@@ -1,8 +1,15 @@
 // netlify/functions/get-stats.ts
 // Returns stored daily stats — used by the stats page and by external agents
 
-import { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  errorBody,
+  getErrorMessage,
+  safeLogError,
+} from './_shared';
 
 interface DayStat {
   date: string;
@@ -21,23 +28,30 @@ const supabase = createClient(
 );
 
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
+  // get-stats is a public read endpoint — cache the response for an hour to
+  // reduce Supabase load. Overridden via the shared header builder.
+  const headers = buildCorsHeaders(event, {
+    methods: 'GET, OPTIONS',
+    cacheControl: 'public, max-age=3600',
+  });
 
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Cache-Control': 'public, max-age=3600' // cache for 1 hour
-  };
+  if (event.httpMethod === 'OPTIONS') {
+    return corsPreflightResponse(event, { methods: 'GET, OPTIONS' });
+  }
 
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: '' };
-
-  // How many days of history to return (default: 7)
-  const days = Math.min(
-    parseInt(event.queryStringParameters?.days || '7'),
-    30
-  );
+  // How many days of history to return (default: 7, max: 30).
+  // Hardened parser: clamp to [1, 30], fall back to 7 on any non-numeric /
+  // NaN / negative / zero input. Previously `parseInt('abc')` returned NaN
+  // and `Math.min(NaN, 30)` stayed NaN — Supabase `.limit(NaN)` would then
+  // reject the request. Negative limits (e.g. `?days=-5`) also slipped
+  // through Math.min unchanged.
+  const DEFAULT_DAYS = 7;
+  const MAX_DAYS = 30;
+  const rawDays = event.queryStringParameters?.days;
+  const parsedDays = rawDays === undefined ? DEFAULT_DAYS : Number.parseInt(rawDays, 10);
+  const days = Number.isFinite(parsedDays) && parsedDays > 0
+    ? Math.min(parsedDays, MAX_DAYS)
+    : DEFAULT_DAYS;
 
   try {
     const { data, error } = await supabase
@@ -74,11 +88,13 @@ export const handler: Handler = async (event) => {
         }
       })
     };
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const message = getErrorMessage(e);
+    safeLogError('get-stats error:', message);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ success: false, error: e.message })
+      body: errorBody('INTERNAL_ERROR', 'Failed to load stats', message)
     };
   }
 };

@@ -39,4 +39,22 @@
     }]
     
   </string>  
+    
+    <!-- Android App Shortcuts (TWA) -->
+    <string name="shortcut_scan_short">Scan</string>
+    <string name="shortcut_scan_long">Scan Wallet for Recoverable SOL</string>
+    <string name="shortcut_preview_short">Preview</string>
+    <string name="shortcut_preview_long">Preview Recovery Options</string>
+    <string name="shortcut_revoke_short">Revoke</string>
+    <string name="shortcut_revoke_long">Revoke Token Approvals</string>
+    <string name="shortcut_reclaim_short">Rent</string>
+    <string name="shortcut_reclaim_long">Reclaim Rent from Accounts</string>
+    <string name="shortcut_lp_fees_short">LP Fee Harvester</string>
+    <string name="shortcut_lp_fees_long">Open LP Fee Harvester</string>
+    <string name="shortcut_fleet_short">Fleet</string>
+    <string name="shortcut_fleet_long">Monitor Agent Wallets</string>
+    <string name="shortcut_buffers_short">Buffers</string>
+    <string name="shortcut_buffers_long">Recover SOL from Buffer Accounts</string>
+    <string name="shortcut_tickets_short">Tickets</string>
+    <string name="shortcut_tickets_long">Find Staking Tickets</string>
 </resources>

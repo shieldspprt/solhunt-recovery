@@ -1,17 +1,18 @@
+import { memo } from 'react';
 import { AlertTriangle, CheckCircle2, Clock3, Loader2, XCircle } from 'lucide-react';
 import { useMEVClaims } from '@/hooks/useMEVClaims';
 import { useAppStore } from '@/hooks/useAppStore';
 import { SOLSCAN_TX_URL, MEV_SERVICE_FEE_PERCENT } from '@/config/constants';
 import { estimateUSD, formatSOLValue, shortenAddress } from '@/lib/formatting';
 
-function ProgressIcon({ status }: { status: string }) {
-    if (status === 'success') return <CheckCircle2 className="h-4 w-4 text-shield-success" />;
-    if (status === 'failed') return <XCircle className="h-4 w-4 text-shield-danger" />;
-    if (status === 'pending') return <Clock3 className="h-4 w-4 text-shield-muted" />;
-    return <Loader2 className="h-4 w-4 text-shield-accent animate-spin" />;
+function ProgressIcon({ status }: { status: 'success' | 'failed' | 'pending' | 'skipped' }) {
+    if (status === 'success') return <CheckCircle2 className="h-4 w-4 text-shield-success" aria-hidden="true" />;
+    if (status === 'failed') return <XCircle className="h-4 w-4 text-shield-danger" aria-hidden="true" />;
+    if (status === 'pending' || status === 'skipped') return <Clock3 className="h-4 w-4 text-shield-muted" aria-hidden="true" />;
+    return <Loader2 className="h-4 w-4 text-shield-accent animate-spin" aria-hidden="true" />;
 }
 
-export function MEVClaimProgressModal() {
+export const MEVClaimProgressModal = memo(() => {
     const {
         mevClaimStatus,
         mevClaimResult,
@@ -27,21 +28,31 @@ export function MEVClaimProgressModal() {
     const isError = mevClaimStatus === 'error';
 
     return (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-shield-bg/85 backdrop-blur-sm" />
+        <div
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mev-claim-progress-title"
+        >
+            <button
+                className="absolute inset-0 cursor-pointer bg-shield-bg/85 backdrop-blur-sm"
+                onClick={cancelClaim}
+                type="button"
+                aria-label="Close MEV claim modal by clicking backdrop"
+            />
 
             <div className="relative w-full max-w-2xl overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 <div className="p-6 sm:p-8">
                     {!isComplete && !isError && (
                         <>
-                            <h2 className="text-xl font-bold text-shield-text mb-2">Claiming MEV Rewards...</h2>
+                            <h2 id="mev-claim-progress-title" className="text-xl font-bold text-shield-text mb-2">Claiming MEV Rewards...</h2>
                             <p className="text-sm text-shield-muted mb-4">{mevProgressText || 'Do not close this window.'}</p>
                         </>
                     )}
 
                     {isComplete && mevClaimResult && (
                         <>
-                            <h2 className="text-xl font-bold text-shield-success mb-4">
+                            <h2 id="mev-claim-progress-title" className="text-xl font-bold text-shield-success mb-4">
                                 {mevClaimResult.failedCount === 0 ? 'All rewards claimed' : 'Partial success'}
                             </h2>
                             <div className="rounded-xl border border-shield-border bg-shield-bg p-4 mb-4">
@@ -69,7 +80,7 @@ export function MEVClaimProgressModal() {
                     {isError && mevClaimError && (
                         <div className="rounded-xl border border-shield-danger/30 bg-shield-danger/10 p-4 mb-4">
                             <p className="text-sm text-shield-danger font-medium flex items-start gap-2">
-                                <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
                                 {mevClaimError.message}
                             </p>
                         </div>
@@ -99,7 +110,7 @@ export function MEVClaimProgressModal() {
                                                 <a
                                                     href={SOLSCAN_TX_URL(item.signature)}
                                                     target="_blank"
-                                                    rel="noreferrer"
+                                                    rel="noopener noreferrer"
                                                     className="text-xs text-shield-accent hover:underline"
                                                 >
                                                     View
@@ -115,7 +126,9 @@ export function MEVClaimProgressModal() {
 
                     {(isComplete || isError) && (
                         <button
+                            type="button"
                             onClick={cancelClaim}
+                            aria-label="Close the MEV claim progress modal"
                             className="mt-5 w-full rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                         >
                             Done
@@ -125,4 +138,4 @@ export function MEVClaimProgressModal() {
             </div>
         </div>
     );
-}
+});

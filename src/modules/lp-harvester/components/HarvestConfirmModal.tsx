@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import { X } from 'lucide-react';
 import {
     HARVEST_COMPOUND_FEE_PERCENT,
@@ -6,6 +7,7 @@ import {
 } from '../constants';
 import type { HarvestEstimate, LPPosition } from '../types';
 import { formatLPUSD, formatLPSOL } from '../utils/formatting';
+import { useCallback, useEffect, useRef } from 'react';
 
 interface HarvestConfirmModalProps {
     open: boolean;
@@ -26,26 +28,86 @@ export function HarvestConfirmModal({
 }: HarvestConfirmModalProps) {
     if (!open || !estimate) return null;
 
+    const titleId = useId();
     const previewPositions = positions.slice(0, 8);
     const hiddenCount = Math.max(positions.length - previewPositions.length, 0);
+
+    // Focus management refs
+    const modalRef = useRef<HTMLDivElement>(null);
+    const cancelButtonRef = useRef<HTMLButtonElement>(null);
+    const previousActiveElement = useRef<HTMLElement | null>(null);
+
+    // Escape key handler
+    const handleEscape = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape') onCancel();
+    }, [onCancel]);
+
+    // Tab key trap handler
+    const handleTabKey = useCallback((e: KeyboardEvent, first: HTMLElement | undefined, last: HTMLElement | undefined) => {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first?.focus();
+        }
+    }, []);
+
+    // Global escape listener + focus management on mount/unmount
+    useEffect(() => {
+        previousActiveElement.current = document.activeElement as HTMLElement;
+        document.addEventListener('keydown', handleEscape);
+        const cancelBtn = cancelButtonRef.current;
+        const timer = setTimeout(() => cancelBtn?.focus(), 0);
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            previousActiveElement.current?.focus();
+            clearTimeout(timer);
+        };
+    }, [handleEscape]);
+
+    // Modal-local tab trap
+    useEffect(() => {
+        const modal = modalRef.current;
+        if (!modal) return;
+        const focusable = modal.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const handler = (e: KeyboardEvent) => handleTabKey(e, first, last);
+        modal.addEventListener('keydown', handler);
+        return () => modal.removeEventListener('keydown', handler);
+    }, [handleTabKey]);
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             <div
                 className="absolute inset-0 bg-shield-bg/85 backdrop-blur-sm"
                 onClick={onCancel}
+                aria-hidden="true"
             />
 
-            <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div
+                ref={modalRef}
+                className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+            >
                 <button
+                    ref={cancelButtonRef}
+                    type="button"
                     onClick={onCancel}
+                    aria-label="Close LP harvest confirmation modal"
                     className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                 >
-                    <X className="h-5 w-5" />
+                    <X className="h-5 w-5" aria-hidden="true" />
                 </button>
 
                 <div className="p-6 sm:p-8">
-                    <h2 className="text-xl font-bold text-shield-text mb-2">
+                    <h2 id={titleId} className="text-xl font-bold text-shield-text mb-2">
                         Confirm LP Harvest
                     </h2>
                     <p className="text-sm text-shield-muted mb-4">
@@ -107,13 +169,17 @@ export function HarvestConfirmModal({
 
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
+                            type="button"
                             onClick={onCancel}
+                            aria-label="Cancel harvest"
                             className="flex-1 rounded-xl border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                         >
                             Cancel
                         </button>
                         <button
+                            type="button"
                             onClick={onConfirm}
+                            aria-label="Confirm harvest fees"
                             className="flex-1 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                         >
                             Harvest Fees

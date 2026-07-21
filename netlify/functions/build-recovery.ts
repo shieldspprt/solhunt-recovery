@@ -1,65 +1,78 @@
-import { Handler } from '@netlify/functions';
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
 import { createCloseAccountInstruction } from '@solana/spl-token';
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  errorBody,
+  getErrorMessage,
+  isValidSolanaAddress,
+  methodNotAllowed,
+  safeLogError,
+  getSolanaRpcUrl,
+  SOLANA_TOKEN_PROGRAM_ID,
+} from './_shared';
 
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
-const RPC_URL = HELIUS_API_KEY
-  ? `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
-  : 'https://api.mainnet-beta.solana.com';
+const RPC_URL = getSolanaRpcUrl();
 
-const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+const TOKEN_PROGRAM_ID = SOLANA_TOKEN_PROGRAM_ID;
 const RENT_PER_ACCOUNT_LAMPORTS = 2039280; // 0.00203928 SOL in lamports
 const MAX_ACCOUNTS_PER_TX = 15;
 const FEE_PERCENT = 15;
 const FEE_WALLET = 'DD4AdYKVcV6kgpmiCEeASRmJyRdKgmaRAbsjKucx8CvY';
-
-function isValidSolanaAddress(address: string): boolean {
-  if (!address || typeof address !== 'string') return false;
-  if (address.length < 32 || address.length > 44) return false;
-  try {
-    new PublicKey(address);
-    return true;
-  } catch {
-    return false;
-  }
-}
+// Configurable fee percentage via env var (default 15%). Allows ops to A/B test
+// or run promotions without redeploying. Must be a finite number in [0, 100].
+const EFFECTIVE_FEE_PERCENT = (() => {
+  const envVal = process.env.SOLHUNT_FEE_PERCENT;
+  if (envVal === undefined) return FEE_PERCENT;
+  const parsed = parseFloat(envVal);
+  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100 ? parsed : FEE_PERCENT;
+})();
 
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'no-store'
-  };
+  const headers = buildCorsHeaders(event, { methods: 'POST, OPTIONS' });
 
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return corsPreflightResponse(event, { methods: 'POST, OPTIONS' });
   }
 
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+    return methodNotAllowed(event, 'POST, OPTIONS');
   }
 
-  let body: any;
+  let body: Record<string, unknown>;
   try {
-    body = JSON.parse(event.body || '{}');
-  } catch {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON body' }) };
+    body = JSON.parse(event.body || '{}') as Record<string, unknown>;
+  } catch (err: unknown) {
+    // Parse error — return the typed contract so clients can branch on
+    // code='PARSE_ERROR' (retryable transient) vs. 'INVALID_PARAMS' (fix
+    // your request) vs. 'EXECUTION_ERROR' (server bug).
+    safeLogError('build-recovery parse error:', getErrorMessage(err));
+    return { statusCode: 400, headers, body: errorBody('PARSE_ERROR', 'Invalid JSON body') };
   }
 
-  const { wallet_address, destination_wallet, batch_number = 1 } = body;
+  const wallet_address = typeof body.wallet_address === 'string' ? body.wallet_address : '';
+  const destination_wallet = typeof body.destination_wallet === 'string' ? body.destination_wallet : '';
+  // Validate batch_number: must be a finite positive integer (Solana batches start at 1)
+  const rawBatch = body.batch_number;
+  const batch_number =
+    typeof rawBatch === 'number' && Number.isFinite(rawBatch) && Number.isInteger(rawBatch) && rawBatch >= 1
+      ? rawBatch
+      : 1;
+  // Validate fee_percent: must be a finite number in [0, 100]; clamp invalid values to default
+  const rawFeePercent = body.fee_percent;
+  const fee_percent_override =
+    typeof rawFeePercent === 'number' && Number.isFinite(rawFeePercent) && rawFeePercent >= 0 && rawFeePercent <= 100
+      ? rawFeePercent
+      : null;
+  const effective_fee_percent = fee_percent_override !== null ? fee_percent_override : EFFECTIVE_FEE_PERCENT;
 
   if (!wallet_address || !isValidSolanaAddress(wallet_address)) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid wallet_address' }) };
+    return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'Invalid wallet_address', 'Provide a base58 Solana public key (32-44 characters).') };
   }
 
   if (!destination_wallet || !isValidSolanaAddress(destination_wallet)) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid destination_wallet' }) };
+    return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'Invalid destination_wallet', 'Provide a base58 Solana public key (32-44 characters).') };
   }
 
   try {
@@ -92,14 +105,14 @@ export const handler: Handler = async (event) => {
     
     // Safety check
     if (batchIdx >= totalBatches && closeable.length > 0) {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Batch number out of range' }) };
+      return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'Batch number out of range', `batch_number=${batch_number} exceeds total_batches=${totalBatches}.`) };
     }
 
     const startIdx = batchIdx * MAX_ACCOUNTS_PER_TX;
     const batchAccounts = closeable.slice(startIdx, startIdx + MAX_ACCOUNTS_PER_TX);
     
     const recoveryLamports = batchAccounts.length * RENT_PER_ACCOUNT_LAMPORTS;
-    const feeLamports = Math.floor(recoveryLamports * (FEE_PERCENT / 100));
+    const feeLamports = Math.floor(recoveryLamports * (effective_fee_percent / 100));
     const operatorLamports = recoveryLamports - feeLamports;
 
     // Create Transaction
@@ -159,18 +172,20 @@ export const handler: Handler = async (event) => {
         accounts_in_batch: batchAccounts.length,
         recovery_lamports: recoveryLamports,
         fee_lamports: feeLamports,
+        fee_percent: effective_fee_percent,
         operator_lamports: operatorLamports,
         unsigned_transaction: unsignedTransaction,
         instructions_preview: instructionsPreview,
         sign_and_submit: "User signs this transaction with their wallet keypair and submits to Solana RPC"
       })
     };
-  } catch (error: any) {
-    console.error('build-recovery error:', error.message);
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error);
+    safeLogError('build-recovery error:', errorMessage);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: `Failed to build recovery transaction: ${error.message}` })
+      body: errorBody('EXECUTION_ERROR', 'Failed to build recovery transaction', errorMessage)
     };
   }
 };

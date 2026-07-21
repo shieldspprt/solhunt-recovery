@@ -5,6 +5,8 @@ import {
 } from '../../constants';
 import type { LPPosition } from '../../types';
 import { KNOWN_TOKEN_DECIMALS, KNOWN_TOKEN_SYMBOLS } from '../../utils/addresses';
+import { withRetry } from '@/lib/rpcRetry';
+import { toValidPublicKey } from '@/lib/validation';
 
 interface MeteoraApiPosition {
     position?: string;
@@ -36,7 +38,7 @@ function toBase58(value: unknown): string {
         if (typeof fn === 'function') {
             try {
                 return fn.call(value);
-            } catch {
+            } catch (_e: unknown) {
                 return '';
             }
         }
@@ -74,7 +76,10 @@ async function parseApiPositions(
     }
 
     const endpoint = `${METEORA_POSITION_API}/${encodeURIComponent(walletAddress)}`;
-    const response = await fetch(endpoint, { cache: 'no-store' });
+    // 8s timeout: a hung Meteora position API previously stalled the LP
+    // scanner indefinitely. Mirrors the AbortSignal.timeout pattern from
+    // dustScanner.ts (commit 7ea243b) and dustSwapper.ts (commit 871e02f).
+    const response = await fetch(endpoint, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
 
     if (!response.ok) {
         if (response.status === 404) {
@@ -104,7 +109,7 @@ async function parseApiPositions(
         if (!positionAddress || !poolAddress) continue;
 
         // Verify position still exists on-chain before surfacing.
-        const exists = await connection.getAccountInfo(new PublicKey(positionAddress), 'confirmed');
+        const exists = await withRetry(() => connection.getAccountInfo(new PublicKey(positionAddress), 'confirmed'));
         if (!exists) continue;
 
         const tokenA = entry.tokenXMint || '';
@@ -295,15 +300,18 @@ export async function scanMeteoraPositions(
     walletAddress: string,
     connection: Connection
 ): Promise<LPPosition[]> {
+    // SECURITY: Validate wallet address before any RPC calls
+    toValidPublicKey(walletAddress);
+
     try {
         return await parseSdkPositions(walletAddress, connection);
-    } catch {
+    } catch (_e: unknown) {
         // SDK path may fail on some environments; fallback to API as best-effort.
     }
 
     try {
         return await parseApiPositions(walletAddress, connection);
-    } catch {
+    } catch (_e: unknown) {
         return [];
     }
 }

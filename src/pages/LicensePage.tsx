@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Scale } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export function LicensePage() {
+    usePageMeta({
+        title: 'License',
+        description: 'SolHunt is open source software. Learn about our license, third-party open source dependencies, and your rights to use, modify, and distribute the code.',
+        noindex: true,
+    });
+
     return (
         <PageWrapper>
             <div className="mx-auto max-w-3xl px-4 py-12 animate-fade-in-up">
@@ -10,8 +17,9 @@ export function LicensePage() {
                     <Link
                         to="/"
                         className="inline-flex items-center gap-2 text-sm text-shield-muted hover:text-shield-accent transition-colors mb-6"
+                        aria-label="Back to SolHunt"
                     >
-                        <ArrowLeft className="h-4 w-4" />
+                        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                         Back to SolHunt
                     </Link>
                     <div className="flex items-center gap-3 mb-4">
@@ -42,7 +50,7 @@ export function LicensePage() {
                             <pre className="whitespace-pre-wrap text-sm leading-7 text-shield-muted font-mono">
 {`MIT License
 
-Copyright (c) 2025 SolHunt
+Copyright (c) 2026 SolHunt
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

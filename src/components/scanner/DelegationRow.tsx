@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { ExternalLink, CheckCircle2 } from 'lucide-react';
 import { RiskBadge } from '@/components/common/RiskBadge';
 import { shortenAddress, formatTokenAmount, formatBalance } from '@/lib/formatting';
@@ -10,10 +10,16 @@ interface DelegationRowProps {
 }
 
 export const DelegationRow = memo(function DelegationRow({ delegation }: DelegationRowProps) {
-    const knownName = getKnownDelegateName(delegation.delegate);
-    const formattedDelegatedAmount = formatTokenAmount(
-        delegation.delegatedAmount,
-        delegation.decimals
+    // Memoize the known delegate lookup to avoid repeated Map lookups on every render
+    const knownName = useMemo(
+        () => getKnownDelegateName(delegation.delegate),
+        [delegation.delegate]
+    );
+    
+    // Memoize formatted amount to prevent unnecessary string formatting on every render
+    const formattedDelegatedAmount = useMemo(
+        () => formatTokenAmount(delegation.delegatedAmount, delegation.decimals),
+        [delegation.delegatedAmount, delegation.decimals]
     );
 
     return (
@@ -35,10 +41,11 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                             href={SOLSCAN_TOKEN_URL(delegation.mint)}
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-label={`View token ${delegation.tokenSymbol} (${shortenAddress(delegation.mint, 4)}) on Solscan (opens in new tab)`}
                             className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1 transition-colors"
                         >
-                            {shortenAddress(delegation.mint, 4)}
-                            <ExternalLink className="h-3 w-3" />
+                            <span aria-hidden="true">{shortenAddress(delegation.mint, 4)}</span>
+                            <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         </a>
                     </div>
                 </td>
@@ -55,7 +62,7 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                     <div className="flex flex-col">
                         {knownName ? (
                             <span className="inline-flex items-center gap-1.5 text-shield-success text-sm font-medium">
-                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
                                 {knownName}
                             </span>
                         ) : null}
@@ -63,10 +70,11 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                             href={SOLSCAN_ACCOUNT_URL(delegation.delegate)}
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-label={`View delegate ${knownName ? knownName : shortenAddress(delegation.delegate, 4)} on Solscan (opens in new tab)`}
                             className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1 transition-colors"
                         >
-                            {shortenAddress(delegation.delegate, 4)}
-                            <ExternalLink className="h-3 w-3" />
+                            <span aria-hidden="true">{shortenAddress(delegation.delegate, 4)}</span>
+                            <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         </a>
                     </div>
                 </td>
@@ -106,7 +114,7 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                             <div className="flex items-center gap-2">
                                 {knownName && (
                                     <span className="inline-flex items-center gap-1 text-shield-success text-xs font-medium">
-                                        <CheckCircle2 className="h-3 w-3" />
+                                        <CheckCircle2 className="h-3 w-3" aria-hidden="true" />
                                         {knownName}
                                     </span>
                                 )}
@@ -114,10 +122,11 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                                     href={SOLSCAN_ACCOUNT_URL(delegation.delegate)}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    aria-label={`View delegate ${knownName ? knownName : shortenAddress(delegation.delegate, 4)} on Solscan (opens in new tab)`}
                                     className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1"
                                 >
-                                    {shortenAddress(delegation.delegate, 4)}
-                                    <ExternalLink className="h-3 w-3" />
+                                    <span aria-hidden="true">{shortenAddress(delegation.delegate, 4)}</span>
+                                    <ExternalLink className="h-3 w-3" aria-hidden="true" />
                                 </a>
                             </div>
                         </div>
@@ -126,10 +135,11 @@ export const DelegationRow = memo(function DelegationRow({ delegation }: Delegat
                             href={SOLSCAN_TOKEN_URL(delegation.mint)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1"
+                            aria-label={`View token mint ${delegation.tokenSymbol} (${shortenAddress(delegation.mint, 4)}) on Solscan (opens in new tab)`}
+                            className="text-xs font-mono text-shield-muted hover:text-shield-accent inline-flex items-center gap-1 transition-colors"
                         >
-                            Mint: {shortenAddress(delegation.mint, 4)}
-                            <ExternalLink className="h-3 w-3" />
+                            <span aria-hidden="true">{shortenAddress(delegation.mint, 4)}</span>
+                            <ExternalLink className="h-3 w-3" aria-hidden="true" />
                         </a>
                     </div>
                 </td>

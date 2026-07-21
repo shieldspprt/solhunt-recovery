@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { Layers3, Loader2 } from 'lucide-react';
 import { useLPScanner } from '../hooks/useLPScanner';
 import { useLPHarvester } from '../hooks/useLPHarvester';
@@ -31,7 +31,13 @@ function buildProtocolGroups(positions: LPPosition[]): Array<{ protocol: LPProto
         .filter((entry) => entry.positions.length > 0);
 }
 
-export function LPHarvesterCard() {
+/**
+ * LP Fee Harvester Card Component
+ * 
+ * Displays LP positions across Orca, Raydium, and Meteora with fee harvesting capabilities.
+ * Memoized to prevent unnecessary re-renders when parent updates.
+ */
+export const LPHarvesterCard = memo(function LPHarvesterCard() {
     const {
         scanStatus,
         scanResult,
@@ -67,15 +73,21 @@ export function LPHarvesterCard() {
         [selectedPositions]
     );
 
-    const feePercent = willCompound ? HARVEST_COMPOUND_FEE_PERCENT : HARVEST_FEE_PERCENT;
-    const serviceFeeUSD = selectedUSD * (feePercent / 100);
+    const feePercent = useMemo(
+        () => (willCompound ? HARVEST_COMPOUND_FEE_PERCENT : HARVEST_FEE_PERCENT),
+        [willCompound]
+    );
+    const serviceFeeUSD = useMemo(
+        () => selectedUSD * (feePercent / 100),
+        [selectedUSD, feePercent]
+    );
 
     if (scanStatus === 'idle') {
         return (
             <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full">
                 <div className="flex items-center gap-3 mb-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
-                        <Layers3 className="h-5 w-5 text-shield-accent" />
+                        <Layers3 className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-shield-text">LP Fee Harvester</h2>
@@ -86,7 +98,9 @@ export function LPHarvesterCard() {
                 </div>
 
                 <button
+                    type="button"
                     onClick={runScan}
+                    aria-label="Scan LP positions"
                     className="mt-3 w-full rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                 >
                     Scan LP Positions
@@ -99,10 +113,15 @@ export function LPHarvesterCard() {
 
     if (scanStatus === 'scanning') {
         return (
-            <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full">
+            <div
+                className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full"
+                role="status"
+                aria-live="polite"
+                aria-busy="true"
+            >
                 <div className="flex items-center gap-3 mb-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
-                        <Loader2 className="h-5 w-5 text-shield-accent animate-spin" />
+                        <Loader2 className="h-5 w-5 text-shield-accent animate-spin" aria-hidden="true" />
                     </div>
                     <div>
                         <h2 className="text-xl font-bold text-shield-text">Scanning LP Positions...</h2>
@@ -110,11 +129,20 @@ export function LPHarvesterCard() {
                     </div>
                 </div>
 
-                <div className="space-y-2 text-sm text-shield-muted">
-                    <p>⏳ Orca Whirlpools</p>
-                    <p>⏳ Raydium (CLMM + AMM)</p>
-                    <p>⏳ Meteora DLMM</p>
-                </div>
+                {/* Each row is its own status so AT users hear the per-protocol state
+                    when the live region announces updates. aria-hidden on the emoji
+                    keeps the SR output text-only ("Waiting for Orca Whirlpools..."). */}
+                <ul className="space-y-2 text-sm text-shield-muted list-none p-0 m-0">
+                    <li>
+                        <span aria-hidden="true">⏳</span> Waiting for Orca Whirlpools…
+                    </li>
+                    <li>
+                        <span aria-hidden="true">⏳</span> Waiting for Raydium (CLMM + AMM)…
+                    </li>
+                    <li>
+                        <span aria-hidden="true">⏳</span> Waiting for Meteora DLMM…
+                    </li>
+                </ul>
             </div>
         );
     }
@@ -125,7 +153,9 @@ export function LPHarvesterCard() {
                 <h2 className="text-lg font-bold text-shield-text mb-2">LP scan failed</h2>
                 <p className="text-sm text-shield-danger mb-4">{scanError || 'Could not scan LP positions.'}</p>
                 <button
+                    type="button"
                     onClick={runScan}
+                    aria-label="Retry LP scan"
                     className="rounded-xl bg-shield-accent px-4 py-2.5 text-sm font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                 >
                     Try Again
@@ -145,7 +175,7 @@ export function LPHarvesterCard() {
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                     <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
-                            <Layers3 className="h-5 w-5 text-shield-accent" />
+                            <Layers3 className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                         </div>
                         <div>
                             <h2 className="text-xl font-bold text-shield-text">LP Fee Harvester</h2>
@@ -156,7 +186,9 @@ export function LPHarvesterCard() {
                     </div>
 
                     <button
+                        type="button"
                         onClick={runScan}
+                        aria-label="Rescan LP positions"
                         className="rounded-lg border border-shield-border px-3 py-1.5 text-xs text-shield-text hover:bg-shield-bg/60 transition-colors"
                     >
                         Rescan
@@ -228,8 +260,10 @@ export function LPHarvesterCard() {
                         )}
 
                         <button
+                            type="button"
                             onClick={initiateHarvest}
                             disabled={selectedPositions.length === 0}
+                            aria-label={selectedPositions.length === 1 ? 'Harvest 1 position' : `Harvest ${selectedPositions.length} positions`}
                             className="w-full rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             Harvest {selectedPositions.length} Position{selectedPositions.length === 1 ? '' : 's'}
@@ -263,4 +297,4 @@ export function LPHarvesterCard() {
             />
         </>
     );
-}
+});

@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export function TermsPage() {
+    usePageMeta({
+        title: 'Terms of Service',
+        description: 'SolHunt is a non-custodial Solana wallet recovery tool. Read our terms of service, fee structure, and liability disclosures before using the platform.',
+        noindex: true,
+    });
+
     return (
         <PageWrapper>
             <div className="mx-auto max-w-3xl px-4 py-12 animate-fade-in-up">
@@ -11,8 +18,9 @@ export function TermsPage() {
                     <Link
                         to="/"
                         className="inline-flex items-center gap-2 text-sm text-shield-muted hover:text-shield-accent transition-colors mb-6"
+                        aria-label="Back to SolHunt"
                     >
-                        <ArrowLeft className="h-4 w-4" />
+                        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                         Back to SolHunt
                     </Link>
                     <div className="flex items-center gap-3 mb-4">
@@ -22,7 +30,7 @@ export function TermsPage() {
                         <h1 className="text-3xl font-bold text-shield-text">Terms of Service</h1>
                     </div>
                     <p className="text-shield-muted text-sm">
-                        Last updated: March 27, 2025
+                        Last updated: May 13, 2026
                     </p>
                 </div>
 
@@ -32,7 +40,7 @@ export function TermsPage() {
                         <h2 className="text-xl font-semibold text-shield-text mb-3">1. Acceptance of Terms</h2>
                         <p>
                             By accessing or using SolHunt ("the Service"), available at{' '}
-                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline">solhunt.dev</a>{' '}
+                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline" rel="noopener noreferrer">solhunt.dev</a>{' '}
                             and its associated mobile applications, you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, you must not use the Service.
                         </p>
                     </section>
@@ -165,9 +173,9 @@ export function TermsPage() {
                         <h2 className="text-xl font-semibold text-shield-text mb-3">15. Contact</h2>
                         <p>
                             For questions about these Terms, please contact us at{' '}
-                            <a href="https://x.com/solhuntapp" className="text-shield-accent hover:underline" target="_blank" rel="noopener noreferrer">@solhuntapp</a>{' '}
+                            <a href="https://x.com/solhuntdev" className="text-shield-accent hover:underline" target="_blank" rel="noopener noreferrer">@solhuntdev</a>{' '}
                             on X (Twitter) or visit{' '}
-                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline">solhunt.dev</a>.
+                            <a href="https://solhunt.dev" className="text-shield-accent hover:underline" rel="noopener noreferrer">solhunt.dev</a>.
                         </p>
                     </section>
                 </div>
@@ -175,7 +183,7 @@ export function TermsPage() {
                 {/* Footer */}
                 <div className="mt-12 pt-8 border-t border-shield-border">
                     <p className="text-sm text-shield-muted">
-                        © 2025 SolHunt. All rights reserved.
+                        © 2026 SolHunt. All rights reserved.
                     </p>
                 </div>
             </div>

@@ -2,44 +2,30 @@
 // Returns specific zero-balance token accounts that can be closed for SOL recovery
 // No auth required. Rate limited by Helius free tier.
 
-import { Handler } from '@netlify/functions';
 import { Connection, PublicKey } from '@solana/web3.js';
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  errorBody,
+  getErrorMessage,
+  isValidSolanaAddress,
+  safeLogError,
+  getSolanaRpcUrl,
+  SOLANA_TOKEN_PROGRAM_ID,
+} from './_shared';
 
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
-const RPC_URL = HELIUS_API_KEY
-  ? `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
-  : 'https://api.mainnet-beta.solana.com';
+const RPC_URL = getSolanaRpcUrl();
 
-const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+const TOKEN_PROGRAM_ID = SOLANA_TOKEN_PROGRAM_ID;
 const RENT_PER_ACCOUNT_SOL = 0.00203928;
 const MAX_ACCOUNTS_PER_TX = 15; // Safe limit for standard transactions
 
-function isValidSolanaAddress(address: string): boolean {
-  if (!address || typeof address !== 'string') return false;
-  if (address.length < 32 || address.length > 44) return false;
-  try {
-    new PublicKey(address);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'no-store'
-  };
+  const headers = buildCorsHeaders(event, { methods: 'GET, OPTIONS' });
 
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return corsPreflightResponse(event, { methods: 'GET, OPTIONS' });
   }
 
   const address = event.queryStringParameters?.wallet?.trim();
@@ -48,7 +34,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({ success: false, error: 'Missing wallet parameter' })
+      body: errorBody('INVALID_PARAMS', 'Missing wallet parameter', 'Pass ?wallet=<base58 Solana public key>.')
     };
   }
 
@@ -56,7 +42,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({ success: false, error: 'Invalid wallet address' })
+      body: errorBody('INVALID_PARAMS', 'Invalid wallet address', 'Provide a base58 Solana public key (32-44 characters).')
     };
   }
 
@@ -108,15 +94,13 @@ export const handler: Handler = async (event) => {
         }
       })
     };
-  } catch (error: any) {
-    console.error('wallet-opportunities error:', error.message);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    safeLogError('wallet-opportunities error:', message);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Failed to fetch opportunities. RPC may be rate limited.'
-      })
+      body: errorBody('INTERNAL_ERROR', 'Failed to fetch opportunities. RPC may be rate limited.')
     };
   }
 };

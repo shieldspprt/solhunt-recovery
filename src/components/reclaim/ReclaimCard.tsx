@@ -20,7 +20,7 @@ export const ReclaimCard = memo(function ReclaimCard() {
         <div className="rounded-2xl border border-shield-border bg-shield-card p-6 shadow-xl w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center gap-3 mb-4">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-success/10 border border-shield-success/20">
-                    <Coins className="h-5 w-5 text-shield-success" />
+                    <Coins className="h-5 w-5 text-shield-success" aria-hidden="true" />
                 </div>
                 <div>
                     <h2 className="text-xl font-bold text-shield-text">Locked SOL Found</h2>
@@ -47,7 +47,7 @@ export const ReclaimCard = memo(function ReclaimCard() {
                     <div className="flex justify-between items-center">
                         <span className="text-shield-text font-medium">You receive:</span>
                         <span className="text-shield-success font-bold font-mono text-lg flex items-center gap-1.5">
-                            <Zap className="h-4 w-4" />
+                            <Zap className="h-4 w-4" aria-hidden="true" />
                             {formatSOLValue(reclaimEstimate?.userReceivesSOL || 0)}
                         </span>
                     </div>
@@ -55,16 +55,18 @@ export const ReclaimCard = memo(function ReclaimCard() {
             </div>
 
             <button
+                type="button"
                 onClick={initiateReclaim}
+                aria-label="Reclaim locked SOL"
                 className="w-full relative overflow-hidden group rounded-xl bg-shield-success/10 border border-shield-success/30 px-4 py-3.5 text-shield-success font-semibold shadow-lg shadow-shield-success/5 transition-all duration-200 hover:bg-shield-success/20 hover:border-shield-success/50"
             >
                 <div className="relative z-10 hidden sm:flex items-center justify-center gap-2">
                     Reclaim My SOL
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
                 </div>
                 <div className="relative z-10 flex sm:hidden items-center justify-center gap-2">
                     Reclaim SOL
-                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" aria-hidden="true" />
                 </div>
             </button>
 

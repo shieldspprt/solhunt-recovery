@@ -1,5 +1,11 @@
-import { Handler } from '@netlify/functions';
 import { createClient } from '@supabase/supabase-js';
+import {
+  type Handler,
+  buildCorsHeaders,
+  getErrorMessage,
+  methodNotAllowed,
+  safeLogError,
+} from './_shared';
 
 const DD_WALLET   = 'DD4AdYKVcV6kgpmiCEeASRmJyRdKgmaRAbsjKucx8CvY';
 const MEMO_PROG   = 'MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr';
@@ -14,19 +20,44 @@ function getTier(sol: number) {
   return TIERS.find(t => sol >= t.min) || null;
 }
 
-function extractMemo(tx: any): string | null {
+// ── Local Types for Helius Webhook Payload ──────────────────────────────────
+// Typed to match the Helius parsed transaction webhook format
+
+interface HeliusInstruction {
+  programId: string;
+  data?: string;
+}
+
+interface HeliusNativeTransfer {
+  fromUserAccount: string;
+  toUserAccount: string;
+  amount: number; // in lamports
+}
+
+interface HeliusTransaction {
+  signature: string;
+  instructions?: HeliusInstruction[];
+  nativeTransfers?: HeliusNativeTransfer[];
+  memo?: string;
+}
+
+function extractMemo(tx: HeliusTransaction): string | null {
   if (tx.memo && typeof tx.memo === 'string') return tx.memo.trim();
-  const ixs = tx.instructions || [];
-  const memoIx = ixs.find((ix: any) => ix.programId === MEMO_PROG);
+  const ixs = tx.instructions ?? [];
+  const memoIx = ixs.find((ix: HeliusInstruction) => ix.programId === MEMO_PROG);
   if (memoIx?.data) return String(memoIx.data).trim();
   return null;
 }
 
 export const handler: Handler = async (event) => {
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = buildCorsHeaders(event, {
+    methods: 'POST, OPTIONS',
+    // dd-payment also accepts `Authorization: Bearer …` for the Helius webhook auth.
+    extra: { 'Access-Control-Allow-Headers': 'Content-Type, Authorization' },
+  });
 
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: 'POST only' }) };
+    return methodNotAllowed(event, 'POST, OPTIONS');
   }
 
   // Helius webhook auth
@@ -35,11 +66,11 @@ export const handler: Handler = async (event) => {
     return { statusCode: 401, headers, body: JSON.stringify({ error: 'Unauthorized' }) };
   }
 
-  let transactions: any[];
+  let transactions: HeliusTransaction[];
   try {
     transactions = JSON.parse(event.body || '[]');
     if (!Array.isArray(transactions)) throw new Error('expected array');
-  } catch {
+  } catch (_err: unknown) {
     return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid body' }) };
   }
 
@@ -53,7 +84,7 @@ export const handler: Handler = async (event) => {
   for (const tx of transactions) {
     try {
       const incoming = (tx.nativeTransfers || []).filter(
-        (t: any) => t.toUserAccount === DD_WALLET && t.amount > 0
+        (t: HeliusNativeTransfer) => t.toUserAccount === DD_WALLET && t.amount > 0
       );
 
       for (const transfer of incoming) {
@@ -111,8 +142,20 @@ export const handler: Handler = async (event) => {
         }, { onConflict: 'wallet' });
         registered++;
       }
-    } catch (e: any) {
-      console.error('dd-payment error:', e.message);
+    } catch (e: unknown) {
+      const message = getErrorMessage(e);
+      // Suppresses in prod to keep sender wallet/amount data off Netlify server stderr.
+      safeLogError('dd-payment error:', message);
+      return {
+        statusCode: 500,
+        headers,
+        body: JSON.stringify({
+          success: false,
+          error: `Payment processing failed: ${message}`,
+          processed: transactions.length,
+          partial: { registered, queries, confirmations }
+        })
+      };
     }
   }
 

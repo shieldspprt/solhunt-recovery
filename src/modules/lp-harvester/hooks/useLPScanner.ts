@@ -1,12 +1,13 @@
 import { useCallback } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { LP_ERROR_MESSAGES } from '../constants';
 import { scanAllLPPositions } from '../lib/scanners';
 import { useLPStore } from './useLPStore';
 import {
     logLPScanComplete,
     logLPScanStarted,
+    logScanError,
 } from '@/lib/analytics';
+import { createAppError } from '@/lib/errors';
 
 export function useLPScanner() {
     const { connection } = useConnection();
@@ -56,9 +57,11 @@ export function useLPScanner() {
                 protocolBreakdown: breakdown,
                 protocolsWithErrors: result.protocolsWithErrors.length,
             });
-        } catch {
+        } catch (err: unknown) {
+            const appError = createAppError('SCAN_FAILED', err instanceof Error ? err.message : String(err));
             setScanStatus('error');
-            setScanError(LP_ERROR_MESSAGES.LP_SCAN_FAILED);
+            setScanError(appError.message);
+            logScanError(appError.code);
         }
     }, [
         connection,

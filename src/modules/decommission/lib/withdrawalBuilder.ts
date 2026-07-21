@@ -1,12 +1,14 @@
 import { Connection, PublicKey, Transaction, TransactionInstruction, SystemProgram } from '@solana/web3.js';
 import { DecommissionPositionItem } from '../types';
 import { DECOMMISSION_SERVICE_FEE_PERCENT, DECOMMISSION_FEE_SOL_MIN } from '../constants';
+import { FALLBACK_SOL_PRICE_USD } from '@/lib/solPrice';
 import { logger } from '@/lib/logger';
 
 export async function buildWithdrawalTransactions(
     items: DecommissionPositionItem[],
     walletPublicKey: PublicKey,
-    connection: Connection
+    connection: Connection,
+    solPriceUSD: number = FALLBACK_SOL_PRICE_USD
 ): Promise<Transaction[]> {
     const inAppItems = items.filter(i => i.recoveryMethod === 'in_app');
     if (inAppItems.length === 0) return [];
@@ -18,12 +20,20 @@ export async function buildWithdrawalTransactions(
         .filter(i => i.estimatedValueUSD !== null)
         .reduce((sum, i) => sum + (i.estimatedValueUSD ?? 0), 0);
 
-    const solPrice = 150;
+    // Use real SOL price for accurate fee estimation. Fall back to the
+    // documented constant only if the caller didn't pass a value (e.g.
+    // very old build callers or unit tests). The decommission hook now
+    // fetches a live price via @/lib/solPrice and passes it down.
+    const solPrice = solPriceUSD > 0 ? solPriceUSD : FALLBACK_SOL_PRICE_USD;
     const serviceFeeUSD = totalValueUSD * (DECOMMISSION_SERVICE_FEE_PERCENT / 100);
     const serviceFeeLamports = Math.max(
-        Math.floor((serviceFeeUSD / (solPrice || 140)) * 1e9),
+        Math.floor((serviceFeeUSD / solPrice) * 1e9),
         Math.floor(DECOMMISSION_FEE_SOL_MIN * 1e9)
     );
+
+    // Track transactions that received at least one real instruction.
+    // The service fee is appended to the last such transaction.
+    let lastValidTxIndex = -1;
 
     for (let i = 0; i < inAppItems.length; i++) {
         const item = inAppItems[i];
@@ -34,25 +44,26 @@ export async function buildWithdrawalTransactions(
         const withdrawIx = await buildWithdrawInstruction(item);
 
         if (!withdrawIx) {
-            logger.warn('Could not build withdrawal for', item.protocol.id);
+            logger.warn('No withdrawal instruction for', item.protocol.id, '— skipping');
             continue;
         }
 
         tx.add(withdrawIx);
-
-        if (i === inAppItems.length - 1 && serviceFeeLamports > 0 && import.meta.env.VITE_TREASURY_WALLET) {
-            try {
-                tx.add(SystemProgram.transfer({
-                    fromPubkey: walletPublicKey,
-                    toPubkey: new PublicKey(import.meta.env.VITE_TREASURY_WALLET),
-                    lamports: serviceFeeLamports,
-                }));
-            } catch (e) {
-                logger.warn('Failed to add fee transfer', e);
-            }
-        }
-
+        lastValidTxIndex = transactions.length;
         transactions.push(tx);
+    }
+
+    // Append service fee to the last transaction that has actual instructions.
+    if (lastValidTxIndex >= 0 && serviceFeeLamports > 0 && import.meta.env.VITE_TREASURY_WALLET) {
+        try {
+            transactions[lastValidTxIndex].add(SystemProgram.transfer({
+                fromPubkey: walletPublicKey,
+                toPubkey: new PublicKey(import.meta.env.VITE_TREASURY_WALLET),
+                lamports: serviceFeeLamports,
+            }));
+        } catch (err: unknown) {
+            logger.warn('Failed to add fee transfer', err instanceof Error ? err.message : String(err));
+        }
     }
 
     return transactions;

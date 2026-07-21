@@ -78,8 +78,8 @@ function base64ToBytes(base64: string): Uint8Array {
     let binary: string;
     try {
         binary = atob(base64);
-    } catch {
-        throw createAppError('DUST_SWAP_FAILED', `Invalid base64 in serialized transaction.`);
+    } catch (err: unknown) {
+        throw createAppError('DUST_SWAP_FAILED', `Invalid base64 in serialized transaction: ${err instanceof Error ? err.message : String(err)}`);
     }
     const bytes = new Uint8Array(binary.length);
     for (let index = 0; index < binary.length; index += 1) {
@@ -140,12 +140,18 @@ async function fetchSerializedRaydiumTransactions(
         inputAccount: token.tokenAccountAddress,
     };
 
+    // 8s timeout: a hung Raydium swap-tx API previously stalled the dust
+    // swap loop indefinitely. Mirrors the pattern in dustScanner.ts:340
+    // (commit 7ea243b) — 8s is generous enough for a cold-cache response
+    // from a distant PoP, tight enough that the user sees a clear error
+    // instead of a frozen UI.
     const response = await fetch(RAYDIUM_SWAP_TX_API, {
         method: 'POST',
         headers: {
             'content-type': 'application/json',
         },
         body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) {
@@ -270,6 +276,10 @@ async function fetchSerializedJupiterTransactions(
     };
 
     for (const source of getJupiterSwapSources()) {
+        // 8s timeout: a hung Jupiter swap endpoint previously stalled the
+        // dust-swap loop indefinitely. Mirrors the pattern in
+        // dustScanner.ts:340 (commit 7ea243b) — the 429-retry gets a fresh
+        // signal so the retry doesn't inherit an already-elapsed budget.
         let response = await fetch(source.url, {
             method: 'POST',
             headers: {
@@ -277,6 +287,7 @@ async function fetchSerializedJupiterTransactions(
                 ...(source.headers || {}),
             },
             body: JSON.stringify(body),
+            signal: AbortSignal.timeout(8000),
         });
 
         if (response.status === 429) {
@@ -288,6 +299,7 @@ async function fetchSerializedJupiterTransactions(
                     ...(source.headers || {}),
                 },
                 body: JSON.stringify(body),
+                signal: AbortSignal.timeout(8000),
             });
         }
 
@@ -396,9 +408,9 @@ export async function executeDustSwaps(params: ExecuteDustSwapsParams): Promise<
                 receivedSOL: quote.outAmountSOL,
                 message: `Swapped for ~${quote.outAmountSOL.toFixed(6)} SOL.`,
             });
-        } catch (error) {
+        } catch (err: unknown) {
             failedCount += 1;
-            const detail = error instanceof Error ? error.message : String(error);
+            const detail = err instanceof Error ? err.message : String(err);
             sessionErrorMessage = detail;
             onProgress?.({
                 mint: token.mint,
@@ -421,8 +433,8 @@ export async function executeDustSwaps(params: ExecuteDustSwapsParams): Promise<
         if (feeSignature) {
             signatures.push(feeSignature);
         }
-    } catch (error) {
-        const detail = error instanceof Error ? error.message : String(error);
+    } catch (err: unknown) {
+        const detail = err instanceof Error ? err.message : String(err);
         sessionErrorMessage = sessionErrorMessage
             ? `${sessionErrorMessage} | Fee transfer failed: ${detail}`
             : `Fee transfer failed: ${detail}`;

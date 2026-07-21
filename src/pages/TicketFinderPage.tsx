@@ -5,11 +5,19 @@ import { PageWrapper } from '@/components/layout/PageWrapper';
 import { TicketFinderCard } from '@/components/tickets/TicketFinderCard';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { ENGINE_METADATA } from '@/config/constants';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 const ENGINE = ENGINE_METADATA.find(e => e.id === 4)!;
 
 export function TicketFinderPage() {
     const { connected } = useWallet();
+
+    // Prevent search engines from indexing wallet-specific scan results
+    usePageMeta({
+        title: 'Ticket Finder',
+        description: 'Find and claim unclaimed staking tickets from Marinade, Jito, and other Solana staking protocols using SolHunt\'s Ticket Finder — fully client-side.',
+        noindex: true,
+    });
 
     return (
         <PageWrapper>
@@ -17,12 +25,12 @@ export function TicketFinderPage() {
                 <div className="mb-6 flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
-                            <Ticket className="h-5 w-5 text-shield-accent" />
+                            <Ticket className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                         </div>
                         <div>
                             <h1 className="text-2xl font-bold text-shield-text">{ENGINE.name}</h1>
                             <div className="flex items-center gap-2 mt-0.5">
-                                <TrendingUp className="h-3 w-3 text-shield-accent" />
+                                <TrendingUp className="h-3 w-3 text-shield-accent" aria-hidden="true" />
                                 <span className="text-xs text-shield-muted">
                                     Avg. user recovers <span className="text-shield-accent font-semibold">~{ENGINE.avgRecoverySOL} SOL</span>
                                 </span>
@@ -31,9 +39,10 @@ export function TicketFinderPage() {
                     </div>
                     <Link
                         to="/"
+                        aria-label="Back to home"
                         className="inline-flex items-center gap-1 rounded-lg border border-shield-border px-3 py-2 text-xs text-shield-muted hover:text-shield-text hover:bg-shield-card transition-colors"
                     >
-                        <ArrowLeft className="h-3.5 w-3.5" />
+                        <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
                         Home
                     </Link>
                 </div>

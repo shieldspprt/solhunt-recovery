@@ -1,4 +1,4 @@
-import { Connection, PublicKey } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import bs58 from 'bs58';
 import {
     BufferAccount
@@ -7,29 +7,54 @@ import {
     BPF_LOADER_UPGRADEABLE,
     BUFFER_CLOSE_FEE_PERCENT
 } from '../constants';
+import { withRetry } from '@/lib/rpcRetry';
+import { isValidSolanaPublicKey } from '@/lib/validation';
+import { createAppError } from '@/lib/errors';
 
 /**
  * Scans for BPF Loader buffer accounts owned by the given wallet.
+ *
+ * SECURITY: Validates wallet address before making any RPC calls to prevent
+ * injection attacks and ensure consistent error handling.
+ *
+ * The connection is intentionally NOT a parameter: `withRetry` internally
+ * tries the configured primary and backup RPCs, so accepting a connection
+ * here would only mislead callers into thinking it controls the retry
+ * chain. Callers should not need to plumb a `useConnection()` value down
+ * to a scanner that already has its own resilient transport.
  */
 export async function scanForBuffers(
-    walletAddress: string,
-    connection: Connection
+    walletAddress: string
 ): Promise<BufferAccount[]> {
-    // 1. Scan BPFLoaderUpgradeable buffers
-    const upgradeableBuffers = await connection.getProgramAccounts(
-        new PublicKey(BPF_LOADER_UPGRADEABLE),
-        {
-            filters: [
-                { memcmp: { offset: 0, bytes: bs58.encode([1]) } }, // State: Buffer
-                { memcmp: { offset: 4, bytes: walletAddress } },    // Authority: Wallet
-            ],
-            dataSlice: { offset: 0, length: 36 }
-        }
+    // Validate wallet address format before making any RPC calls
+    if (!isValidSolanaPublicKey(walletAddress)) {
+        throw createAppError(
+            'INVALID_ADDRESS',
+            `Invalid wallet address provided to buffer scanner: ${walletAddress.substring(0, 10)}...`
+        );
+    }
+
+    // 1. Scan BPFLoaderUpgradeable buffers with retry
+    const upgradeableBuffers = await withRetry(
+        (conn) => conn.getProgramAccounts(
+            new PublicKey(BPF_LOADER_UPGRADEABLE),
+            {
+                filters: [
+                    { memcmp: { offset: 0, bytes: bs58.encode([1]) } }, // State: Buffer
+                    { memcmp: { offset: 4, bytes: walletAddress } },    // Authority: Wallet
+                ],
+                dataSlice: { offset: 0, length: 36 }
+            }
+        ),
+        { operationName: 'scanForBuffers.getProgramAccounts' }
     );
 
     const loaderV3Buffers: BufferAccount[] = await Promise.all(
         upgradeableBuffers.map(async (acc) => {
-            const info = await connection.getAccountInfo(acc.pubkey);
+            const info = await withRetry(
+                (conn) => conn.getAccountInfo(acc.pubkey),
+                { operationName: 'scanForBuffers.getAccountInfo' }
+            );
             if (!info) return null;
 
             const lamports = info.lamports;

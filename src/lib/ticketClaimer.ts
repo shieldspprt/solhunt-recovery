@@ -86,7 +86,7 @@ function statusFromEpoch(
 function parseLamports(valueLamports: string): bigint {
     try {
         return BigInt(valueLamports);
-    } catch {
+    } catch (err: unknown) {
         return 0n;
     }
 }
@@ -194,7 +194,7 @@ export async function buildMarinadeClaimInstruction(
         }
 
         return instruction;
-    } catch {
+    } catch (_err: unknown) {
         // SDK is optional. Fallback is best-effort manual claim instruction.
         return buildFallbackMarinadeClaimInstruction(ticket, walletPublicKey);
     }
@@ -204,6 +204,11 @@ export async function buildSanctumClaimTransaction(
     ticket: StakingTicket,
     walletPublicKey: PublicKey
 ): Promise<VersionedTransaction | Transaction> {
+    // 8s timeout: a hung Sanctum redeem API previously stalled the
+    // staking-ticket claim flow indefinitely. Mirrors the pattern in
+    // dustScanner.ts:340 (commit 7ea243b) — 8s is generous enough for a
+    // cold-cache response from a distant PoP, tight enough that the
+    // user sees a clear error instead of a frozen UI.
     const response = await fetch(SANCTUM_REDEEM_API, {
         method: 'POST',
         headers: {
@@ -213,6 +218,7 @@ export async function buildSanctumClaimTransaction(
             ticket: ticket.ticketAccountAddress,
             wallet: walletPublicKey.toBase58(),
         }),
+        signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) {
@@ -230,10 +236,10 @@ export async function buildSanctumClaimTransaction(
     const bytes = base64ToBytes(payload.transaction);
     try {
         return VersionedTransaction.deserialize(bytes);
-    } catch {
+    } catch (_err: unknown) {
         try {
             return Transaction.from(bytes);
-        } catch (error) {
+        } catch (error: unknown) {
             throw createAppError(
                 'TICKET_CLAIM_FAILED',
                 `Could not deserialize Sanctum transaction: ${error instanceof Error ? error.message : String(error)}`
@@ -476,7 +482,7 @@ export async function claimAllTickets(params: ClaimAllTicketsParams): Promise<Ti
                 claimedSOL: ticket.valueSOL,
                 message: 'Claim confirmed.',
             });
-        } catch (error) {
+        } catch (error: unknown) {
             failedTickets.push(ticket.ticketAccountAddress);
             const detail = error instanceof Error ? error.message : String(error);
             sessionError = detail;
@@ -501,7 +507,7 @@ export async function claimAllTickets(params: ClaimAllTicketsParams): Promise<Ti
             if (feeSignature) {
                 signatures.push(feeSignature);
             }
-        } catch (error) {
+        } catch (error: unknown) {
             const detail = error instanceof Error ? error.message : String(error);
             sessionError = sessionError
                 ? `${sessionError} | Fee transfer failed: ${detail}`

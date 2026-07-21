@@ -1,56 +1,90 @@
-import { Handler } from '@netlify/functions';
 import { Connection, PublicKey } from '@solana/web3.js';
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  errorBody,
+  getErrorMessage,
+  isValidSolanaAddress,
+  safeLogError,
+  getSolanaRpcUrl,
+  SOLANA_TOKEN_PROGRAM_ID,
+} from './_shared';
 
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
-const RPC_URL = HELIUS_API_KEY
-  ? `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
-  : 'https://api.mainnet-beta.solana.com';
+const RPC_URL = getSolanaRpcUrl();
 
-const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+const TOKEN_PROGRAM_ID = SOLANA_TOKEN_PROGRAM_ID;
 const RENT_PER_ACCOUNT_SOL = 0.00203928;
 const MAX_ACCOUNTS_PER_TX = 15;
 const FEE_PERCENT = 15;
+// Configurable fee percentage via env var (default 15%). Allows ops to A/B test
+// or run promotions without redeploying. Must be a finite number in [0, 100].
+const EFFECTIVE_FEE_PERCENT = (() => {
+  const envVal = process.env.SOLHUNT_FEE_PERCENT;
+  if (envVal === undefined) return FEE_PERCENT;
+  const parsed = parseFloat(envVal);
+  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 100 ? parsed : FEE_PERCENT;
+})();
 const ESTIMATED_TX_COST_SOL = 0.000005; // 5000 lamports base fee, just an estimate
 const FEE_WALLET = 'DD4AdYKVcV6kgpmiCEeASRmJyRdKgmaRAbsjKucx8CvY';
 
-function isValidSolanaAddress(address: string): boolean {
-  if (!address || typeof address !== 'string') return false;
-  if (address.length < 32 || address.length > 44) return false;
-  try {
-    new PublicKey(address);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'no-store'
-  };
+  const headers = buildCorsHeaders(event, { methods: 'GET, OPTIONS' });
 
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return corsPreflightResponse(event, { methods: 'GET, OPTIONS' });
+  }
+
+  if (event.httpMethod !== 'GET') {
+    return {
+      statusCode: 405,
+      headers,
+      body: errorBody('METHOD_NOT_ALLOWED', `Method not allowed. Use GET.`),
+    };
   }
 
   const wallet = event.queryStringParameters?.wallet?.trim();
   const maxAccountsStr = event.queryStringParameters?.max_accounts?.trim();
-  const maxAccounts = maxAccountsStr ? parseInt(maxAccountsStr, 10) : 100;
 
   if (!wallet || !isValidSolanaAddress(wallet)) {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({ success: false, error: 'Invalid or missing wallet address' })
+      body: errorBody(
+        'INVALID_PARAMS',
+        'Invalid or missing wallet address',
+        'Provide a base58 Solana public key (32-44 characters) in the `wallet` query parameter.',
+      ),
     };
+  }
+
+  // Validate max_accounts: must be a finite positive integer in [1, 1000].
+  // Previously a malformed value silently became NaN and was used as the
+  // slice limit, which would either return zero accounts (NaN coerces to 0)
+  // or skip the cap entirely. Reject invalid input explicitly.
+  const DEFAULT_MAX_ACCOUNTS = 100;
+  const MIN_MAX_ACCOUNTS = 1;
+  const MAX_MAX_ACCOUNTS = 1000;
+  let maxAccounts = DEFAULT_MAX_ACCOUNTS;
+  if (maxAccountsStr !== undefined && maxAccountsStr !== '') {
+    const parsed = Number(maxAccountsStr);
+    if (
+      !Number.isFinite(parsed) ||
+      !Number.isInteger(parsed) ||
+      parsed < MIN_MAX_ACCOUNTS ||
+      parsed > MAX_MAX_ACCOUNTS
+    ) {
+      return {
+        statusCode: 400,
+        headers,
+        body: errorBody(
+          'INVALID_PARAMS',
+          `Invalid max_accounts: ${maxAccountsStr}`,
+          `Must be an integer between ${MIN_MAX_ACCOUNTS} and ${MAX_MAX_ACCOUNTS}.`,
+        ),
+      };
+    }
+    maxAccounts = parsed;
   }
 
   try {
@@ -80,7 +114,7 @@ export const handler: Handler = async (event) => {
     const numAccounts = accountsToClose.length;
 
     const grossRecoverableSol = numAccounts * RENT_PER_ACCOUNT_SOL;
-    const solhuntFeeSol = grossRecoverableSol * (FEE_PERCENT / 100);
+    const solhuntFeeSol = grossRecoverableSol * (EFFECTIVE_FEE_PERCENT / 100);
     const youReceiveSol = grossRecoverableSol - solhuntFeeSol;
 
     const batchesNeeded = Math.ceil(numAccounts / MAX_ACCOUNTS_PER_TX);
@@ -95,7 +129,7 @@ export const handler: Handler = async (event) => {
         accounts_to_close: numAccounts,
         gross_recoverable_sol: parseFloat(grossRecoverableSol.toFixed(6)),
         solhunt_fee_sol: parseFloat(solhuntFeeSol.toFixed(6)),
-        fee_percent: FEE_PERCENT,
+        fee_percent: EFFECTIVE_FEE_PERCENT,
         you_receive_sol: parseFloat(youReceiveSol.toFixed(6)),
         estimated_tx_cost_sol: parseFloat(totalEstimatedTxCost.toFixed(6)),
         net_to_you_sol: parseFloat(netToYouSol.toFixed(6)),
@@ -104,15 +138,17 @@ export const handler: Handler = async (event) => {
         ready_to_execute: numAccounts > 0
       })
     };
-  } catch (error: any) {
-    console.error('preview-recovery error:', error.message);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    safeLogError('preview-recovery error:', message);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Failed to generate recovery preview. RPC may be rate limited.'
-      })
+      body: errorBody(
+        'EXECUTION_ERROR',
+        'Failed to generate recovery preview. RPC may be rate limited.',
+        message,
+      ),
     };
   }
 };

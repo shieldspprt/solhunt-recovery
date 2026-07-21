@@ -18,7 +18,7 @@ export function SafeToBurnSection({ items }: Props) {
 
             <div className="glass-card rounded-2xl p-6 md:p-8 mt-8 border-emerald-500/20 bg-emerald-500/5">
                 <div className="flex items-center gap-3 mb-6 border-b border-shield-border/30 pb-4">
-                    <span className="text-2xl">✅</span>
+                    <span className="text-2xl" aria-hidden="true">✅</span>
                     <div>
                         <h3 className="font-bold text-lg text-emerald-400">SAFE TO BURN (confirmed worthless tokens)</h3>
                     </div>
@@ -38,7 +38,9 @@ export function SafeToBurnSection({ items }: Props) {
                 </div>
 
                 <button
+                    type="button"
                     onClick={() => navigate('/scan#engine-3')}
+                    aria-label="Burn worthless tokens using Engine 3"
                     className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-500/50 bg-emerald-500/10 px-6 py-3 font-semibold text-emerald-400 transition-all hover:bg-emerald-500 hover:text-emerald-950 shadow-sm shadow-emerald-500/10"
                 >
                     Burn in Engine 3 →

@@ -3,39 +3,103 @@ import { useReclaimRent } from '@/hooks/useReclaimRent';
 import { formatSOLValue, estimateUSD } from '@/lib/formatting';
 import { Coins, X, Zap } from 'lucide-react';
 import { MAX_CLOSE_PER_TX } from '@/config/constants';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { memo } from 'react';
 
-export function ReclaimConfirmModal() {
+export const ReclaimConfirmModal = memo(function ReclaimConfirmModal() {
     const { reclaimStatus, clearReclaim } = useAppStore();
     const { closeableAccounts, reclaimEstimate, executeReclaim } = useReclaimRent();
+    const [feeConsent, setFeeConsent] = useState(false);
+    const modalRef = useRef<HTMLDivElement>(null);
+    const cancelButtonRef = useRef<HTMLButtonElement>(null);
+    const previousActiveElement = useRef<HTMLElement | null>(null);
 
     // Only show when state is awaiting_confirmation
     if (reclaimStatus !== 'awaiting_confirmation' || !reclaimEstimate) return null;
 
     const transactionCount = Math.max(1, Math.ceil(closeableAccounts.length / MAX_CLOSE_PER_TX));
 
+    // Keyboard + focus management, mirroring RevokeConfirmModal.
+    // Without these, keyboard users and screen-reader users can't reliably
+    // dismiss a sign-before-signing confirmation modal — Tab walks them back
+    // into the underlying page, Escape does nothing, and focus jumps
+    // unpredictably. The pattern is established in RevokeConfirmModal;
+    // applying it here keeps all sign-flow modals consistent.
+    const handleEscape = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape') clearReclaim();
+    }, [clearReclaim]);
+
+    const handleTabKey = useCallback((e: KeyboardEvent, first: HTMLElement | undefined, last: HTMLElement | undefined) => {
+        if (e.key !== 'Tab') return;
+        if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first?.focus();
+        }
+    }, []);
+
+    useEffect(() => {
+        previousActiveElement.current = document.activeElement as HTMLElement;
+        document.addEventListener('keydown', handleEscape);
+        const cancelBtn = cancelButtonRef.current;
+        const timer = setTimeout(() => cancelBtn?.focus(), 0);
+        return () => {
+            document.removeEventListener('keydown', handleEscape);
+            previousActiveElement.current?.focus();
+            clearTimeout(timer);
+        };
+    }, [handleEscape]);
+
+    useEffect(() => {
+        const modal = modalRef.current;
+        if (!modal) return;
+        const focusable = modal.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        const handler = (e: KeyboardEvent) => handleTabKey(e, first, last);
+        modal.addEventListener('keydown', handler);
+        return () => modal.removeEventListener('keydown', handler);
+    }, [handleTabKey]);
+
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reclaim-modal-title"
+        >
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-shield-bg/80 backdrop-blur-sm"
                 onClick={clearReclaim}
+                aria-hidden="true"
             />
 
             {/* Modal Content */}
-            <div className="relative w-full max-w-md overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            <div
+                ref={modalRef}
+                className="relative w-full max-w-md overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            >
                 <button
+                    ref={cancelButtonRef}
+                    type="button"
                     onClick={clearReclaim}
+                    aria-label="Close reclaim confirmation modal"
                     className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                 >
-                    <X className="h-5 w-5" />
+                    <X className="h-5 w-5" aria-hidden="true" />
                 </button>
 
                 <div className="p-6 sm:p-8">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-success/10 border border-shield-success/20">
-                        <Coins className="h-8 w-8 text-shield-success" />
+                        <Coins className="h-8 w-8 text-shield-success" aria-hidden="true" />
                     </div>
 
-                    <h2 className="text-xl font-bold text-center text-shield-text mb-6">
+                    <h2 id="reclaim-modal-title" className="text-xl font-bold text-center text-shield-text mb-6">
                         Reclaim Rent SOL?
                     </h2>
 
@@ -84,7 +148,7 @@ export function ReclaimConfirmModal() {
                             <div className="flex justify-between items-center font-bold">
                                 <span className="text-shield-text">You Receive:</span>
                                 <span className="text-shield-success font-mono flex items-center gap-1 text-lg">
-                                    <Zap className="h-4 w-4" />
+                                    <Zap className="h-4 w-4" aria-hidden="true" />
                                     ~{formatSOLValue(reclaimEstimate.userReceivesSOL)}
                                     <span className="text-shield-muted font-sans text-xs ml-1 font-normal">
                                         ({estimateUSD(reclaimEstimate.userReceivesSOL)})
@@ -96,25 +160,50 @@ export function ReclaimConfirmModal() {
 
                     <div className="rounded-xl border border-shield-success/30 bg-shield-success/5 p-4 mb-6">
                         <h3 className="text-xs font-semibold uppercase tracking-wider text-shield-success mb-2 flex items-center gap-1">
-                            <Zap className="h-3 w-3" /> Transaction Preview
+                            <Zap className="h-3 w-3" aria-hidden="true" /> Transaction Preview
                         </h3>
                         <p className="text-xs text-shield-text">
                             You are about to sign <span className="font-mono text-shield-success">{transactionCount}</span> transaction containing <span className="font-mono text-shield-success">{closeableAccounts.length}</span> <span className="font-mono bg-shield-border/30 px-1 rounded">closeAccount</span> instructions. No other authority is granted.
                         </p>
                     </div>
 
+                    {/* Fee Disclosure & Consent */}
+                    <div className="rounded-xl border border-shield-accent/30 bg-shield-accent/5 p-4 mb-6">
+                        <label
+                            htmlFor="reclaim-fee-consent-checkbox"
+                            className="flex items-start gap-3 cursor-pointer select-none"
+                        >
+                            <input
+                                id="reclaim-fee-consent-checkbox"
+                                type="checkbox"
+                                checked={feeConsent}
+                                onChange={(e) => setFeeConsent(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-shield-border bg-shield-bg text-shield-accent focus:ring-shield-accent focus:ring-offset-0 cursor-pointer"
+                            />
+                            <span className="text-xs text-shield-text leading-relaxed">
+                                I understand that a service fee of <span className="font-semibold text-shield-accent">{formatSOLValue(reclaimEstimate.serviceFeeSOL)}</span> and network fees of approximately <span className="font-semibold text-shield-accent">{formatSOLValue(reclaimEstimate.networkFeeSOL)}</span> will be deducted from my wallet upon confirmation.
+                            </span>
+                        </label>
+                    </div>
+
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
+                            type="button"
                             onClick={clearReclaim}
+                            aria-label="Cancel reclaim"
                             className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                         >
                             Cancel
                         </button>
                         <button
+                            type="button"
                             onClick={executeReclaim}
-                            className="flex-1 rounded-xl bg-shield-success px-4 py-3 font-semibold text-white hover:bg-shield-success/90 shadow-lg shadow-shield-success/20 transition-colors flex justify-center items-center gap-2"
+                            disabled={!feeConsent}
+                            aria-label={`Confirm reclaim and recover SOL${!feeConsent ? ' — consent to fee required' : ''}`}
+                            aria-disabled={!feeConsent}
+                            className="flex-1 rounded-xl bg-shield-success px-4 py-3 font-semibold text-white hover:bg-shield-success/90 shadow-lg shadow-shield-success/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none flex justify-center items-center gap-2"
                         >
-                            <Coins className="h-5 w-5" />
+                            <Coins className="h-5 w-5" aria-hidden="true" />
                             Confirm Reclaim
                         </button>
                     </div>
@@ -122,4 +211,4 @@ export function ReclaimConfirmModal() {
             </div>
         </div>
     );
-}
+});

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { buildRevokeTransaction } from '@/lib/revoke';
@@ -85,7 +85,7 @@ export function useRevoke() {
 
                         // Accumulate the revoke count from the batch metadata
                         totalRevoked += revokeTx.revokeCount;
-                    } catch (txError) {
+                    } catch (txError: unknown) {
                         // Check if user rejected the transaction
                         const errorMessage =
                             txError instanceof Error ? txError.message : String(txError);
@@ -160,15 +160,15 @@ export function useRevoke() {
                     revokedCount: totalRevoked,
                     errorCode: null,
                 });
-            } catch (error) {
+            } catch (err: unknown) {
                 const appError: AppError =
-                    error && typeof error === 'object' && 'code' in error
-                        ? (error as AppError)
+                    err && typeof err === 'object' && 'code' in err
+                        ? (err as AppError)
                         : {
                             code: ERROR_CODES.TX_FAILED,
                             message: ERROR_MESSAGES.TX_FAILED,
                             technicalDetail:
-                                error instanceof Error ? error.message : String(error),
+                                err instanceof Error ? err.message : String(err),
                         };
 
                 setRevokeError(appError);
@@ -196,6 +196,14 @@ export function useRevoke() {
         setRevokeStatus('awaiting_confirmation');
     }, [setRevokeStatus]);
 
+    // Memoize derived boolean states to prevent unnecessary re-renders
+    const isRevoking = useMemo(
+        () => revokeStatus === 'building_transaction' || revokeStatus === 'awaiting_signature' || revokeStatus === 'confirming',
+        [revokeStatus]
+    );
+    const isComplete = useMemo(() => revokeStatus === 'complete', [revokeStatus]);
+    const hasError = useMemo(() => revokeStatus === 'error', [revokeStatus]);
+
     return {
         revoke,
         requestConfirmation,
@@ -203,11 +211,8 @@ export function useRevoke() {
         revokeResult,
         revokeError,
         clearRevoke,
-        isRevoking:
-            revokeStatus === 'building_transaction' ||
-            revokeStatus === 'awaiting_signature' ||
-            revokeStatus === 'confirming',
-        isComplete: revokeStatus === 'complete',
-        hasError: revokeStatus === 'error',
+        isRevoking,
+        isComplete,
+        hasError,
     };
 }

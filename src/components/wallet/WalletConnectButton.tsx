@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useWalletModal } from '@solana/wallet-adapter-react-ui';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Wallet } from 'lucide-react';
@@ -8,7 +9,7 @@ interface WalletConnectButtonProps {
     size?: 'sm' | 'md' | 'lg';
 }
 
-export function WalletConnectButton({
+export const WalletConnectButton = memo(function WalletConnectButton({
     label = 'Connect Wallet',
     className = '',
     size = 'md',
@@ -26,20 +27,24 @@ export function WalletConnectButton({
 
     return (
         <button
+            type="button"
             id="wallet-connect-button"
             data-agent-target="connect-wallet-btn"
             onClick={() => setVisible(true)}
+            aria-label="Connect Solana wallet"
+            aria-haspopup="dialog"
             className={`
                 inline-flex items-center gap-2 rounded-xl font-bold
                 bg-shield-accent hover:bg-shield-accent/90
                 text-shield-bg shadow-lg shadow-shield-accent/20
                 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]
+                focus:outline-none focus:ring-2 focus:ring-shield-accent/50 focus:ring-offset-2 focus:ring-offset-shield-bg
                 ${sizeClasses[size]}
                 ${className}
             `}
         >
-            <Wallet className="h-5 w-5" />
+            <Wallet className="h-5 w-5" aria-hidden="true" />
             {label}
         </button>
     );
-}
+});

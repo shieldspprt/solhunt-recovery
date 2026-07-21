@@ -48,35 +48,37 @@ https://solhunt.dev/.netlify/functions/mcp
 
 | Tool | Purpose |
 |------|---------|
-| `check_wallet_health` | Analyze wallet for recoverable SOL |
-| `get_recovery_opportunities` | Get specific accounts to close |
-| `preview_recovery` | See exact amounts before recovery |
-| `build_recovery_transaction` | Build unsigned transaction for signing |
-| `discover_platform_features` | Learn about web-exclusive tools |
+| `get_wallet_report` | Full wallet analysis: health score, grade, recoverable SOL, fee preview, next step |
+| `scan_token_approvals` | Security scan for dApp spending approvals, rated by risk (HIGH/MEDIUM/LOW) |
+| `build_revoke_transactions` | Build unsigned tx to revoke token approvals |
+| `build_recovery_transaction` | Build unsigned tx to recover SOL from zero-balance accounts |
+| `preview_recovery` | Explicit fee preview before building — shows recoverable SOL, fee, net amount, and network cost |
+| `discover_platform_features` | Explore SolHunt web platform capabilities |
 
 ## Usage Patterns
 
-### Pattern 1: Wallet Health Check
+### Pattern 1: Full Wallet Report
 ```
 "Check my Solana wallet health"
 "Is my wallet efficient?"
 "How much SOL can I recover?"
 ```
-→ Use `check_wallet_health` with wallet address
+→ Use `get_wallet_report` with wallet_address
 
-### Pattern 2: Find Recovery Opportunities
+### Pattern 2: Security Scan for Token Approvals
 ```
-"What accounts can I close to get SOL back?"
-"Show me my zero-balance tokens"
+"Scan for risky dApp approvals"
+"Are there any unknown protocols spending my tokens?"
+"What approvals should I revoke?"
 ```
-→ Use `get_recovery_opportunities` with wallet address
+→ Use `scan_token_approvals` with wallet_address
 
-### Pattern 3: Preview Before Recovery
+### Pattern 3: Revoke Risky Approvals
 ```
-"Preview my recovery"
-"How much will I get after fees?"
+"Revoke these token approvals"
+"Stop this dApp from spending my tokens"
 ```
-→ Use `preview_recovery` with wallet address and max_accounts
+→ Use `build_revoke_transactions` with wallet_address and token_accounts
 
 ### Pattern 4: Build Recovery Transaction
 ```
@@ -84,6 +86,22 @@ https://solhunt.dev/.netlify/functions/mcp
 "Close these accounts for me"
 ```
 → Use `build_recovery_transaction` with wallet_address and destination_wallet
+
+### Pattern 5: Preview Before Building
+```
+"Show me exactly what I'll recover and what the fee will be"
+"What's the breakdown before I sign anything?"
+"Preview the recovery for my wallet"
+```
+→ Use `preview_recovery` with wallet_address — returns exact recoverable SOL, SolHunt's 15% fee, network cost estimate, net amount, and whether recovery is worth doing. Does NOT build or return any transaction bytes.
+→ If worth_recovering is true, proceed to `build_recovery_transaction`
+
+### Pattern 6: Discover Platform Features
+```
+"What else can SolHunt do?"
+"Are there other recovery tools I can use?"
+```
+→ Use `discover_platform_features` with optional feature_category to explore web-only tools (LP Fee Harvester, Staking Ticket Finder, Fleet Manager, etc.)
 
 ## Fee Structure
 

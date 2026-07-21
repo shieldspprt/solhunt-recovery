@@ -1,3 +1,4 @@
+import { useCallback, useMemo, memo } from 'react';
 import { CheckCircle2, ExternalLink, RefreshCw, X, XCircle } from 'lucide-react';
 import { useAppStore } from '@/hooks/useAppStore';
 import { useDustConsolidator } from '@/hooks/useDustConsolidator';
@@ -6,10 +7,22 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { SOLSCAN_TX_URL } from '@/config/constants';
 import { formatSOLValue } from '@/lib/formatting';
 
-export function DustProgressModal() {
+// Memoized to prevent re-renders when parent ScanResults updates from sibling engines
+// (Reclaim, Revoke, Ticket Finder, etc). Same pattern as ReclaimProgressModal/DustConfirmModal.
+export const DustProgressModal = memo(function DustProgressModal() {
     const { dustStatus, dustResult, dustProgress, dustError } = useAppStore();
     const { executeDustSwap, cancelDustSwap, clearDust } = useDustConsolidator();
     const { startBurnForMints } = useDustBurnReclaim();
+
+    // Hooks must be called before any early returns (React rules of hooks).
+    // dustProgress is empty when the modal is hidden, so the Set computation
+    // is essentially free in the early-return paths.
+    const failedMints = useMemo(
+        () => Array.from(
+            new Set(dustProgress.filter((item) => item.status === 'failed').map((item) => item.mint))
+        ),
+        [dustProgress]
+    );
 
     if (dustStatus === 'idle' || dustStatus === 'fetching_prices' || dustStatus === 'awaiting_confirmation') {
         return null;
@@ -22,36 +35,45 @@ export function DustProgressModal() {
     }
 
     const isProcessing = dustStatus === 'swapping';
-    const failedMints = Array.from(
-        new Set(dustProgress.filter((item) => item.status === 'failed').map((item) => item.mint))
-    );
-
-    const handleClose = () => {
+    // Note: failedMints is computed above (before early returns) to satisfy
+    // the React rules of hooks. Same Set as before — just hoisted up.
+    const handleClose = useCallback(() => {
         if (!isProcessing) {
             clearDust();
         }
-    };
+    }, [isProcessing, clearDust]);
 
-    const handleBurnFailed = () => {
+    const handleBurnFailed = useCallback(() => {
         if (failedMints.length === 0) return;
         clearDust();
         startBurnForMints(failedMints);
-    };
+    }, [failedMints, clearDust, startBurnForMints]);
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <div
-                className="absolute inset-0 bg-shield-bg/90 backdrop-blur-sm"
+        <div
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dust-progress-title"
+        >
+            <button
+                type="button"
+                aria-label="Close dialog by clicking backdrop"
+                aria-hidden="true"
+                tabIndex={-1}
+                className="absolute inset-0 bg-shield-bg/90 backdrop-blur-sm cursor-default"
                 onClick={handleClose}
             />
 
             <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 {!isProcessing && (
                     <button
+                        type="button"
                         onClick={handleClose}
+                        aria-label="Close dust consolidation dialog"
                         className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                     >
-                        <X className="h-5 w-5" />
+                        <X className="h-5 w-5" aria-hidden="true" />
                     </button>
                 )}
 
@@ -61,7 +83,7 @@ export function DustProgressModal() {
                             <div className="flex items-center justify-center mb-4">
                                 <LoadingSpinner size="md" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text text-center mb-2">
+                            <h2 id="dust-progress-title" className="text-xl font-bold text-shield-text text-center mb-2">
                                 Swapping Dust Tokens to SOL
                             </h2>
                             <p className="text-sm text-shield-muted text-center mb-5">
@@ -88,17 +110,17 @@ export function DustProgressModal() {
                     {dustStatus === 'complete' && dustResult && (
                         <div className="text-center animate-in slide-in-from-bottom-4 duration-500">
                             <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-shield-success/10 border border-shield-success/20">
-                                <CheckCircle2 className="h-12 w-12 text-shield-success" />
+                                <CheckCircle2 className="h-12 w-12 text-shield-success" aria-hidden="true" />
                             </div>
-                            <h2 className="text-2xl font-bold text-shield-text mb-2">
+                            <h2 id="dust-progress-title" className="text-2xl font-bold text-shield-text mb-2">
                                 Dust Consolidation Complete
                             </h2>
                             <p className="text-shield-muted mb-3">
                                 Swapped {dustResult.swappedCount} token{dustResult.swappedCount === 1 ? '' : 's'} for
-                                {' '}~{formatSOLValue(dustResult.receivedSOL)}.
+                                estimated {formatSOLValue(dustResult.receivedSOL)} SOL
                             </p>
                             {dustResult.failedCount > 0 && (
-                                <p className="text-sm text-shield-warning mb-4">
+                                <p className="text-sm text-shield-warning mb-3">
                                     {dustResult.failedCount} token{dustResult.failedCount === 1 ? '' : 's'} could not be swapped.
                                 </p>
                             )}
@@ -108,23 +130,29 @@ export function DustProgressModal() {
                                     href={SOLSCAN_TX_URL(dustResult.signatures[0])}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    aria-label="View first transaction on Solscan (opens in new tab)"
                                     className="inline-flex items-center gap-2 text-sm font-medium text-shield-accent hover:text-white transition-colors"
                                 >
-                                    View first transaction <ExternalLink className="h-4 w-4" />
+                                    View first transaction <ExternalLink className="h-4 w-4" aria-hidden="true" />
                                 </a>
                             )}
 
                             <div className="mt-5 flex flex-col gap-3">
                                 {failedMints.length > 0 && (
                                     <button
+                                        type="button"
                                         onClick={handleBurnFailed}
+                                        aria-label="Burn failed token accounts and reclaim SOL rent"
                                         className="w-full rounded-xl bg-shield-warning text-shield-bg px-4 py-3 font-semibold hover:bg-shield-warning/90 transition-colors"
                                     >
                                         Burn Failed Tokens & Reclaim Rent
                                     </button>
                                 )}
+
                                 <button
+                                    type="button"
                                     onClick={clearDust}
+                                    aria-label="Dismiss dust consolidation and return to scanner"
                                     className="w-full rounded-xl bg-shield-card border border-shield-border px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                                 >
                                     Done
@@ -133,12 +161,18 @@ export function DustProgressModal() {
                         </div>
                     )}
 
+                    {dustStatus === 'complete' && !dustResult && (
+                        <div className="flex items-center justify-center py-12">
+                            <LoadingSpinner size="md" message="Finalising results..." />
+                        </div>
+                    )}
+
                     {dustStatus === 'error' && dustError && (
                         <div className="animate-in slide-in-from-bottom-4 duration-500">
                             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-danger/10">
-                                <XCircle className="h-8 w-8 text-shield-danger" />
+                                <XCircle className="h-8 w-8 text-shield-danger" aria-hidden="true" />
                             </div>
-                            <h2 className="text-xl font-bold text-shield-text text-center mb-2">Dust Swap Failed</h2>
+                            <h2 id="dust-progress-title" className="text-xl font-bold text-shield-text text-center mb-2">Dust Swap Failed</h2>
 
                             <div className="rounded-lg bg-shield-danger/10 border border-shield-danger/20 p-4 mb-6 mt-4">
                                 <p className="text-sm font-medium text-shield-danger mb-1">{dustError.message}</p>
@@ -149,24 +183,30 @@ export function DustProgressModal() {
 
                             <div className="flex flex-col sm:flex-row gap-3">
                                 <button
+                                    type="button"
                                     onClick={cancelDustSwap}
+                                    aria-label="Cancel dust swap and close dialog"
                                     className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
                                 >
                                     Cancel
                                 </button>
                                 {failedMints.length > 0 && (
                                     <button
+                                        type="button"
                                         onClick={handleBurnFailed}
+                                        aria-label="Burn failed token accounts and reclaim SOL rent"
                                         className="flex-1 rounded-xl bg-shield-warning text-shield-bg px-4 py-3 font-semibold hover:bg-shield-warning/90 transition-colors"
                                     >
                                         Burn Failed
                                     </button>
                                 )}
                                 <button
+                                    type="button"
                                     onClick={executeDustSwap}
+                                    aria-label="Retry dust swap"
                                     className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
                                 >
-                                    <RefreshCw className="h-4 w-4" />
+                                    <RefreshCw className="h-4 w-4" aria-hidden="true" />
                                     Try Again
                                 </button>
                             </div>
@@ -176,4 +216,4 @@ export function DustProgressModal() {
             </div>
         </div>
     );
-}
+});

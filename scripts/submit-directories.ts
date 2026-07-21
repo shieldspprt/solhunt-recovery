@@ -244,15 +244,16 @@ async function submitToAwesomeMcp(): Promise<SubmissionRecord> {
     } else {
       throw new Error(`PR creation response missing html_url: ${JSON.stringify(prData)}`);
     }
-  } catch (e: any) {
-    console.log(`  ⚠️  awesome-mcp-servers submission failed: ${e.message}`);
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : typeof e === 'string' ? e : String(e);
+    console.log(`  ⚠️  awesome-mcp-servers submission failed: ${msg}`);
     console.log('  Add manually at: https://github.com/punkpeye/awesome-mcp-servers');
     return {
       directory: 'awesome-mcp-servers',
       submitted_at: new Date().toISOString(),
       method: 'github_pr',
       status: 'pending_manual',
-      notes: `Automated submission failed: ${e.message}. Submit manually.`
+      notes: `Automated submission failed: ${msg}. Submit manually.`
     };
   }
 }
@@ -292,8 +293,9 @@ async function submitToGlama(): Promise<SubmissionRecord> {
     } else {
       throw new Error(`Glama API returned ${res.status}`);
     }
-  } catch (e: any) {
-    console.log(`  ⚠️  Glama.ai API submission failed: ${e.message}`);
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : typeof e === 'string' ? e : String(e);
+    console.log(`  ⚠️  Glama.ai API submission failed: ${msg}`);
     console.log('  Submit manually at: https://glama.ai/mcp/servers/submit');
     return {
       directory: 'Glama.ai',
@@ -301,7 +303,7 @@ async function submitToGlama(): Promise<SubmissionRecord> {
       method: 'api',
       status: 'pending_manual',
       url: 'https://glama.ai/mcp/servers/submit',
-      notes: `API failed: ${e.message}. Submit via web form.`
+      notes: `API failed: ${msg}. Submit via web form.`
     };
   }
 }

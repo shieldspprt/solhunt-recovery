@@ -2,7 +2,13 @@
 // Query endpoint for MCP call analytics
 // Returns recent tool calls with wallet, timestamp, and duration
 
-import { Handler } from '@netlify/functions';
+import {
+  type Handler,
+  buildCorsHeaders,
+  errorBody,
+  getErrorMessage,
+  safeLogError,
+} from './_shared';
 
 // In-memory log buffer (shared across warm instances)
 declare global {
@@ -23,26 +29,60 @@ if (!global.mcpCallLog) {
 const MAX_LOGS = 1000;
 
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-  };
+  const headers = buildCorsHeaders(event, { methods: 'GET, POST, OPTIONS' });
 
   // Log a call (POST from mcp.ts)
   if (event.httpMethod === 'POST') {
     try {
-      const { tool, wallet, duration, success } = JSON.parse(event.body || '{}');
-      
+      // Defensive type validation. JSON.parse returns `any` and the try/catch
+      // only catches a thrown SyntaxError — not wrong field types. A caller
+      // sending `{"tool": 123, "duration": "abc", "success": "yes"}` would
+      // silently pollute the strictly-typed mcpCallLog array, then break the
+      // `tool_breakdown` accumulator and the `filter(l => l.tool === tool)`
+      // GET query with a runtime TypeError. Validate every field at the
+      // boundary so the log buffer can stay tightly typed downstream.
+      const parsed = JSON.parse(event.body || '{}') as Record<string, unknown>;
+
+      // tool: must be a non-empty string, capped at 64 chars (longest valid
+      // MCP tool name is well under that — defensive against log injection).
+      const rawTool = parsed.tool;
+      if (typeof rawTool !== 'string' || rawTool.length === 0 || rawTool.length > 64) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid tool' }) };
+      }
+      const tool = rawTool;
+
+      // wallet: optional string. Cap at 64 chars to match Solana pubkey max
+      // (44) with a small safety margin. Non-string values are coerced to
+      // 'unknown' so analytics isn't lost on bad clients.
+      const rawWallet = parsed.wallet;
+      const wallet = typeof rawWallet === 'string' && rawWallet.length > 0 && rawWallet.length <= 64
+        ? rawWallet.slice(0, 8) + '...'
+        : 'unknown';
+
+      // duration: must be a finite non-negative number, capped at 1 hour
+      // (3,600,000 ms) — anything longer is almost certainly a client bug
+      // or a clock skew issue, and would skew P95 dashboards.
+      const rawDuration = parsed.duration;
+      if (typeof rawDuration !== 'number' || !Number.isFinite(rawDuration) || rawDuration < 0 || rawDuration > 3_600_000) {
+        return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid duration' }) };
+      }
+      const duration = rawDuration;
+
+      // success: must be a boolean. Coerce strict-true string "true" so
+      // stringified analytics from older MCP clients still work, but reject
+      // any other truthy/falsy coercion (1, "yes", etc.) which used to
+      // silently pass through.
+      const rawSuccess = parsed.success;
+      const success = typeof rawSuccess === 'boolean'
+        ? rawSuccess
+        : rawSuccess === 'true';
+
       global.mcpCallLog.unshift({
         timestamp: new Date().toISOString(),
         tool,
-        wallet: wallet ? wallet.slice(0, 8) + '...' : 'unknown',
+        wallet,
         duration,
-        success
+        success,
       });
       
       // Keep only last MAX_LOGS
@@ -51,17 +91,34 @@ export const handler: Handler = async (event) => {
       }
       
       return { statusCode: 200, headers, body: JSON.stringify({ logged: true }) };
-    } catch (e) {
+    } catch (err: unknown) {
+      const message = getErrorMessage(err);
+      // Suppresses in prod to avoid leaking malformed payload contents
+      // (which can include wallet addresses) to server stderr.
+      safeLogError('mcp-logs error:', message);
       return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid log data' }) };
     }
   }
   
   // Query logs (GET)
   if (event.httpMethod === 'GET') {
-    const limit = parseInt(event.queryStringParameters?.limit || '50');
+    // Hardened limit parser: clamp to [1, 1000], fall back to 50 on any
+    // non-numeric / NaN / negative / zero input. Previously `parseInt('abc')`
+    // returned NaN, and `slice(0, Math.min(NaN, 1000))` silently returned 0
+    // entries. Negative limits (e.g. `?limit=-5`) also slipped through
+    // Math.min unchanged. Now we treat malformed input as the default and
+    // bound the value to a known-safe range.
+    const DEFAULT_LIMIT = 50;
+    const MAX_LIMIT = 1000;
+    const rawLimit = event.queryStringParameters?.limit;
+    const parsedLimit = rawLimit === undefined ? DEFAULT_LIMIT : Number.parseInt(rawLimit, 10);
+    const limit = Number.isFinite(parsedLimit) && parsedLimit > 0
+      ? Math.min(parsedLimit, MAX_LIMIT)
+      : DEFAULT_LIMIT;
+
     const tool = event.queryStringParameters?.tool;
-    
-    let logs = global.mcpCallLog.slice(0, Math.min(limit, 1000));
+
+    let logs = global.mcpCallLog.slice(0, limit);
     
     if (tool) {
       logs = logs.filter(l => l.tool === tool);
@@ -85,5 +142,16 @@ export const handler: Handler = async (event) => {
     };
   }
   
-  return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+  // METHOD_NOT_ALLOWED is emitted via the shared `errorBody()` envelope so the
+  // 405 contract matches mcp.ts / preview-recovery.ts / _shared.ts exactly.
+  // Previously this branch returned a bare `{ error: 'Method not allowed' }`
+  // object, so clients branching on `body.code === 'METHOD_NOT_ALLOWED'` would
+  // silently miss this endpoint and re-interpret the response as a malformed
+  // payload — masking the actual fix-the-request-method signal. Routing through
+  // the shared helper keeps every SolHunt 405 surface identical.
+  return {
+    statusCode: 405,
+    headers: { ...headers, 'Allow': 'GET, POST, OPTIONS' },
+    body: errorBody('METHOD_NOT_ALLOWED', 'Method not allowed. Use GET, POST, or OPTIONS.'),
+  };
 };

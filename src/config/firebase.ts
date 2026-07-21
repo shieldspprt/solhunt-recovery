@@ -42,11 +42,12 @@ if (isFirebaseConfigured) {
             if (supported && app) {
                 analytics = getAnalytics(app);
             }
-        }).catch(() => {
+        }).catch((_err: unknown) => {
             // Analytics not supported — no-op
         });
-    } catch (error) {
-        // Use production-safe logger — Audit §2.11
+    } catch (error: unknown) {
+        // Firebase init errors are silently swallowed — Audit §2.11 (no PII in logs)
+        // Only swallow — don't rethrow to allow app to continue without analytics
     }
 }
 

@@ -2,33 +2,26 @@
 // Scans a Solana wallet for recoverable SOL (locked rent in zero-balance token accounts)
 // No auth required. Public data only. Rate limited by Helius free tier.
 
-import { Handler } from '@netlify/functions';
 import { Connection, PublicKey } from '@solana/web3.js';
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  errorBody,
+  getErrorMessage,
+  isValidSolanaAddress,
+  methodNotAllowed,
+  safeLogError,
+  getSolanaRpcUrl,
+  SOLANA_TOKEN_PROGRAM_ID,
+} from './_shared';
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+const RPC_URL = getSolanaRpcUrl();
 
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
-const RPC_URL = HELIUS_API_KEY
-  ? `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
-  : 'https://api.mainnet-beta.solana.com';
-
-const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+const TOKEN_PROGRAM_ID = SOLANA_TOKEN_PROGRAM_ID;
 const RENT_PER_ACCOUNT_SOL = 0.00203928; // standard token account rent
 const MAX_ACCOUNTS_PER_TX = 20;
 const TX_FEE_SOL = 0.000005;
-
-// ── Validation ────────────────────────────────────────────────────────────────
-
-function isValidSolanaAddress(address: string): boolean {
-  if (!address || typeof address !== 'string') return false;
-  if (address.length < 32 || address.length > 44) return false;
-  try {
-    new PublicKey(address);
-    return true;
-  } catch {
-    return false;
-  }
-}
 
 // ── Score calculation ─────────────────────────────────────────────────────────
 
@@ -58,29 +51,15 @@ function computeScore(closeableCount: number, dustCount: number): {
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'no-store'
-  };
+  const headers = buildCorsHeaders(event, { methods: 'GET, OPTIONS' });
 
   // Handle CORS preflight
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return corsPreflightResponse(event, { methods: 'GET, OPTIONS' });
   }
 
   if (event.httpMethod !== 'GET') {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ success: false, error: 'Method not allowed' })
-    };
+    return methodNotAllowed(event, 'GET, OPTIONS');
   }
 
   // Get wallet address from query param
@@ -90,7 +69,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({ success: false, error: 'Missing address parameter' })
+      body: errorBody('INVALID_PARAMS', 'Missing address parameter', 'Pass ?address=<base58 Solana public key>.')
     };
   }
 
@@ -98,10 +77,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Invalid Solana wallet address. Must be 32–44 characters, base58 encoded.'
-      })
+      body: errorBody('INVALID_PARAMS', 'Invalid Solana wallet address', 'Must be 32–44 characters, base58 encoded.')
     };
   }
 
@@ -161,24 +137,23 @@ export const handler: Handler = async (event) => {
         }
       })
     };
-  } catch (error: any) {
-    // Check for known RPC errors
-    if (error.message?.includes('Invalid public key')) {
+  } catch (error: unknown) {
+    // Check for known RPC errors with type-safe access
+    const errorMessage = getErrorMessage(error);
+
+    if (errorMessage.includes('Invalid public key')) {
       return {
         statusCode: 400,
         headers,
-        body: JSON.stringify({ success: false, error: 'Invalid wallet address' })
+        body: errorBody('INVALID_PARAMS', 'Invalid wallet address', 'Solana public key did not pass curve-point validation.')
       };
     }
 
-    console.error('scan-wallet error:', error.message);
+    safeLogError('scan-wallet error:', errorMessage);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Scan failed. The RPC may be rate limited. Try again in a moment.'
-      })
+      body: errorBody('EXECUTION_ERROR', 'Scan failed. The RPC may be rate limited. Try again in a moment.', errorMessage)
     };
   }
 };

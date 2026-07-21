@@ -1,8 +1,10 @@
+import { memo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { Link, useLocation } from 'react-router-dom';
-import { Zap } from 'lucide-react';
+import { Zap, LogOut } from 'lucide-react';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { shortenAddress } from '@/lib/formatting';
+import { useReliableDisconnect } from '@/components/wallet/WalletStatusManager';
 
 const NAV_LINKS = [
     { label: 'How It Works', path: '/how-it-works' },
@@ -13,17 +15,18 @@ const EXTERNAL_LINKS = [
     { label: 'Docs', url: 'https://github.com/shieldspprt/solhunt-recovery#readme' },
 ];
 
-export function Header() {
-    const { publicKey, disconnect } = useWallet();
+export const Header = memo(function Header() {
+    const { publicKey } = useWallet();
+    const { disconnect, isDisconnecting } = useReliableDisconnect();
     const location = useLocation();
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-shield-border/60 bg-shield-bg/80 backdrop-blur-xl">
             <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:px-6">
                 {/* Logo */}
-                <Link to="/" className="flex items-center gap-2 group">
+                <Link to="/" className="flex items-center gap-2 group focus:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent/50 focus-visible:ring-offset-2 focus-visible:ring-offset-shield-bg rounded-md">
                     <div className="relative flex h-7 w-7 items-center justify-center rounded-md bg-shield-accent/10 border border-shield-accent/20 group-hover:bg-shield-accent/20 transition-colors">
-                        <Zap className="h-3.5 w-3.5 text-shield-accent" />
+                        <Zap className="h-3.5 w-3.5 text-shield-accent" aria-hidden="true" />
                     </div>
                     <span className="text-lg font-extrabold tracking-tight">
                         <span className="text-shield-text">Sol</span>
@@ -32,14 +35,14 @@ export function Header() {
                 </Link>
 
                 {/* Center nav */}
-                <nav className="hidden md:flex items-center gap-1">
+                <nav className="hidden md:flex items-center gap-1" aria-label="Main navigation">
                     {NAV_LINKS.map((link) => {
                         const isActive = location.pathname === link.path;
                         return (
                             <Link
                                 key={link.path}
                                 to={link.path}
-                                className={`rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors ${isActive
+                                className={`rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent/50 focus-visible:ring-offset-1 ${isActive
                                     ? 'text-shield-accent bg-shield-accent/10'
                                     : 'text-shield-muted hover:text-shield-text hover:bg-shield-card'
                                     }`}
@@ -54,9 +57,11 @@ export function Header() {
                             href={link.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors text-shield-muted hover:text-shield-text hover:bg-shield-card"
+                            aria-label={`${link.label} (opens in new tab)`}
+                            className="rounded-md px-2.5 py-1 text-[13px] font-medium transition-colors text-shield-muted hover:text-shield-text hover:bg-shield-card focus:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent/50 focus-visible:ring-offset-1"
                         >
-                            {link.label} ↗
+                            {link.label}
+                            <span aria-hidden="true"> ↗</span>
                         </a>
                     ))}
                 </nav>
@@ -69,10 +74,14 @@ export function Header() {
                                 {shortenAddress(publicKey.toBase58(), 4)}
                             </span>
                             <button
+                                type="button"
                                 onClick={disconnect}
-                                className="text-xs text-shield-muted hover:text-shield-danger transition-colors px-2 py-1 rounded-md hover:bg-shield-danger/10"
+                                disabled={isDisconnecting}
+                                aria-disabled={isDisconnecting}
+                                className="text-xs text-shield-muted hover:text-shield-danger transition-colors px-2 py-1 rounded-md hover:bg-shield-danger/10 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-shield-danger/50 focus-visible:ring-offset-1"
+                                aria-label="Disconnect wallet"
                             >
-                                ✕
+                                {isDisconnecting ? '...' : <LogOut className="h-3.5 w-3.5" aria-hidden="true" />}
                             </button>
                         </div>
                     ) : (
@@ -82,4 +91,4 @@ export function Header() {
             </div>
         </header>
     );
-}
+});

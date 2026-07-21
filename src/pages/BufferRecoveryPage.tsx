@@ -4,10 +4,18 @@ import { PageWrapper } from '@/components/layout/PageWrapper';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { BufferRecoveryCard } from '@/modules/buffer-recovery/components/BufferRecoveryCard';
 import { ENGINE_METADATA } from '@/config/constants';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export function BufferRecoveryPage() {
     const { connected } = useWallet();
-    const config = ENGINE_METADATA.find(e => e.id === 10)!;
+    const config = ENGINE_METADATA.find(e => e.id === 10)!; // Recover Program Buffers
+
+    // Prevent search engines from indexing wallet-specific scan results
+    usePageMeta({
+        title: 'Buffer Recovery',
+        description: 'Recover locked SOL from Solana program buffer accounts using SolHunt\'s Buffer Recovery engine — safely, client-side.',
+        noindex: true,
+    });
 
     return (
         <PageWrapper>
@@ -17,7 +25,7 @@ export function BufferRecoveryPage() {
                     <div className="max-w-2xl">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-shield-accent/10 border border-shield-accent/20">
-                                <Code2 className="h-6 w-6 text-shield-accent" />
+                                <Code2 className="h-6 w-6 text-shield-accent" aria-hidden="true" />
                             </div>
                             <span className="inline-flex items-center rounded-full bg-shield-accent/10 px-2.5 py-0.5 text-xs font-bold text-shield-accent border border-shield-accent/20 letter-spacing-wider uppercase">
                                 {config.status}
@@ -34,7 +42,7 @@ export function BufferRecoveryPage() {
                     <div className="hidden lg:block glass-card rounded-2xl p-5 border border-shield-border/40">
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-shield-accent/10">
-                                <TrendingUp className="h-5 w-5 text-shield-accent" />
+                                <TrendingUp className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                             </div>
                             <div>
                                 <p className="text-xs text-shield-muted uppercase font-bold tracking-widest leading-none mb-1">Avg. Recovery</p>

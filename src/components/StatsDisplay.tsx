@@ -2,7 +2,9 @@
 // Shows today's scan stats and the ready-to-post X draft
 // Displays on solhunt.dev homepage or /stats page
 
-import { useState, useEffect, memo, useCallback } from 'react';
+import { useState, useEffect, useRef, memo, useCallback } from 'react';
+import { logger } from '@/lib/logger';
+import { fetchSOLPriceUSD, FALLBACK_SOL_PRICE_USD } from '@/lib/solPrice';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -75,40 +77,75 @@ const StatsSkeleton = memo(function StatsSkeleton() {
 
 const CopyButton = memo(({ text, label = 'Copy' }: { text: string; label?: string }) => {
   const [copied, setCopied] = useState(false);
+  // Track the "Copied!" reset timer so it can be cleared on unmount or re-click.
+  // Previously the timer was fire-and-forget, which triggered setState-after-unmount
+  // warnings if the user navigated within 2s of copying and let rapid re-clicks race.
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleCopy = useCallback(async () => {
+    // Cancel any pending reset so overlapping clicks restart the 2s window cleanly
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    const triggerCopiedState = (): void => {
+      setCopied(true);
+      timeoutRef.current = setTimeout(() => {
+        setCopied(false);
+        timeoutRef.current = null;
+      }, 2000);
+    };
+
     try {
       await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Fallback for older browsers without clipboard API
-      const el = document.createElement('textarea');
-      el.value = text;
-      el.style.position = 'fixed';
-      el.style.opacity = '0';
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand('copy');
-      document.body.removeChild(el);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      triggerCopiedState();
+    } catch (err: unknown) {
+      const fallbackErr = err instanceof Error ? err.message : String(err);
+      logger.warn('Clipboard write failed:', fallbackErr);
+      try {
+        const el = document.createElement('textarea');
+        el.value = text;
+        el.style.position = 'fixed';
+        el.style.opacity = '0';
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        triggerCopiedState();
+      } catch (_fallbackErr: unknown) {
+        // execCommand fallback failed — log via production-safe logger, don't silently swallow
+        logger.warn('Clipboard execCommand fallback failed:', _fallbackErr instanceof Error ? _fallbackErr.message : String(_fallbackErr));
+      }
     }
   }, [text]);
 
+  // Clear pending reset on unmount to avoid setState-after-unmount warnings
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    };
+  }, []);
+
   return (
-    <button
-      onClick={handleCopy}
-      className={[
-        'text-xs px-3 py-1.5 rounded-md font-medium transition-all',
-        copied
-          ? 'bg-green-600 text-white'
-          : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-      ].join(' ')}
-      aria-label={copied ? 'Copied' : `Copy ${label.toLowerCase()}`}
-    >
-      {copied ? '✓ Copied' : label}
-    </button>
+    <span>
+      <button
+        type="button"
+        onClick={handleCopy}
+        className={[
+          'text-xs px-3 py-1.5 rounded-md font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent',
+          copied
+            ? 'bg-green-600 text-white'
+            : 'bg-gray-700 hover:bg-gray-600 text-gray-300'
+        ].join(' ')}
+        aria-label={copied ? 'Copied!' : label}
+      >
+        {copied ? 'Copied!' : label}
+      </button>
+    </span>
   );
 });
 
@@ -126,17 +163,23 @@ const StatBox = memo(function StatBox({
   accent?: boolean;
 }) {
   return (
-    <div className={[
-      'rounded-xl p-4 text-center',
-      accent
-        ? 'bg-purple-900/50 border border-purple-500/30'
-        : 'bg-gray-800/70 border border-gray-700/50'
-    ].join(' ')}>
-      <p className="text-xs text-gray-400 mb-1">{label}</p>
-      <p className={`text-2xl font-black ${accent ? 'text-purple-300' : 'text-white'}`}>
+    <div
+      className={[
+        'rounded-xl p-4 text-center',
+        accent
+          ? 'bg-purple-900/50 border border-purple-500/30'
+          : 'bg-gray-800/70 border border-gray-700/50'
+      ].join(' ')}
+      role="figure"
+      aria-label={`${label}: ${value}${sub ? `, ${sub}` : ''}`}
+    >
+      <p className="text-xs text-gray-400 mb-1" aria-hidden="true">{label}</p>
+      <p
+        className={`text-2xl font-black ${accent ? 'text-purple-300' : 'text-white'}`}
+      >
         {value}
       </p>
-      {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-gray-500 mt-1" aria-hidden="true">{sub}</p>}
     </div>
   );
 });
@@ -150,28 +193,30 @@ const MiniChart = memo(function MiniChart({ history }: { history: DayStat[] }) {
   const maxSol = Math.max(...reversed.map(d => d.total_recoverable_sol));
 
   return (
-    <div className="mt-4">
+    <div className="mt-4" role="figure" aria-label="7-day recoverable SOL bar chart">
       <p className="text-xs text-gray-500 mb-2">7-day recoverable SOL</p>
       <div className="flex items-end gap-1 h-12">
-        {reversed.map((d) => (
-          <div
-            key={d.date}
-            className="flex-1 flex flex-col items-center gap-1"
-            title={`${d.date}: ${d.total_recoverable_sol} SOL`}
-          >
+        {reversed.map((d) => {
+          const barHeight = maxSol > 0
+            ? `${Math.max(4, (d.total_recoverable_sol / maxSol) * 40)}px`
+            : '4px';
+          return (
             <div
-              className="w-full rounded-t bg-purple-500/60 hover:bg-purple-400/80 transition-colors"
-              style={{
-                height: maxSol > 0
-                  ? `${Math.max(4, (d.total_recoverable_sol / maxSol) * 40)}px`
-                  : '4px'
-              }}
-            />
-            <span className="text-gray-600 text-xs">
-              {new Date(d.date).getDate()}
-            </span>
-          </div>
-        ))}
+              key={d.date}
+              className="flex-1 flex flex-col items-center gap-1"
+              aria-label={`${d.total_recoverable_sol.toFixed(4)} SOL on ${new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`}
+            >
+              <div
+                className="w-full rounded-t bg-purple-500/60 hover:bg-purple-400/80 transition-colors cursor-default"
+                style={{ height: barHeight }}
+                aria-hidden="true"
+              />
+              <span className="text-gray-600 text-xs">
+                {new Date(d.date).getDate()}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -183,9 +228,32 @@ export function StatsDisplay() {
   const [data, setData] = useState<StatsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [solPriceUSD, setSolPriceUSD] = useState<number | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
 
   useEffect(() => {
-    fetch('/api/get-stats')
+    // Fetch real SOL price from Jupiter for accurate USD estimates
+    fetchSOLPriceUSD()
+      .then(price => setSolPriceUSD(price))
+      .catch((err: unknown) => {
+        logger.warn('SOL price fetch failed:', err instanceof Error ? err.message : String(err));
+      });
+  }, []);
+
+  useEffect(() => {
+    // Combine the unmount-controller signal with a hard 8s timeout so a hung
+    // /api/get-stats endpoint can't pin the loading skeleton forever. The
+    // 8s window matches the timeout used elsewhere in the codebase for
+    // /api/* calls (e.g. Sanctum tickets, dust scanners, LP harvesters) —
+    // consistent UX timeout behaviour across the app.
+    setLoading(true);
+    setError('');
+
+    const controller = new AbortController();
+    const timeoutSignal = AbortSignal.timeout(8000);
+    const signal = AbortSignal.any([controller.signal, timeoutSignal]);
+
+    fetch('/api/get-stats', { signal })
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -194,9 +262,21 @@ export function StatsDisplay() {
         if (d.success) setData(d.data);
         else setError('Failed to load stats');
       })
-      .catch(() => setError('Failed to load stats'))
+      .catch((err: unknown) => {
+        // Unmount-driven abort (controller.signal) is a normal cleanup path —
+        // keep the silent return so we don't surface a false "failed" message.
+        // A timeout-driven abort (AbortSignal.timeout) keeps loading=false via
+        // .finally() below and falls through to the "Stats unavailable" branch
+        // because data?.today is still undefined — correct UX for a timed-out
+        // fetch.
+        if (err instanceof Error && err.name === 'AbortError' && controller.signal.aborted) return;
+        logger.warn('Stats fetch failed:', err instanceof Error ? err.message : String(err));
+        setError('Failed to load stats');
+      })
       .finally(() => setLoading(false));
-  }, []);
+
+    return () => controller.abort();
+  }, [reloadToken]);
 
   if (loading) {
     return <StatsSkeleton />;
@@ -204,14 +284,28 @@ export function StatsDisplay() {
 
   if (error || !data?.today) {
     return (
-      <section className="w-full max-w-2xl mx-auto px-4 py-8">
-        <p className="text-center text-gray-600 text-sm">
-          Stats update daily at 9am UTC.
-          {!data?.today && data?.totals?.days_of_data === 0
-            ? ' First scan has not run yet.'
-            : ''
-          }
-        </p>
+      <section className="w-full max-w-2xl mx-auto px-4 py-8" aria-label="Stats unavailable">
+        <div className="rounded-xl border border-gray-700/60 bg-gray-900/80 px-4 py-5 text-center">
+          <p className="text-gray-300 text-sm" role="status" aria-live="polite">
+            Stats update daily at 9am UTC.
+            {!data?.today && data?.totals?.days_of_data === 0
+              ? ' First scan has not run yet.'
+              : ''
+            }
+          </p>
+          {error && (
+            <p className="mt-2 text-xs text-red-400">
+              {error}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={() => setReloadToken((value) => value + 1)}
+            className="mt-4 inline-flex items-center justify-center rounded-md border border-gray-700 bg-gray-800 px-3 py-1.5 text-xs font-medium text-gray-200 transition-colors hover:bg-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent"
+          >
+            Retry
+          </button>
+        </div>
       </section>
     );
   }
@@ -219,25 +313,30 @@ export function StatsDisplay() {
   const { today, history, totals } = data;
 
   return (
-    <section className="w-full max-w-2xl mx-auto px-4 py-8">
+    <section
+      className="w-full max-w-2xl mx-auto px-4 py-8"
+      aria-labelledby="daily-scan-heading"
+    >
 
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-lg font-bold text-white">Daily Wallet Scan</h2>
+          <h2 id="daily-scan-heading" className="text-lg font-bold text-white">Daily Wallet Scan</h2>
           <p className="text-xs text-gray-500">
             {new Date(today.date).toLocaleDateString('en-US', {
               weekday: 'long', month: 'long', day: 'numeric'
             })}
           </p>
         </div>
-        <span className="text-xs text-gray-600 bg-gray-800 px-2 py-1 rounded">
+        <span className="text-xs text-gray-600 bg-gray-800 px-2 py-1 rounded"
+          aria-label="Stats update schedule: daily at 9am UTC"
+        >
           Updates 9am UTC
         </span>
       </div>
 
       {/* Today's 4 key stats */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4" role="group" aria-label="Today's key scan statistics">
         <StatBox
           label="Wallets Scanned"
           value={today.wallets_scanned.toLocaleString()}
@@ -251,7 +350,7 @@ export function StatsDisplay() {
         <StatBox
           label="Total Recoverable"
           value={`${today.total_recoverable_sol.toFixed(2)} SOL`}
-          sub={`~$${(today.total_recoverable_sol * 150).toFixed(0)}`}
+          sub={solPriceUSD ? `~$${(today.total_recoverable_sol * solPriceUSD).toFixed(0)} at $${solPriceUSD}/SOL` : `~$${(today.total_recoverable_sol * FALLBACK_SOL_PRICE_USD).toFixed(0)} at $${FALLBACK_SOL_PRICE_USD}/SOL`}
           accent
         />
         <StatBox
@@ -276,18 +375,24 @@ export function StatsDisplay() {
       <div className="mt-5 rounded-xl bg-gray-900 border border-gray-700/60">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700/60">
           <div className="flex items-center gap-2">
-            <svg className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+            <svg
+              className="h-4 w-4 text-gray-400"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
+            >
               <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.742l7.733-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
             </svg>
             <span className="text-xs text-gray-400 font-medium">Today's post draft</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <CopyButton text={today.x_draft} label="Copy post" />
             <a
-              href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(today.x_draft)}`}
+              href={`https://x.com/intent/tweet?text=${encodeURIComponent(today.x_draft)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs px-3 py-1.5 rounded-md font-medium bg-black hover:bg-gray-900 text-white border border-gray-700 transition-all"
+              aria-label={`Post draft to X (opens in new tab): \"${today.x_draft.slice(0, 50)}${today.x_draft.length > 50 ? '…' : ''}\"`}
+              className="text-xs px-3 py-1.5 rounded-md font-medium bg-black hover:bg-gray-900 text-white border border-gray-700 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent"
             >
               Post to X →
             </a>
@@ -299,14 +404,16 @@ export function StatsDisplay() {
           </p>
         </div>
         <div className="px-4 py-2 border-t border-gray-700/60">
-          <p className="text-xs text-gray-600">
-            {today.x_draft.length} characters
-            {today.x_draft.length > 280 && (
-              <span className="text-yellow-600 ml-2">
-                ⚠ Over 280 chars — trim before posting
-              </span>
-            )}
-          </p>
+          <span role="status" aria-atomic="true">
+            <span className="text-xs text-gray-600" aria-live="polite">
+              {today.x_draft.length} characters
+              {today.x_draft.length > 280 && (
+                <span className="text-yellow-600 ml-2">
+                  <span aria-hidden="true">⚠</span> Over 280 chars — trim before posting
+                </span>
+              )}
+            </span>
+          </span>
         </div>
       </div>
 

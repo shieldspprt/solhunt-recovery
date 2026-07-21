@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { ShieldAlert } from 'lucide-react';
 import { useRevoke } from '@/hooks/useRevoke';
 import { RevokeConfirmModal } from '@/components/revoke/RevokeConfirmModal';
@@ -9,11 +10,11 @@ interface RevokeButtonProps {
     delegations: TokenDelegation[];
 }
 
-export function RevokeButton({ delegations }: RevokeButtonProps) {
+export const RevokeButton = memo(function RevokeButton({ delegations }: RevokeButtonProps) {
     const { requestConfirmation } = useRevoke();
 
-    // Only show the button if there are delegations to revoke
-    if (delegations.length === 0) return null;
+    // Guard: if delegations is missing or empty, render nothing
+    if (!delegations || delegations.length === 0) return null;
 
     return (
         <>
@@ -26,10 +27,12 @@ export function RevokeButton({ delegations }: RevokeButtonProps) {
                 </div>
 
                 <button
+                    type="button"
                     onClick={requestConfirmation}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-shield-danger hover:bg-shield-danger/90 text-white font-semibold px-8 py-3.5 shadow-lg shadow-shield-danger/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-shield-danger hover:bg-shield-danger/90 text-white font-semibold px-8 py-3.5 shadow-lg shadow-shield-danger/20 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus-visible:ring-2 focus-visible:ring-shield-danger/50 focus-visible:ring-offset-2"
+                    aria-label={`Revoke all ${delegations.length} token permissions for ${SERVICE_FEE_SOL} SOL fee`}
                 >
-                    <ShieldAlert className="h-5 w-5" />
+                    <ShieldAlert className="h-5 w-5" aria-hidden="true" />
                     Revoke All Permissions
                     <span className="hidden sm:inline bg-white/20 px-2 py-0.5 rounded text-sm ml-1">
                         {SERVICE_FEE_SOL} SOL fee
@@ -42,4 +45,4 @@ export function RevokeButton({ delegations }: RevokeButtonProps) {
             <RevokeProgressModal delegations={delegations} />
         </>
     );
-}
+});

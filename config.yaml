@@ -17,7 +17,7 @@ app:
     website: "https://solhunt.dev"
     privacy_policy: "https://solhunt.dev/privacy"
     terms_of_service: "https://solhunt.dev/terms"
-    support: "https://x.com/solhuntapp"
+    support: "https://x.com/solhuntdev"
   
   locales:
     en:

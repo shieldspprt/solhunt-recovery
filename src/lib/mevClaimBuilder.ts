@@ -19,14 +19,8 @@ import {
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { logger } from './logger';
 import { verifyTransactionSecurity } from './transactionVerifier';
-
-function chunk<T>(array: T[], size: number): T[][] {
-    const result: T[][] = [];
-    for (let i = 0; i < array.length; i += size) {
-        result.push(array.slice(i, i + size));
-    }
-    return result;
-}
+import { chunk } from '@/lib/arrayUtils';
+import { getLatestBlockhashWithRetry } from '@/lib/rpcRetry';
 
 /**
  * Build batched claim transactions for selected MEV rewards.
@@ -44,7 +38,7 @@ export async function buildMEVClaimTransactions(
 ): Promise<Transaction[]> {
     const transactions: Transaction[] = [];
     const batches = chunk(items, MEV_MAX_CLAIMS_PER_TX);
-    const { blockhash } = await connection.getLatestBlockhash('confirmed');
+    const { blockhash } = await getLatestBlockhashWithRetry(connection, 'confirmed');
     const priorityFee = await getOptimalPriorityFee(connection);
 
     // Calculate total service fee
@@ -152,7 +146,7 @@ function buildSingleClaimInstruction(
             ],
             data,
         });
-    } catch (err) {
+    } catch (err: unknown) {
         logger.error('buildSingleClaimInstruction failed', err);
         return null;
     }
@@ -168,7 +162,7 @@ function buildClaimInstructionData(
     let offset = 0;
 
     // 8-byte discriminator
-    CLAIM_DISCRIMINATOR.copy(buf, offset);
+    Buffer.from(CLAIM_DISCRIMINATOR).copy(buf, offset);
     offset += 8;
 
     // Amount as u64 little-endian

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { CircleAlert, CircleCheck, Dot } from 'lucide-react';
 import type { LPPosition } from '../types';
 import {
@@ -44,7 +45,7 @@ function getStatusBadge(status: LPPosition['status']) {
     };
 }
 
-export function PositionRow({ position, selected, onToggle }: PositionRowProps) {
+export const PositionRow = memo(function PositionRow({ position, selected, onToggle }: PositionRowProps) {
     const statusBadge = getStatusBadge(position.status);
     const StatusIcon = statusBadge.icon;
 
@@ -70,6 +71,7 @@ export function PositionRow({ position, selected, onToggle }: PositionRowProps) 
                         checked={selected}
                         onChange={() => onToggle(position.id)}
                         disabled={isViewOnly}
+                        aria-label={`Select ${position.poolName} position on ${position.protocolDisplayName}${selected ? ' (selected)' : ''}`}
                         className="mt-1 h-4 w-4 rounded border-shield-border bg-shield-bg text-shield-accent disabled:opacity-60"
                     />
 
@@ -82,7 +84,7 @@ export function PositionRow({ position, selected, onToggle }: PositionRowProps) 
                                 {position.protocolDisplayName}
                             </span>
                             <span className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] ${statusBadge.classes}`}>
-                                <StatusIcon className="h-3 w-3" />
+                                <StatusIcon className="h-3 w-3" aria-hidden="true" />
                                 {statusBadge.label}
                             </span>
                         </div>
@@ -121,4 +123,4 @@ export function PositionRow({ position, selected, onToggle }: PositionRowProps) 
             </div>
         </div>
     );
-}
+});

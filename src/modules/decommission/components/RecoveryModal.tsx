@@ -1,3 +1,4 @@
+import { useCallback, useEffect } from 'react';
 import { DecommissionRecoveryEstimate, DecommissionRecoveryResult, DecommissionRecoveryStatus } from '../types';
 
 interface Props {
@@ -15,21 +16,44 @@ export function RecoveryModal({ status, estimate, result, error, executeRecovery
     const isComplete = status === 'complete';
     const isError = status === 'error';
 
+    // Allow Escape key to cancel during the awaiting, complete, and error states.
+    // While `recovering`, cancelling is disabled (wallet tx is in-flight) —
+    // keyboard dismissal would mislead the user into thinking the tx was aborted.
+    // Listener is only attached while the modal is actually rendered in a
+    // dismissable state to avoid leaking global listeners between opens.
+    const handleEscape = useCallback((e: KeyboardEvent) => {
+        if (e.key === 'Escape' && (isAwaiting || isComplete || isError)) {
+            cancelRecovery();
+        }
+    }, [cancelRecovery, isAwaiting, isComplete, isError]);
+
+    useEffect(() => {
+        // Attach listener only when the modal is in a state where Escape is meaningful.
+        if (!isAwaiting && !isComplete && !isError) return;
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [handleEscape, isAwaiting, isComplete, isError]);
+
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="recovery-modal-title"
+        >
             <div className="w-full max-w-lg rounded-2xl bg-shield-bg border border-shield-border/50 shadow-2xl overflow-hidden relative">
                 <div className="absolute inset-0 bg-gradient-to-br from-shield-accent/10 to-transparent opacity-20 pointer-events-none" />
 
                 <div className="p-6 sm:p-8 relative z-10">
                     {/* Header */}
                     <div className="flex items-center gap-3 mb-6 border-b border-shield-border/30 pb-4">
-                        <span className="text-3xl">
+                        <span className="text-3xl" aria-hidden="true">
                             {isAwaiting && '🪦'}
                             {isRecovering && '⏳'}
                             {isComplete && '✅'}
                             {isError && '❌'}
                         </span>
-                        <h2 className="text-xl font-bold text-shield-text tracking-tight uppercase">
+                        <h2 id="recovery-modal-title" className="text-xl font-bold text-shield-text tracking-tight uppercase">
                             {isAwaiting && 'Recover Stranded Positions'}
                             {isRecovering && 'Processing Recovery...'}
                             {isComplete && 'Recovery Complete!'}
@@ -139,13 +163,17 @@ export function RecoveryModal({ status, estimate, result, error, executeRecovery
                         {isAwaiting && (
                             <>
                                 <button
+                                    type="button"
                                     onClick={cancelRecovery}
+                                    aria-label="Cancel recovery"
                                     className="flex-1 rounded-xl bg-shield-bg border border-shield-border/50 px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/20 transition-all font-mono"
                                 >
                                     [Cancel]
                                 </button>
                                 <button
+                                    type="button"
                                     onClick={executeRecovery}
+                                    aria-label="Execute recovery"
                                     className="flex-[2] rounded-xl bg-shield-accent px-4 py-3 font-bold text-shield-bg hover:bg-shield-highlight transition-all font-mono shadow-md shadow-shield-accent/20"
                                 >
                                     [Recover →]
@@ -154,7 +182,9 @@ export function RecoveryModal({ status, estimate, result, error, executeRecovery
                         )}
                         {(isComplete || isError) && (
                             <button
+                                type="button"
                                 onClick={cancelRecovery}
+                                aria-label="Close modal"
                                 className="w-full rounded-xl bg-shield-accent/10 border border-shield-accent/20 px-4 py-3 font-bold text-shield-accent hover:bg-shield-accent hover:text-shield-bg transition-all font-mono"
                             >
                                 [Close]

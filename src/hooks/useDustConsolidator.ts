@@ -123,15 +123,19 @@ export function useDustConsolidator() {
                 swappableCount: hydratedResult.swappableCount,
                 estimatedValueUSD: hydratedResult.totalEstimatedValueUSD,
             });
-        } catch (error) {
+        } catch (err: unknown) {
             const appError: AppError =
-                error && typeof error === 'object' && 'code' in error
-                    ? (error as AppError)
+                err && typeof err === 'object' && 'code' in err
+                    ? (err as AppError)
                     : createAppError(
                         'DUST_PRICE_FETCH_FAILED',
-                        error instanceof Error ? error.message : String(error)
+                        err instanceof Error ? err.message : String(err)
                     );
             setDustError(appError);
+            // Reset status back to idle so the DustCard spinner doesn't stay
+            // stuck on 'fetching_prices' forever. The error is surfaced via
+            // dustStatus === 'error' downstream (and the dustError store entry).
+            setDustStatus('idle');
         }
     }, [
         scanResult,
@@ -245,13 +249,13 @@ export function useDustConsolidator() {
                 swappedCount: result.swappedCount,
                 receivedSOL: result.receivedSOL,
             });
-        } catch (error) {
+        } catch (err: unknown) {
             const appError: AppError =
-                error && typeof error === 'object' && 'code' in error
-                    ? (error as AppError)
+                err && typeof err === 'object' && 'code' in err
+                    ? (err as AppError)
                     : createAppError(
                         'DUST_SWAP_FAILED',
-                        error instanceof Error ? error.message : String(error)
+                        err instanceof Error ? err.message : String(err)
                     );
             setDustError(appError);
             logDustSwapComplete({

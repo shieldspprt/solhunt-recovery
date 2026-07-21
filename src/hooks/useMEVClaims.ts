@@ -15,6 +15,8 @@ import {
     MEV_SERVICE_FEE_PERCENT,
     MEV_SERVICE_FEE_DENOMINATOR,
     MEV_MAX_CLAIMS_PER_TX,
+    ERROR_CODES,
+    ERROR_MESSAGES,
 } from '@/config/constants';
 import { verifyTransactionSecurity } from '@/lib/transactionVerifier';
 import type { MEVScanResult, MEVClaimEstimate, MEVClaimResultItem } from '@/types';
@@ -92,6 +94,7 @@ export function useMEVClaims() {
         if (selectedItems.length === 0) return null;
         const totalLamports = selectedItems.reduce((s, i) => s + i.totalLamports, 0);
         const totalSOL = totalLamports / LAMPORTS_PER_SOL;
+        const totalUSD = selectedItems.reduce((s, i) => s + i.estimatedValueUSD, 0);
         const serviceFeeLamports = Math.floor(
             (totalLamports * MEV_SERVICE_FEE_PERCENT) / Math.max(1, MEV_SERVICE_FEE_DENOMINATOR)
         );
@@ -100,7 +103,7 @@ export function useMEVClaims() {
         return {
             selectedCount: selectedItems.length,
             totalClaimSOL: totalSOL,
-            totalClaimUSD: totalSOL * 150, // Hardcoded estimate
+            totalClaimUSD: totalUSD,
             serviceFeeSOL: serviceFeeLamports / LAMPORTS_PER_SOL,
             serviceFeeLamports,
             networkFeeSOL: txCount * 0.000005,
@@ -207,12 +210,12 @@ export function useMEVClaims() {
             });
 
         } catch (err: unknown) {
-            logger.error('MEV executeClaim error', { err });
+            logger.error('MEV executeClaim error', err);
             const errMessage = err instanceof Error ? err.message : String(err);
             setMEVClaimStatus('error');
             setMEVClaimError({
-                code: 'MEV_CLAIM_FAILED',
-                message: 'Claim failed. Your rewards were not affected.',
+                code: ERROR_CODES.MEV_CLAIM_FAILED,
+                message: ERROR_MESSAGES.MEV_CLAIM_FAILED,
                 technicalDetail: errMessage,
             });
             logMEVClaimComplete({

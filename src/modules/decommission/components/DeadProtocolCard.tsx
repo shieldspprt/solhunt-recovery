@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { DecommissionPositionItem } from '../types';
 
 interface Props {
@@ -6,7 +7,7 @@ interface Props {
     onToggle?: (id: string) => void;
 }
 
-export function DeadProtocolCard({ item, isSelected, onToggle }: Props) {
+export const DeadProtocolCard = memo(function DeadProtocolCard({ item, isSelected, onToggle }: Props) {
     const { protocol, tokenDef, estimatedValueUSD, uiBalance, urgency, recoveryMethod } = item;
 
     const isWindingDown = urgency === 'critical';
@@ -23,18 +24,36 @@ export function DeadProtocolCard({ item, isSelected, onToggle }: Props) {
                 <div
                     className="absolute inset-0 z-0 cursor-pointer"
                     onClick={() => onToggle(item.tokenAccountAddress)}
+                    role="button"
+                    aria-label={`Select ${protocol.name} position for recovery`}
+                    aria-pressed={isSelected}
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onToggle(item.tokenAccountAddress);
+                        }
+                    }}
                 />
             )}
 
             <div className="relative z-10 p-6">
                 <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                        {isWindingDown && <span className="text-xl animate-pulse">🚨</span>}
+                        {isWindingDown && <span className="text-xl animate-pulse" aria-hidden="true">🚨</span>}
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10">
                             {protocol.logoUri ? (
-                                <img src={protocol.logoUri} alt={protocol.name} className="h-6 w-6 object-cover" />
+                                <img
+                                    src={protocol.logoUri}
+                                    alt={protocol.name ? `${protocol.name} logo` : 'Protocol logo'}
+                                    width={24}
+                                    height={24}
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="h-6 w-6 object-cover"
+                                />
                             ) : (
-                                <span className="text-xl">🪦</span>
+                                <span className="text-xl" aria-hidden="true">🪦</span>
                             )}
                         </div>
                         <div>
@@ -89,7 +108,7 @@ export function DeadProtocolCard({ item, isSelected, onToggle }: Props) {
                 {/* Action Area */}
                 <div className="flex items-center justify-between mt-4 pt-4 border-t border-shield-border/30">
                     <p className="text-xs text-orange-400 flex items-center gap-1.5 pointer-events-none">
-                        ⚠️ DO NOT burn this token in Engine 3.
+                        <span aria-hidden="true">⚠️</span> DO NOT burn this token in Engine 3.
                     </p>
 
                     {recoveryMethod === 'redirect' && protocol.recoveryUrl && (
@@ -98,20 +117,24 @@ export function DeadProtocolCard({ item, isSelected, onToggle }: Props) {
                             target="_blank"
                             rel="noreferrer noopener"
                             className="relative z-20 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-400 hover:text-blue-300 bg-blue-400/10 hover:bg-blue-400/20 px-3 py-1.5 rounded-lg transition-colors"
+                            aria-label={`Open ${protocol.name} recovery site in new tab`}
                         >
-                            Open Recovery Site →
+                            Open Recovery Site <span aria-hidden="true">→</span>
                         </a>
                     )}
 
                     {recoveryMethod === 'in_app' && isRecoverable && onToggle && (
                         <button
+                            type="button"
                             className={`relative z-20 flex items-center justify-center gap-2 rounded-xl border px-4 py-2 text-sm font-bold transition-all ${isSelected
                                     ? 'border-shield-accent bg-shield-accent text-shield-bg shadow-sm shadow-shield-accent/20 hover:bg-shield-highlight'
                                     : 'border-shield-border/50 bg-shield-bg/50 text-shield-text hover:border-shield-accent/50 hover:bg-shield-accent/10 hover:text-shield-accent'
                                 }`}
                             onClick={() => onToggle(item.tokenAccountAddress)}
+                            aria-pressed={isSelected}
+                            aria-label={isSelected ? `Deselect ${protocol.name} position` : `Select ${protocol.name} position for recovery`}
                         >
-                            <div className={`flex h-4 w-4 items-center justify-center rounded text-[10px] ${isSelected ? 'bg-shield-bg/30 text-shield-bg' : 'border border-shield-muted/50 text-transparent'}`}>
+                            <div className={`flex h-4 w-4 items-center justify-center rounded text-[10px] ${isSelected ? 'bg-shield-bg/30 text-shield-bg' : 'border border-shield-muted/50 text-transparent'}`} aria-hidden="true">
                                 {isSelected && '✓'}
                             </div>
                             {isSelected ? 'Include in Recovery' : 'Select for Recovery'}
@@ -121,4 +144,4 @@ export function DeadProtocolCard({ item, isSelected, onToggle }: Props) {
             </div>
         </div>
     );
-}
+});

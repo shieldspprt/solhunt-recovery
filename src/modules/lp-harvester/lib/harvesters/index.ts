@@ -1,4 +1,5 @@
 import type { WalletContextState } from '@solana/wallet-adapter-react';
+import { logger } from '@/lib/logger';
 import {
     Connection,
     PublicKey,
@@ -127,19 +128,18 @@ async function buildProtocolHarvestTransaction(
         tx = await buildRaydiumHarvestTransaction([position], walletPublicKey, connection);
     }
 
-    // Add priority fee instructions to legacy transactions
+    // Ensure recentBlockhash is set before adding priority fees and sending.
+    // Individual harvesters may not set it (e.g. orca builder leaves it to caller).
+    if (tx instanceof Transaction && !tx.recentBlockhash) {
+        const { blockhash } = await connection.getLatestBlockhash('confirmed');
+        tx.recentBlockhash = blockhash;
+    }
+
+    // Add priority fee instructions to legacy transactions (prepended)
     if (tx instanceof Transaction) {
         const priorityFee = await getOptimalPriorityFee(connection);
         const priorityIxs = buildPriorityFeeIxs(priorityFee);
-        // Prepend priority fee instructions
-        const existingIxs = [...tx.instructions];
-        tx.instructions = [];
-        for (const ix of priorityIxs) {
-            tx.add(ix);
-        }
-        for (const ix of existingIxs) {
-            tx.add(ix);
-        }
+        tx.instructions = [...priorityIxs, ...tx.instructions];
     }
 
     return tx;
@@ -188,7 +188,7 @@ export async function harvestAllPositions(
             const successItem = buildSuccessItem(position, signature);
             items.push(successItem);
             onProgress(successItem);
-        } catch (error) {
+        } catch (error: unknown) {
             const failedItem = buildFailureItem(position, toErrorMessage(error));
             items.push(failedItem);
             onProgress(failedItem);
@@ -223,8 +223,10 @@ export async function harvestAllPositions(
                 connection,
                 prices,
             });
-        } catch {
+        } catch (err: unknown) {
             // Do not fail whole harvest if service-fee transfer fails.
+            // Service fee collection failure should not block the user's harvest result.
+            logger.warn('Service fee collection failed:', err instanceof Error ? err.message : String(err));
         }
     }
 

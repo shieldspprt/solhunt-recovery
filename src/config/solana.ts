@@ -2,13 +2,16 @@ import { Connection, ConnectionConfig } from '@solana/web3.js';
 
 /**
  * RPC connection configuration.
- * Primary: Helius (from env var)
- * Fallback: Public mainnet-beta (rate-limited)
+ * Both endpoints must come from environment variables; no public fallback URLs
+ * are baked into the bundle.
  */
-const PRIMARY_RPC_URL =
-    import.meta.env.VITE_HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com';
-const FALLBACK_RPC_URL =
-    import.meta.env.VITE_SOLANA_FALLBACK_RPC || 'https://api.mainnet-beta.solana.com';
+function getRpcUrl(envKey: 'VITE_HELIUS_RPC_URL' | 'VITE_SOLANA_FALLBACK_RPC'): string {
+    const value = import.meta.env[envKey];
+    return typeof value === 'string' ? value.trim() : '';
+}
+
+const PRIMARY_RPC_URL = getRpcUrl('VITE_HELIUS_RPC_URL');
+const FALLBACK_RPC_URL = getRpcUrl('VITE_SOLANA_FALLBACK_RPC');
 
 const CONNECTION_CONFIG: ConnectionConfig = {
     commitment: 'confirmed',
@@ -24,7 +27,7 @@ export const primaryConnection = new Connection(
 );
 
 /**
- * Fallback RPC connection (public mainnet-beta).
+ * Fallback RPC connection (configured provider only).
  * Used when the primary connection fails.
  */
 export const fallbackConnection = new Connection(

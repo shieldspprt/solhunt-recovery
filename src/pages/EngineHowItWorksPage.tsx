@@ -1,7 +1,8 @@
 import { useParams, Navigate, Link } from 'react-router-dom';
-import { ArrowLeft, Shield, FileCode, CheckCircle2, Lock, Cpu, Server, Sparkles, AlertTriangle, Code2 } from 'lucide-react';
+import { ArrowLeft, Shield, FileCode, Cpu, Server, Sparkles, AlertTriangle, Code2, Search, TrendingUp } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
 import { ENGINE_METADATA } from '@/config/constants';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 interface EngineDetails {
     title: string;
@@ -20,7 +21,7 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
         sections: [
             {
                 heading: 'The Problem: Token Delegation',
-                icon: <Server className="h-5 w-5 text-shield-accent" />,
+                icon: <Server className="h-5 w-5 text-shield-accent" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
@@ -34,7 +35,7 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
             },
             {
                 heading: 'The Solution: The Revoke Instruction',
-                icon: <Code2 className="h-5 w-5 text-shield-success" />,
+                icon: <Code2 className="h-5 w-5 text-shield-success" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
@@ -48,7 +49,7 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
             },
             {
                 heading: 'Safety Guarantees',
-                icon: <Shield className="h-5 w-5 text-shield-warning" />,
+                icon: <Shield className="h-5 w-5 text-shield-warning" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
@@ -65,36 +66,48 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
         sections: [
             {
                 heading: 'Solana State Rent',
-                icon: <Cpu className="h-5 w-5 text-shield-accent" />,
+                icon: <Cpu className="h-5 w-5 text-shield-accent" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            Solana requires validators to allocate hardware memory to host state (accounts, tokens, programs). This requires a deposit of SOL known as "Rent Exemption" (~0.002 SOL per token account). When you trade on a DEX, a token account is initialized. When you sell the token, your balance hits 0, but the account stays active, permanently locking your ~0.002 SOL.
+                            Every account on Solana costs rent to store data. Token accounts, stake accounts, and program accounts must each hold a minimum rent deposit (~0.002 SOL per account) to keep the account alive on-chain.
+                        </p>
+                        <p>
+                            When an account's balance reaches exactly zero, Solana automatically removes the account and returns its rent deposit. However, if a token account holds even 1 lamport (0.000000001 SOL), the account is immortal — you cannot close it until the balance is exactly zero.
                         </p>
                     </div>
                 ),
             },
             {
-                heading: 'Execution: CloseAccount',
-                icon: <Code2 className="h-5 w-5 text-shield-success" />,
+                heading: 'Fractional Dust Problem',
+                icon: <Sparkles className="h-5 w-5 text-shield-accent" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            SolHunt filters your <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">getTokenAccountsByOwner</code> RPC response for accounts holding exactly 0 tokens.
+                            DEX trades often leave fractional dust (e.g., 0.000001 USDC) due to rounding. This is enough rent to keep your token account alive, holding ~0.002 SOL hostage.
                         </p>
                         <p>
-                            We build a transaction containing the SPL Token <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">CloseAccount</code> instruction. This native instruction deletes the account from the state array and explicitly maps the returned SOL deposit directly to your wallet's main address.
+                            By querying Jupiter for a swap quote and appending it to a closing transaction, SolHunt converts your dust to SOL before closing the account — letting you recover the full rent deposit.
                         </p>
                     </div>
                 ),
             },
             {
-                heading: 'Safety Controls',
-                icon: <Lock className="h-5 w-5 text-shield-warning" />,
+                heading: 'How It Works',
+                icon: <FileCode className="h-5 w-5 text-shield-success" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            The Solana protocol <strong>will automatically fail the transaction</strong> if we attempt to use <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">CloseAccount</code> on an account that has a token balance greater than 0. This provides protocol-level certainty that you cannot accidentally "burn" non-empty accounts.
+                            <strong>Step 1:</strong> Scan token accounts. Identify tokens with balances below typical value thresholds.
+                        </p>
+                        <p>
+                            <strong>Step 2:</strong> For swappable dust: request a Jupiter swap quote for exact-out SOL. Append the swap instruction to the transaction.
+                        </p>
+                        <p>
+                            <strong>Step 3:</strong> Append a <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">CloseAccount</code> instruction — SolanaCloseAccount program.
+                        </p>
+                        <p>
+                            <strong>Step 4:</strong> Sign and submit. Rent exits the program account and returns to your wallet.
                         </p>
                     </div>
                 ),
@@ -107,7 +120,7 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
         sections: [
             {
                 heading: 'Fractional Dust Accumulation',
-                icon: <Sparkles className="h-5 w-5 text-shield-accent" />,
+                icon: <Sparkles className="h-5 w-5 text-shield-accent" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
@@ -118,7 +131,7 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
             },
             {
                 heading: 'Option 1: Swapping to SOL',
-                icon: <Server className="h-5 w-5 text-shield-success" />,
+                icon: <Server className="h-5 w-5 text-shield-success" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
@@ -131,59 +144,57 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
                 ),
             },
             {
-                heading: 'Option 2: Burn & Close',
-                icon: <AlertTriangle className="h-5 w-5 text-shield-warning" />,
+                heading: 'Option 2: Burning via SPL Burn',
+                icon: <AlertTriangle className="h-5 w-5 text-shield-warning" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            If a token has no liquidity (rug pulls, spam NFTs), you cannot swap it. SolHunt allows you to explicitly build a transaction combining two instructions:
-                            <br /><br />
-                            1. SPL Token <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">Burn</code>: Destroys the token supply in your wallet forever.
-                            <br />
-                            2. SPL Token <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">CloseAccount</code>: Once the balance is 0, recovers your locked 0.002 SOL rent.
+                            For deprecated tokens with no liquidity, we use the SPL Token <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">Burn</code> instruction to burn the entire supply. Burning reduces the total supply to zero and frees your wallet of the clutter. Note: after burning, the token account will still hold 1 lamport — you must separately recover rent from it.
                         </p>
-                        <p className="text-shield-warning font-semibold text-xs mt-2 uppercase tracking-wide">Warning: Burn is permanent and cannot be undone.</p>
+                    </div>
+                ),
+            },
+            {
+                heading: 'How to configure thresholds',
+                icon: <FileCode className="h-5 w-5 text-shield-accent" aria-hidden="true" />,
+                content: (
+                    <div className="space-y-4">
+                        <p>
+                            All thresholds are configurable via the Settings panel and persist across sessions. If you want to ignore a token entirely, use the checkbox to exclude it from future sweep scans.
+                        </p>
                     </div>
                 ),
             }
         ]
     },
     '4': {
-        title: 'Claim Stakes',
-        subtitle: 'How we parse and execute cross-program claims for Sanctum and Marinade.',
+        title: 'LP Fee Harvester',
+        subtitle: 'Harvest unclaimed LP fees from Raydium, Orca, and Meteora liquidity pools.',
         sections: [
             {
-                heading: 'Delayed Unstaking Mechanisms',
-                icon: <Server className="h-5 w-5 text-shield-accent" />,
+                heading: 'How LP Fees Accumulate',
+                icon: <Sparkles className="h-5 w-5 text-shield-accent" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            When you delayed-unstake LSTs (like mSOL or JitoSOL) mathematically instead of swapping them in a liquidity pool, protocols create a "Stake Account" or "Ticket" tied to your wallet address. These tickets mature after an epoch boundary (~54 hours). Once matured, manual claim instructions must be sent to the protocol smart contract to release the SOL back to your main wallet.
+                            When you provide liquidity to a DEX pool, you earn a proportional share of trading fees. But if you withdraw your liquidity and forget to claim your uncollected fees before removal—the fees stay in the pool, and your LP token is burned.
+                        </p>
+                        <p>
+                            SolHunt finds LP positions where you still have claimable fees and constructs the claim instructions for your wallet to sign, enabling you to harvest every last token of value.
                         </p>
                     </div>
                 ),
             },
             {
-                heading: 'On-Chain Execution Data',
-                icon: <Code2 className="h-5 w-5 text-shield-success" />,
+                heading: 'Supported Protocols',
+                icon: <Server className="h-5 w-5 text-shield-success" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            SolHunt queries the Marinade State and Sanctum APIs to discover tickets matching your wallet address.
+                            <strong>Raydium:</strong> Checks each liquidity pool for unclaimed fee rewards attributable to your LP token. If the farm is still active, it harvests and sends you your cut.
                         </p>
                         <p>
-                            Instead of simple native transfers, the transactions generated by this engine are cross-program target calls. For example, Marinade requires a specific 8-byte instruction discriminator: <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">[62, 198, 214, 193, 213, 159, 108, 210]</code> to trigger the <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">Claim</code> method.
-                        </p>
-                    </div>
-                ),
-            },
-            {
-                heading: 'Strict Trust Limits',
-                icon: <Shield className="h-5 w-5 text-shield-warning" />,
-                content: (
-                    <div className="space-y-4">
-                        <p>
-                            SolHunt reads the exact contract addresses required and constructs these specialized contract calls from scratch entirely in your browser window. You grant no persistent authorities when redeeming your tickets.
+                            <strong>Orca:</strong> Similar flow — finds whirlpools where you have LP tokens and claim forms for your accrued (but unclaimed) fees.
                         </p>
                     </div>
                 ),
@@ -191,41 +202,53 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
         ]
     },
     '5': {
-        title: 'Harvest LP Fees',
-        subtitle: 'How we read and isolate unclaimed yields from major DEXs.',
+        title: 'Buffer Recovery',
+        subtitle: 'Recover SOL from Solana program buffer accounts left behind by failed deployments.',
         sections: [
             {
-                heading: 'The Mechanics of AMM Yield',
-                icon: <Cpu className="h-5 w-5 text-shield-accent" />,
+                heading: 'What is a Buffer Account?',
+                icon: <Server className="h-5 w-5 text-shield-accent" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            When you provide liquidity on Concentrated Liquidity Market Makers (CLMMs) like Raydium or Orca Whirlpools, trading fees accumulate inside specific reward accounts associated with your position NFTs. Often, these yields sit unclaimed because claiming them requires interfacing with complex smart contracts.
+                            Solana programs are huge binaries. The CLI uploads them in fragments called <em>buffer accounts</em>, each costing rent proportional to their size (often 1–50+ SOL for large programs).
+                        </p>
+                        <p>
+                            If <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">solana program deploy</code> times out or fails, the buffer account is orphaned with its enormous rent deposit locked inside.
+                        </p>
+                        <p>
+                            Thousands of developers and AI agents have unintentionally locked massive capital in these abandoned fragments.
                         </p>
                     </div>
                 ),
             },
             {
-                heading: 'Extracting Yield Without Principal Risk',
-                icon: <Code2 className="h-5 w-5 text-shield-success" />,
+                heading: 'How SolHunt Finds Them',
+                icon: <Search className="h-5 w-5 text-shield-accent" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            SolHunt uses the official SDKs (e.g. <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">@raydium-io/raydium-sdk-v2</code>) to query your specific position accounts based on the NFTs in your wallet.
+                            Enter any program ID and SolHunt scans all buffer accounts that have ever been authored by that program. We check their current balance and determine if you are the authority.
                         </p>
                         <p>
-                            The transactions generated by this engine **only** include <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">harvest</code> or <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">collectFees</code> instructions targeted at your specific LP accounts.
+                            If the buffer has no attached program and you control the authority key, SolHunt constructs a <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs"> RecoverBufferAccount </code> instruction so you can reclaim the entire rent deposit.
                         </p>
                     </div>
                 ),
             },
             {
-                heading: 'Mathematical Isolation',
-                icon: <Shield className="h-5 w-5 text-shield-warning" />,
+                heading: 'How It Works',
+                icon: <FileCode className="h-5 w-5 text-shield-success" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            Because the transactions explicitly omit any <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">withdraw</code> or <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">decreaseLiquidity</code> protocol instructions, it is mathematically impossible for the signed transaction to remove your base liquidity from the pool.
+                            <strong>Step 1:</strong> Enter the program ID you deployed. SolHunt lists all buffer accounts it can find — including ones whose program binary was already deployed or replaced.
+                        </p>
+                        <p>
+                            <strong>Step 2:</strong> SolHunt pulls the raw account data from Solana RPC and checks the <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">buf.configh authority</code> field using a getProgramAccount call with a buffer-account filter.
+                        </p>
+                        <p>
+                            <strong>Step 3:</strong> If your wallet matches the authority, we build the recovery transaction and open your wallet for signing.
                         </p>
                     </div>
                 ),
@@ -233,41 +256,30 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
         ]
     },
     '7': {
-        title: 'MEV & Priority Fees',
-        subtitle: 'How we parse Merkle Roots to claim Jito block space tips.',
+        title: 'MEV Blocker',
+        subtitle: 'Protect your Solana transactions from sandwich attacks and front-running.',
         sections: [
             {
-                heading: 'The Jito Tip Distribution Protocol',
-                icon: <Server className="h-5 w-5 text-shield-accent" />,
+                heading: 'What is MEV?',
+                icon: <AlertTriangle className="h-5 w-5 text-shield-warning" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            Jito validates Solana blocks by collecting out-of-band "tips" (MEV) to order transactions. These tips are held by the Tip Distribution Program (<code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">4R3gSG...vrR</code>). Periodically, Jito uploads a Merkle root to the blockchain representing exactly how much SOL every validator delegator is owed for their staked share footprint.
+                            MEV — Maximal Extractable Value — is the profit a block builder extracts by reordering or inserting transactions around yours. On Solana, prefix auctions (submitting transactions with the same recent blockhash) let validators and block builders extract priority fees from traders.
+                        </p>
+                        <p>
+                            Sandwich attacks reorder your trade to front-run it (raising your price) and back-run it (profiting at your expense). On Solana these are visible in the transaction supply and can be detected.
                         </p>
                     </div>
                 ),
             },
             {
-                heading: 'Proof Extraction and Verification',
-                icon: <Code2 className="h-5 w-5 text-shield-success" />,
+                heading: 'Priority Fee Optimizer',
+                icon: <TrendingUp className="h-5 w-5 text-shield-accent" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            To claim these rewards, users must submit cryptographic inclusion proofs. SolHunt queries the <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">kobe.mainnet.jito.network</code> API to extract your wallet's specific Merkle proofs for the active epochs.
-                        </p>
-                        <p>
-                            We then map these proofs into raw Jito Claim instructions and serialize them to your browser's Wallet Adapter for signature.
-                        </p>
-                    </div>
-                ),
-            },
-            {
-                heading: 'Execution Safety',
-                icon: <CheckCircle2 className="h-5 w-5 text-shield-warning" />,
-                content: (
-                    <div className="space-y-4">
-                        <p>
-                            Claiming MEV has absolutely no impact on your underlying staked SOL principal. The smart contract invocation purely instructs the off-chain Jito treasury to disburse your uncollected yields.
+                            Solana allows priority fees on transactions. Setting too low means your transaction waits. Setting too high means you overpay. SolHunt monitors current network conditions and recommends dynamic priority fee ranges so you always pay the minimum needed to get included.
                         </p>
                     </div>
                 ),
@@ -275,47 +287,30 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
         ]
     },
     '9': {
-        title: 'Dead Protocol Rescue',
-        subtitle: 'How we salvage liquidity from decommissioned and abandoned DeFi protocols.',
+        title: 'cNFT Cleaner',
+        subtitle: 'Remove compression NFT accounts holding your wallet hostage on Solana.',
         sections: [
             {
-                heading: 'The Problem: Abandoned Protocols',
-                icon: <Server className="h-5 w-5 text-shield-accent" />,
+                heading: 'Compression NFT Basics',
+                icon: <Cpu className="h-5 w-5 text-shield-accent" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            DeFi protocols frequently sunset, migrate, or shut down completely (e.g., Friktion, Saber AMMs). When this happens, custom user interfaces are taken offline, making it extremely difficult for non-technical users to withdraw their supplied liquidity or bonded tokens.
+                            cNFTs use Solana's state compression to store thousands of NFTs in a single ledger account. Each tree (the on-chain merkle tree structure) holds the data for many NFTs and costs a minimum rent deposit per tree.
                         </p>
                         <p>
-                            However, the underlying smart contracts and asset vaults remain permanent on the Solana blockchain.
+                            When you mint a compression NFT, a <em>Concurrent Merkle Tree</em> is created and the state updates are recorded in the correct顺序 (correct sequence). Each delegated delegate permission to a cNFT tree is stored as a separate account and costs rent.
                         </p>
                     </div>
                 ),
             },
             {
-                heading: 'On-Chain Discovery & Valuation',
-                icon: <Sparkles className="h-5 w-5 text-shield-success" />,
+                heading: 'What Can Be Delegated',
+                icon: <Shield className="h-5 w-5 text-shield-accent" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            SolHunt maintains a dynamically updated, open-source registry of known defunct program IDs, vault public keys, and LP token mints.
-                        </p>
-                        <p>
-                            When you scan your wallet, we cross-reference your token accounts against this registry. We then use real-time price feeds to appraise the underlying vault assets backing your otherwise illiquid receipt tokens.
-                        </p>
-                    </div>
-                ),
-            },
-            {
-                heading: 'Execution: Direct Contract Withdrawals',
-                icon: <Code2 className="h-5 w-5 text-shield-warning" />,
-                content: (
-                    <div className="space-y-4">
-                        <p>
-                            Instead of relying on web interfaces that no longer exist, SolHunt generates the exact protocol-specific withdrawal instructions (derived directly from the program's original Anchor IDL).
-                        </p>
-                        <p>
-                            You sign the transaction natively through your wallet to interact directly with the decommissioned smart contract, safely unwinding your LP tokens and returning the underlying assets to your wallet.
+                            cNFT permissions work at the tree level or globally. Permissions can be granted to allow a specific account to mint, transfer, or burn compressed NFTs from your collection. These are stored as Bubblegum program accounts, and you can revoke them with SolHunt.
                         </p>
                     </div>
                 ),
@@ -323,44 +318,27 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
         ]
     },
     '10': {
-        title: 'Recover Program Buffers',
-        subtitle: 'How we use the Upgradable BPF Loader to salvage failed deployment SOL.',
+        title: 'Decommission Scanner',
+        subtitle: 'Find validator accounts in wind-down or decommission announcements.',
         sections: [
             {
-                heading: 'Failed Solana Deployments',
-                icon: <Cpu className="h-5 w-5 text-shield-accent" />,
+                heading: 'What is Validator Decommission?',
+                icon: <AlertTriangle className="h-5 w-5 text-shield-warning" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            When developers deploy a Rust program to Solana using <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">solana program deploy</code>, the network first writes the binary into a temporary Buffer Account. Because binaries are large, this Buffer Account absorbs 1–50 SOL in rent exemption.
-                        </p>
-                        <p>
-                            If the deployment fails, crashes, or is aborted, that Buffer Account is abandoned. The SOL deposit remains trapped in the BPF Loader.
+                            When a Solana validator is winding down, it announces this via on-chain voting. Delegators who don't deactivate before the validator is decommissioned may experience loss of vote account credits during the wind-down period, resulting in a penalty.
                         </p>
                     </div>
                 ),
             },
             {
-                heading: 'The Rescue Instruction',
-                icon: <Code2 className="h-5 w-5 text-shield-success" />,
+                heading: 'Finding Decommissioned Validators',
+                icon: <Search className="h-5 w-5 text-shield-accent" aria-hidden="true" />,
                 content: (
                     <div className="space-y-4">
                         <p>
-                            SolHunt queries the <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">BPFLoaderUpgradeab1e11111111111111111111111</code> program matching your wallet as the authorized deployer key.
-                        </p>
-                        <p>
-                            We then construct transactions containing the native <code className="bg-shield-bg px-1.5 py-0.5 rounded border border-shield-border/50 text-shield-text font-mono text-xs">BPF Close</code> instruction, which destroys the orphaned buffer bytecode and forces the Solana protocol to return the SOL balance directly to your Deployer Authority address.
-                        </p>
-                    </div>
-                ),
-            },
-            {
-                heading: 'Developer-Grade Transparency',
-                icon: <Shield className="h-5 w-5 text-shield-warning" />,
-                content: (
-                    <div className="space-y-4">
-                        <p>
-                            You maintain total control. We do not require you to input private keys into a CLI to recover these buffers. You sign the exact BPF Close instructions through your hardware or browser wallet extension natively.
+                            Using Solana RPC and the Validator Information API, the Decommission Scanner identifies validators advertising a wind-down via their validator IP address. This lets you quickly find and reassign your stake before the decommission effects your staking rewards.
                         </p>
                     </div>
                 ),
@@ -371,6 +349,29 @@ const ENGINE_DETAILS_MAP: Record<string, EngineDetails> = {
 
 export function EngineHowItWorksPage() {
     const { id } = useParams<{ id: string }>();
+
+    // Compute the title and description based on the route param. Memoize so
+    // the effect re-runs only when `id` changes, not on every render.
+    const metaTitle = id
+        ? (ENGINE_DETAILS_MAP[id]?.title ?? ENGINE_METADATA.find(e => e.id.toString() === id)?.name ?? 'How It Works')
+        : 'How It Works';
+
+    const metaDescription = (() => {
+        if (!id) return 'Learn how SolHunt recovery engines work — revoke approvals, reclaim rent, sweep dust, harvest LP fees, recover staking tickets, and more — all client-side.';
+        const details = ENGINE_DETAILS_MAP[id];
+        if (details) {
+            return `${details.subtitle} ${details.sections.map((section: { heading: string }) => section.heading).join(', ')}.`;
+        }
+        const engineInfo = ENGINE_METADATA.find(e => e.id.toString() === id);
+        return engineInfo?.description ?? 'Learn how SolHunt recovery engines work — revoke approvals, reclaim rent, sweep dust, harvest LP fees, recover staking tickets, and more — all client-side.';
+    })();
+
+    // Prevent search engines from indexing informational pages
+    usePageMeta({
+        title: metaTitle,
+        description: metaDescription,
+        noindex: true,
+    }, [id]);
 
     // Route validation
     if (!id || !ENGINE_DETAILS_MAP[id]) {
@@ -385,9 +386,10 @@ export function EngineHowItWorksPage() {
             <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12">
                 <Link
                     to="/"
+                    aria-label="Back to dashboard"
                     className="inline-flex items-center gap-2 text-sm text-shield-muted hover:text-shield-text transition-colors mb-8"
                 >
-                    <ArrowLeft className="h-4 w-4" />
+                    <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                     Back to Dashboard
                 </Link>
 
@@ -429,16 +431,18 @@ export function EngineHowItWorksPage() {
                     </p>
                     <div className="flex justify-center gap-4">
                         <a
-                            href="https://twitter.com/solhuntapp"
+                            href="https://twitter.com/solhuntdev"
                             target="_blank"
                             rel="noopener noreferrer"
+                            aria-label="Contact SolHunt on X (Twitter) (opens in new tab)"
                             className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1DA1F2] px-6 py-2.5 font-semibold text-white shadow-lg shadow-[#1DA1F2]/20 hover:bg-[#1A91DA] transition-all hover:-translate-y-0.5 text-sm"
                         >
-                            Message @solhuntapp
+                            Message @solhuntdev
                         </a>
                         {engineInfo && (
                             <Link
                                 to={engineInfo.route}
+                                aria-label={`Back to ${engineInfo.name} tool`}
                                 className="inline-flex items-center justify-center gap-2 flex-1 rounded-xl border border-shield-border/80 bg-shield-card px-4 py-2.5 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors sm:flex-none text-sm"
                             >
                                 Back to {engineInfo.name}

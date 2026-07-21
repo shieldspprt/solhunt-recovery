@@ -1,8 +1,15 @@
 import { Link } from 'react-router-dom';
 import { ArrowLeft, Copyright } from 'lucide-react';
 import { PageWrapper } from '@/components/layout/PageWrapper';
+import { usePageMeta } from '@/hooks/usePageMeta';
 
 export function CopyrightPage() {
+    usePageMeta({
+        title: 'Copyright',
+        description: 'SolHunt copyright notice and intellectual property information. All rights reserved for SolHunt and its associated trademarks and technology.',
+        noindex: true,
+    });
+
     return (
         <PageWrapper>
             <div className="mx-auto max-w-3xl px-4 py-12 animate-fade-in-up">
@@ -10,13 +17,14 @@ export function CopyrightPage() {
                     <Link
                         to="/"
                         className="inline-flex items-center gap-2 text-sm text-shield-muted hover:text-shield-accent transition-colors mb-6"
+                        aria-label="Back to SolHunt"
                     >
-                        <ArrowLeft className="h-4 w-4" />
+                        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                         Back to SolHunt
                     </Link>
                     <div className="flex items-center gap-3 mb-4">
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-shield-accent/10 border border-shield-accent/20">
-                            <Copyright className="h-5 w-5 text-shield-accent" />
+                            <Copyright className="h-5 w-5 text-shield-accent" aria-hidden="true" />
                         </div>
                         <h1 className="text-3xl font-bold text-shield-text">Copyright Notice</h1>
                     </div>
@@ -39,7 +47,7 @@ export function CopyrightPage() {
                     <section>
                         <h2 className="text-xl font-semibold text-shield-text mb-3">Copyright Statement</h2>
                         <p>
-                            Copyright (c) 2025 SolHunt. All rights in the SolHunt brand, name,
+                            Copyright (c) 2026 SolHunt. All rights in the SolHunt brand, name,
                             logo, and proprietary content are reserved unless explicitly licensed
                             otherwise.
                         </p>
@@ -69,12 +77,12 @@ export function CopyrightPage() {
                         <p>
                             For copyright or ownership questions, contact SolHunt through{' '}
                             <a
-                                href="https://x.com/solhuntapp"
+                                href="https://x.com/solhuntdev"
                                 className="text-shield-accent hover:underline"
                                 target="_blank"
                                 rel="noopener noreferrer"
                             >
-                                @solhuntapp
+                                @solhuntdev
                             </a>.
                         </p>
                     </section>

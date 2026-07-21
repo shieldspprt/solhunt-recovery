@@ -1,6 +1,6 @@
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
 import { createCloseAccountInstruction } from '@solana/spl-token';
-import type { ScanResult, CloseableAccount, ReclaimEstimate, TokenProgramId } from '@/types';
+import type { ScanResult, CloseableAccount, ReclaimEstimate } from '@/types';
 import {
     RENT_RECLAIM_FEE_PERCENT,
     RENT_RECLAIM_MIN_ACCOUNTS,
@@ -10,21 +10,15 @@ import {
 } from '@/config/constants';
 import { getOptimalPriorityFee, buildPriorityFeeIxs } from '@/lib/priorityFee';
 import { createAppError } from '@/lib/errors';
-
-/**
- * Maps the TokenProgramId string logic to actual Program IDs if needed
- * We store string literals in the type to avoid serialization issues in Zustand
- */
-function getTokenProgramPublicKey(programId: TokenProgramId): PublicKey {
-    return new PublicKey(programId);
-}
+import { toTokenProgramPublicKey } from '@/lib/tokenProgram';
+import { getLatestBlockhashWithRetry } from '@/lib/rpcRetry';
 
 /**
  * Filters ScanResult to find truly empty accounts eligible for closure.
  * This is totally client-side using data already fetched by the scanner.
  */
 export function getCloseableAccounts(scanResult: ScanResult | null): CloseableAccount[] {
-    if (!scanResult || !scanResult.emptyAccounts) return [];
+    if (!scanResult || !Array.isArray(scanResult.emptyAccounts)) return [];
 
     // Re-map the raw empty accounts into our enriched CloseableAccount type
     return scanResult.emptyAccounts.map((account) => ({
@@ -66,15 +60,27 @@ export function calculateReclaimEstimate(accounts: CloseableAccount[]): ReclaimE
     };
 }
 
+export interface ReclaimTx {
+    transaction: Transaction;
+    closeCount: number;
+}
+
 /**
  * Builds batched transactions to close empty token accounts.
  * Safely adds the service fee transfer to the FIRST transaction only.
+ *
+ * Returns each Transaction paired with the number of CloseAccount instructions
+ * it actually contains. Callers MUST use this closeCount rather than inferring
+ * from `transaction.instructions.length`, because each transaction also contains
+ * 2 priority-fee ComputeBudget instructions plus (on the first batch) one
+ * service-fee transfer — the old inference subtracted only 1, silently
+ * overcounting closed accounts on the first batch.
  */
 export async function buildReclaimTransactions(
     accounts: CloseableAccount[],
     walletPublicKey: PublicKey,
     connection: Connection
-): Promise<Transaction[]> {
+): Promise<ReclaimTx[]> {
     // Step 1: Safety checks (Section 4.3)
     if (!accounts || accounts.length < RENT_RECLAIM_MIN_ACCOUNTS) {
         throw createAppError(
@@ -101,20 +107,24 @@ export async function buildReclaimTransactions(
         batches.push(accounts.slice(i, i + MAX_CLOSE_PER_TX));
     }
 
-    // Step 3: Fetch latest blockhash
+    // Step 3: Fetch latest blockhash with retry for RPC compliance
     let recentBlockhash: string;
     try {
-        const { blockhash } = await connection.getLatestBlockhash('confirmed');
+        const { blockhash } = await getLatestBlockhashWithRetry(connection, 'confirmed');
         recentBlockhash = blockhash;
-    } catch (error) {
+    } catch (err: unknown) {
         throw createAppError(
             'RPC_ERROR',
-            `Failed to fetch blockhash: ${error instanceof Error ? error.message : String(error)}`
+            `Failed to fetch blockhash: ${err instanceof Error ? err.message : String(err)}`
         );
     }
 
-    // Step 4: Build transactions
-    const transactions: Transaction[] = [];
+    // Step 4: Build transactions (each tagged with the number of CloseAccount
+    // instructions it actually contains, so callers don't have to infer it
+    // from tx.instructions.length — which is wrong because each tx also carries
+    // priority-fee ComputeBudget instructions and (on the first batch) a
+    // service-fee transfer)
+    const transactions: ReclaimTx[] = [];
     const priorityFee = await getOptimalPriorityFee(connection);
 
     for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
@@ -140,7 +150,7 @@ export async function buildReclaimTransactions(
         // Add Close Account instruction for each empty account
         for (const account of batch) {
             const accountPubkey = new PublicKey(account.address);
-            const programId = getTokenProgramPublicKey(account.programId);
+            const programId = toTokenProgramPublicKey(account.programId);
 
             transaction.add(
                 createCloseAccountInstruction(
@@ -157,7 +167,8 @@ export async function buildReclaimTransactions(
         transaction.recentBlockhash = recentBlockhash;
         transaction.feePayer = walletPublicKey;
 
-        transactions.push(transaction);
+        const closeCount = batch.length;
+        transactions.push({ transaction, closeCount });
     }
 
     return transactions;

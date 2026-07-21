@@ -1,13 +1,6 @@
 import { DEXSCREENER_SOLANA_TOKENS_API } from '../constants';
 import type { DexScreenerPair } from '../../../types';
-
-function chunk<T>(items: T[], size: number): T[][] {
-    const chunks: T[][] = [];
-    for (let index = 0; index < items.length; index += size) {
-        chunks.push(items.slice(index, index + size));
-    }
-    return chunks;
-}
+import { chunk } from '@/lib/arrayUtils';
 
 function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -55,9 +48,14 @@ async function fetchDexScreenerPrices(mints: string[]): Promise<Map<string, numb
         const batch = batches[index];
 
         try {
+            // 8s timeout: a hung DexScreener batch endpoint previously stalled
+            // the LP price-aggregation loop indefinitely, freezing the harvest
+            // estimate UI. Mirrors the pattern from dustScanner.ts:340
+            // (commit 7ea243b) — 8s is generous for a 30-mint batch but tight
+            // enough to surface a clear error before the user gives up.
             const response = await fetch(
                 `${DEXSCREENER_SOLANA_TOKENS_API}/${batch.join(',')}`,
-                { cache: 'no-store' }
+                { cache: 'no-store', signal: AbortSignal.timeout(8000) }
             );
 
             if (response.ok) {
@@ -72,7 +70,7 @@ async function fetchDexScreenerPrices(mints: string[]): Promise<Map<string, numb
                     if (!priceMap.has(mint)) priceMap.set(mint, 0);
                 }
             }
-        } catch {
+        } catch (_e: unknown) {
             for (const mint of batch) {
                 if (!priceMap.has(mint)) priceMap.set(mint, 0);
             }

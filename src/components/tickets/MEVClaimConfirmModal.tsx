@@ -2,6 +2,7 @@ import { AlertTriangle, Zap, X } from 'lucide-react';
 import { useMEVClaims } from '@/hooks/useMEVClaims';
 import { MEV_SERVICE_FEE_PERCENT } from '@/config/constants';
 import { estimateUSD, formatSOLValue, shortenAddress } from '@/lib/formatting';
+import { useState } from 'react';
 
 export function MEVClaimConfirmModal() {
     const {
@@ -11,6 +12,7 @@ export function MEVClaimConfirmModal() {
         cancelClaim,
         executeClaim,
     } = useMEVClaims();
+    const [feeConsent, setFeeConsent] = useState(false);
 
     if (mevClaimStatus !== 'awaiting_confirmation' || !claimEstimate) return null;
 
@@ -18,26 +20,37 @@ export function MEVClaimConfirmModal() {
     const hidden = Math.max(selectedItems.length - preview.length, 0);
 
     return (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-            <div
-                className="absolute inset-0 bg-shield-bg/80 backdrop-blur-sm"
+        <div
+            className="fixed inset-0 z-[110] flex items-center justify-center p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mev-claim-modal-title"
+        >
+            <button
+                className="absolute inset-0 cursor-pointer bg-shield-bg/80 backdrop-blur-sm"
                 onClick={cancelClaim}
+                onKeyDown={(e) => { if (e.key === 'Escape' || e.key === 'Enter') cancelClaim(); }}
+                aria-label="Close MEV claim confirmation"
+                tabIndex={0}
+                type="button"
             />
 
             <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-shield-border bg-shield-card shadow-2xl animate-in fade-in zoom-in-95 duration-200">
                 <button
                     onClick={cancelClaim}
+                    aria-label="Close MEV claim confirmation"
+                    type="button"
                     className="absolute right-4 top-4 text-shield-muted hover:text-shield-text transition-colors"
                 >
-                    <X className="h-5 w-5" />
+                    <X className="h-5 w-5" aria-hidden="true" />
                 </button>
 
                 <div className="p-6 sm:p-8">
                     <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-shield-accent/10 border border-shield-accent/20">
-                        <Zap className="h-8 w-8 text-shield-accent" fill="currentColor" />
+                        <Zap className="h-8 w-8 text-shield-accent" fill="currentColor" aria-hidden="true" />
                     </div>
 
-                    <h2 className="text-xl font-bold text-center text-shield-text mb-4">
+                    <h2 id="mev-claim-modal-title" className="text-xl font-bold text-center text-shield-text mb-4">
                         Claim {claimEstimate.selectedCount} MEV Reward{claimEstimate.selectedCount === 1 ? '' : 's'}?
                     </h2>
 
@@ -83,22 +96,44 @@ export function MEVClaimConfirmModal() {
                     {claimEstimate.totalClaimSOL > 10 && (
                         <div className="rounded-xl border border-shield-danger/30 bg-shield-danger/10 p-3 mb-4">
                             <p className="text-xs text-shield-danger font-medium flex items-start gap-2">
-                                <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" aria-hidden="true" />
                                 You are about to claim more than 10 SOL. Verify this is your wallet before proceeding.
                             </p>
                         </div>
                     )}
 
+                    {/* Fee Disclosure & Consent */}
+                    <div className="rounded-xl border border-shield-accent/30 bg-shield-accent/5 p-4 mb-6">
+                        <label htmlFor="mev-fee-consent" className="flex items-start gap-3 cursor-pointer select-none">
+                            <input
+                                id="mev-fee-consent"
+                                type="checkbox"
+                                checked={feeConsent}
+                                onChange={(e) => setFeeConsent(e.target.checked)}
+                                className="mt-0.5 h-4 w-4 rounded border-shield-border bg-shield-bg text-shield-accent focus:ring-shield-accent focus:ring-offset-0 cursor-pointer"
+                            />
+                            <span className="text-xs text-shield-text leading-relaxed">
+                                I understand that a service fee of <span className="font-semibold text-shield-accent">{formatSOLValue(claimEstimate.serviceFeeSOL)}</span> and network fees of approximately <span className="font-semibold text-shield-accent">{formatSOLValue(claimEstimate.networkFeeSOL)}</span> will be deducted from my wallet upon confirmation.
+                            </span>
+                        </label>
+                    </div>
+
                     <div className="flex flex-col-reverse sm:flex-row gap-3">
                         <button
+                            type="button"
                             onClick={cancelClaim}
-                            className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors"
+                            aria-label="Cancel MEV reward claim"
+                            className="flex-1 rounded-xl border border-shield-border bg-transparent px-4 py-3 font-semibold text-shield-text hover:bg-shield-border/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-shield-bg"
                         >
                             Cancel
                         </button>
                         <button
+                            type="button"
                             onClick={executeClaim}
-                            className="flex-1 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white hover:bg-shield-accent/90 transition-colors"
+                            disabled={!feeConsent}
+                            aria-disabled={!feeConsent}
+                            aria-label={`Confirm claim of ${formatSOLValue(claimEstimate.netReceivedSOL)} — ${claimEstimate.selectedCount} MEV reward${claimEstimate.selectedCount === 1 ? '' : 's'}`}
+                            className="flex-1 rounded-xl bg-shield-accent px-4 py-3 font-semibold text-white shadow-lg shadow-shield-accent/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none hover:bg-shield-accent/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-shield-accent focus-visible:ring-offset-2 focus-visible:ring-offset-shield-bg"
                         >
                             Claim {formatSOLValue(claimEstimate.netReceivedSOL)}
                         </button>

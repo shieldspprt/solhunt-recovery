@@ -2,17 +2,26 @@
 // Builds unsigned transaction(s) to revoke token approvals
 // Fee: 0.001 SOL per batch (first transaction only)
 
-import { Handler } from '@netlify/functions';
 import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
 import { createRevokeInstruction, TOKEN_2022_PROGRAM_ID } from '@solana/spl-token';
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  errorBody,
+  getErrorMessage,
+  isValidSolanaAddress,
+  methodNotAllowed,
+  safeLogError,
+  getSolanaRpcUrl,
+  SOLANA_TOKEN_PROGRAM_ID,
+  SOLANA_TOKEN_2022_PROGRAM_ID,
+} from './_shared';
 
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
-const RPC_URL = HELIUS_API_KEY
-  ? `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
-  : 'https://api.mainnet-beta.solana.com';
+const RPC_URL = getSolanaRpcUrl();
 
-const TOKEN_PROGRAM_ID_PK = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
-const TOKEN_2022_PROGRAM_ID_PK = new PublicKey('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb');
+const TOKEN_PROGRAM_ID_PK = new PublicKey(SOLANA_TOKEN_PROGRAM_ID);
+const TOKEN_2022_PROGRAM_ID_PK = new PublicKey(SOLANA_TOKEN_2022_PROGRAM_ID);
 
 const MAX_REVOKE_PER_TX = 15;
 const SERVICE_FEE_SOL = 0.001;
@@ -26,53 +35,61 @@ interface TokenAccountToRevoke {
   programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' | 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
 }
 
-function isValidSolanaAddress(address: string): boolean {
-  if (!address || typeof address !== 'string') return false;
-  if (address.length < 32 || address.length > 44) return false;
-  try {
-    new PublicKey(address);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'no-store'
-  };
+  const headers = buildCorsHeaders(event, { methods: 'POST, OPTIONS' });
 
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return corsPreflightResponse(event, { methods: 'POST, OPTIONS' });
   }
 
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
+    return methodNotAllowed(event, 'POST, OPTIONS');
   }
 
-  let body: any;
+  let body: Record<string, unknown>;
   try {
-    body = JSON.parse(event.body || '{}');
-  } catch {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid JSON body' }) };
+    body = JSON.parse(event.body || '{}') as Record<string, unknown>;
+  } catch (err: unknown) {
+    // Parse error — return the typed contract so clients can branch on
+    // code='PARSE_ERROR' (retryable transient) vs. 'INVALID_PARAMS' (fix
+    // your request) vs. 'EXECUTION_ERROR' (server bug).
+    safeLogError('build-revoke parse error:', getErrorMessage(err));
+    return { statusCode: 400, headers, body: errorBody('PARSE_ERROR', 'Invalid JSON body') };
   }
 
-  const { wallet_address, token_accounts, batch_number = 1 } = body;
+  const wallet_address = typeof body.wallet_address === 'string' ? body.wallet_address : '';
+  // Parse and validate batch_number: must be a finite positive integer
+  // (Solana batches start at 1). Previously a malformed value (e.g. -1,
+  // 0, 1.5, NaN) silently fell through to the default of 1, and an
+  // out-of-range value (e.g. 99 for a 2-batch revocation) was silently
+  // clamped to the last valid batch via Math.min — returning success for
+  // a request the caller never asked for. That mismatch between
+  // build-revoke and build-recovery (which already returns a typed
+  // INVALID_PARAMS error on out-of-range) made it easy for AI agents to
+  // re-submit the same batch and double-charge the user. Mirror the
+  // build-recovery contract exactly.
+  const rawBatchNumber = body.batch_number;
+  let batch_number = 1;
+  if (rawBatchNumber !== undefined) {
+    if (
+      typeof rawBatchNumber !== 'number' ||
+      !Number.isFinite(rawBatchNumber) ||
+      !Number.isInteger(rawBatchNumber) ||
+      rawBatchNumber < 1
+    ) {
+      return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'Invalid batch_number', 'batch_number must be a positive integer (1, 2, 3, ...).') };
+    }
+    batch_number = rawBatchNumber;
+  }
+  const token_accounts_raw = body.token_accounts;
+  const token_accounts = Array.isArray(token_accounts_raw) ? token_accounts_raw : [];
 
   if (!wallet_address || !isValidSolanaAddress(wallet_address)) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'Invalid wallet_address' }) };
+    return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'Invalid wallet_address', 'Provide a base58 Solana public key (32-44 characters).') };
   }
 
-  if (!token_accounts || !Array.isArray(token_accounts) || token_accounts.length === 0) {
-    return { statusCode: 400, headers, body: JSON.stringify({ error: 'token_accounts array required' }) };
+  if (!token_accounts || token_accounts.length === 0) {
+    return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'token_accounts array required', 'Provide a non-empty array of token account objects with address and mint fields.') };
   }
 
   try {
@@ -97,7 +114,7 @@ export const handler: Handler = async (event) => {
     }
 
     if (accountsToRevoke.length === 0) {
-      return { statusCode: 400, headers, body: JSON.stringify({ error: 'No valid token accounts to revoke' }) };
+      return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'No valid token accounts to revoke', 'Each token account must have a valid base58 address and mint.') };
     }
 
     // Get blockhash
@@ -110,7 +127,18 @@ export const handler: Handler = async (event) => {
     }
 
     const totalBatches = batches.length;
-    const batchIdx = Math.min(Math.max(0, batch_number - 1), totalBatches - 1);
+    const batchIdx = batch_number - 1;
+
+    // Out-of-range batch number — return a typed 400 INVALID_PARAMS error
+    // instead of silently clamping to the last valid batch (the previous
+    // Math.min(Math.max(0, batch_number - 1), totalBatches - 1) behavior).
+    // Silently re-mapping a 99th batch request to the 1st batch produced
+    // a "success" response for a transaction the caller never asked for,
+    // making double-charges invisible to AI agents driving this API.
+    if (batchIdx >= totalBatches) {
+      return { statusCode: 400, headers, body: errorBody('INVALID_PARAMS', 'Batch number out of range', `batch_number=${batch_number} exceeds total_batches=${totalBatches}.`) };
+    }
+
     const currentBatch = batches[batchIdx];
 
     // Build transaction
@@ -177,15 +205,13 @@ export const handler: Handler = async (event) => {
       })
     };
 
-  } catch (error: any) {
-    console.error('build-revoke error:', error.message);
+  } catch (error: unknown) {
+    const errorMessage = getErrorMessage(error);
+    safeLogError('build-revoke error:', errorMessage);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Failed to build revoke transaction. RPC may be rate limited.'
-      })
+      body: errorBody('EXECUTION_ERROR', 'Failed to build revoke transaction', errorMessage)
     };
   }
 };

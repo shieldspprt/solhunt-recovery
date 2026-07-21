@@ -9,7 +9,7 @@ export function WindingDownBanner() {
             <div className="absolute inset-0 bg-red-500/5 rotate-in pointer-events-none origin-bottom opacity-50 transition-transform duration-1000 group-hover:scale-105" />
             <div className="relative z-10">
                 <div className="flex items-center gap-3 mb-4">
-                    <span className="text-3xl animate-bounce">🚨</span>
+                    <span className="text-3xl animate-bounce" aria-hidden="true">🚨</span>
                     <h2 className="text-xl font-bold text-red-500 uppercase tracking-wider">
                         URGENT — WINDING DOWN
                     </h2>

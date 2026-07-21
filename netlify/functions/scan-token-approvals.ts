@@ -2,18 +2,27 @@
 // Scans a Solana wallet for token approvals/delegations (dApps with spending rights)
 // Returns: list of delegations with risk scores
 
-import { Handler } from '@netlify/functions';
 import { Connection, PublicKey } from '@solana/web3.js';
+import {
+  type Handler,
+  buildCorsHeaders,
+  corsPreflightResponse,
+  errorBody,
+  getErrorMessage,
+  isValidSolanaAddress,
+  methodNotAllowed,
+  safeLogError,
+  getSolanaRpcUrl,
+  SOLANA_TOKEN_PROGRAM_ID,
+  SOLANA_TOKEN_2022_PROGRAM_ID,
+} from './_shared';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const HELIUS_API_KEY = process.env.HELIUS_API_KEY;
-const RPC_URL = HELIUS_API_KEY
-  ? `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
-  : 'https://api.mainnet-beta.solana.com';
+const RPC_URL = getSolanaRpcUrl();
 
-const TOKEN_PROGRAM_ID = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
-const TOKEN_2022_PROGRAM_ID = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb';
+const TOKEN_PROGRAM_ID = SOLANA_TOKEN_PROGRAM_ID;
+const TOKEN_2022_PROGRAM_ID = SOLANA_TOKEN_2022_PROGRAM_ID;
 
 // Known safe delegates (protocols that are generally trustworthy)
 const KNOWN_DELEGATES = new Set([
@@ -58,19 +67,6 @@ interface ApprovalScanResult {
   recommendation: string;
 }
 
-// ── Validation ────────────────────────────────────────────────────────────────
-
-function isValidSolanaAddress(address: string): boolean {
-  if (!address || typeof address !== 'string') return false;
-  if (address.length < 32 || address.length > 44) return false;
-  try {
-    new PublicKey(address);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 // ── Risk Assessment ──────────────────────────────────────────────────────────
 
 function assessRisk(
@@ -96,28 +92,14 @@ function assessRisk(
 // ── Main handler ──────────────────────────────────────────────────────────────
 
 export const handler: Handler = async (event) => {
-  const allowedOrigins = ['https://solhunt.dev', 'http://localhost:5173', 'http://localhost:8888'];
-  const origin = event.headers.origin || event.headers.Origin || '';
-  const corsOrigin = allowedOrigins.includes(origin) ? origin : 'https://solhunt.dev';
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': corsOrigin,
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'no-store'
-  };
+  const headers = buildCorsHeaders(event, { methods: 'GET, OPTIONS' });
 
   if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
+    return corsPreflightResponse(event, { methods: 'GET, OPTIONS' });
   }
 
   if (event.httpMethod !== 'GET') {
-    return {
-      statusCode: 405,
-      headers,
-      body: JSON.stringify({ success: false, error: 'Method not allowed' })
-    };
+    return methodNotAllowed(event, 'GET, OPTIONS');
   }
 
   const address = event.queryStringParameters?.address?.trim();
@@ -126,7 +108,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({ success: false, error: 'Missing address parameter' })
+      body: errorBody('INVALID_PARAMS', 'Missing address parameter', 'Pass ?address=<base58 Solana public key>.')
     };
   }
 
@@ -134,10 +116,7 @@ export const handler: Handler = async (event) => {
     return {
       statusCode: 400,
       headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Invalid Solana wallet address'
-      })
+      body: errorBody('INVALID_PARAMS', 'Invalid Solana wallet address', 'Must be 32–44 characters, base58 encoded.')
     };
   }
 
@@ -251,15 +230,13 @@ export const handler: Handler = async (event) => {
       })
     };
 
-  } catch (error: any) {
-    console.error('scan-token-approvals error:', error.message);
+  } catch (error: unknown) {
+    const message = getErrorMessage(error);
+    safeLogError('scan-token-approvals error:', message);
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({
-        success: false,
-        error: 'Scan failed. RPC may be rate limited. Try again shortly.'
-      })
+      body: errorBody('INTERNAL_ERROR', 'Scan failed. RPC may be rate limited. Try again shortly.')
     };
   }
 };
