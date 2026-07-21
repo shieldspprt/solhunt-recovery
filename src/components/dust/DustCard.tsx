@@ -32,6 +32,13 @@ export const DustCard = memo(function DustCard() {
         startBurnForMints,
     } = useDustBurnReclaim();
 
+    const parentRef = useRef<HTMLDivElement | null>(null);
+    const virtualizer = useVirtualizer({
+        count: dustScanResult?.dustTokens?.length ?? 0,
+        getScrollElement: () => parentRef.current,
+        estimateSize: () => 48,
+    });
+
     // Hooks must be called before any early returns
     const serviceFeeSOL = useMemo(
         () => estimatedSelectionSOL * (DUST_SWAP_FEE_PERCENT / 100),
@@ -76,13 +83,6 @@ export const DustCard = memo(function DustCard() {
             </div>
         );
     }
-
-    const parentRef = useRef<HTMLDivElement | null>(null);
-    const virtualizer = useVirtualizer({
-        count: dustScanResult.dustTokens.length,
-        getScrollElement: () => parentRef.current,
-        estimateSize: () => 48,
-    });
 
     return (
         <div 
