@@ -136,14 +136,18 @@ export const ScanResults = memo(function ScanResults({ result, onScanAgain }: Sc
 
             {/* Engine 2: Rent Reclaimer */}
             <div id="engine-2">
-                <ReclaimCard />
+                <EngineErrorBoundary engineId="2">
+                    <ReclaimCard />
+                </EngineErrorBoundary>
             </div>
             <ReclaimConfirmModal />
             <ReclaimProgressModal />
 
             {/* Engine 3: Dust Consolidator */}
             <div id="engine-3">
-                <DustCard />
+                <EngineErrorBoundary engineId="3">
+                    <DustCard />
+                </EngineErrorBoundary>
             </div>
             <DustConfirmModal />
             <DustProgressModal />

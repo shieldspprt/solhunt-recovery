@@ -1,4 +1,5 @@
 import {
+    AccountInfo,
     LAMPORTS_PER_SOL,
     ParsedAccountData,
     PublicKey,
@@ -24,6 +25,7 @@ import { isValidSolanaPublicKey } from '@/lib/validation';
 import { logger } from '@/lib/logger';
 import { createAppError } from '@/lib/errors';
 import { withRetry } from '@/lib/rpcRetry';
+import { chunk } from '@/lib/arrayUtils';
 
 interface StakeAuthorizedInfo {
     staker?: string;
@@ -294,16 +296,38 @@ async function scanSanctumTickets(
         return [] as SanctumApiTicket[];
     })();
 
-    const tickets: StakingTicket[] = [];
-    for (const apiTicket of ticketsFromApi) {
+    const validApiTickets = ticketsFromApi.filter((apiTicket) => {
         const ticketAddress = (apiTicket.ticket || apiTicket.ticketAddress || '').trim();
-        if (!ticketAddress || !isValidSolanaPublicKey(ticketAddress)) continue;
+        return ticketAddress && isValidSolanaPublicKey(ticketAddress);
+    });
 
-        const accountInfo = await withRetry(
-            (conn) => conn.getAccountInfo(new PublicKey(ticketAddress), 'confirmed'),
-            { operationName: 'Sanctum getAccountInfo' }
+    if (validApiTickets.length === 0) {
+        return [];
+    }
+
+    const pubkeys = validApiTickets.map((apiTicket) => {
+        const ticketAddress = (apiTicket.ticket || apiTicket.ticketAddress || '').trim();
+        return new PublicKey(ticketAddress);
+    });
+
+    const chunks = chunk(pubkeys, 100);
+    const infos: (AccountInfo<Buffer> | null)[] = [];
+
+    for (const batch of chunks) {
+        const batchInfos = await withRetry(
+            (conn) => conn.getMultipleAccountsInfo(batch),
+            { operationName: 'Sanctum getMultipleAccountsInfo' }
         );
+        infos.push(...batchInfos);
+    }
+
+    const tickets: StakingTicket[] = [];
+    for (let i = 0; i < validApiTickets.length; i += 1) {
+        const apiTicket = validApiTickets[i];
+        const accountInfo = infos[i];
         if (!accountInfo) continue;
+
+        const ticketAddress = (apiTicket.ticket || apiTicket.ticketAddress || '').trim();
 
         const lamportsRaw = String(
             apiTicket.lamportsValue

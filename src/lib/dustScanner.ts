@@ -399,54 +399,62 @@ export async function getSwapQuotes(dustTokens: DustToken[]): Promise<Map<string
         const batch = batches[index];
         const settled = await Promise.allSettled(
             batch.map(async (token) => {
-                const jupiterQuote = await fetchJupiterQuote(token.mint, token.rawBalance);
-                if (jupiterQuote) {
-                    const outAmount = jupiterQuote.outAmount ?? '0';
-                    const outLamports = Number.parseInt(outAmount, 10);
-                    if (Number.isFinite(outLamports) && outLamports >= MIN_SWAP_OUTPUT_LAMPORTS) {
-                        return {
-                            mint: token.mint,
-                            quote: {
-                                inputMint: token.mint,
-                                outputMint: SOL_MINT,
-                                inAmount: jupiterQuote.inAmount ?? token.rawBalance,
-                                outAmount,
-                                outAmountSOL: outLamports / 1e9,
+                const [jupiterQuote, raydiumQuote] = await Promise.all([
+                    fetchJupiterQuote(token.mint, token.rawBalance),
+                    fetchRaydiumQuote(token.mint, token.rawBalance),
+                ]);
+
+                let bestQuote = null;
+                let bestOutAmount = 0n;
+
+                if (jupiterQuote && jupiterQuote.outAmount) {
+                    try {
+                        const outLamports = BigInt(jupiterQuote.outAmount);
+                        if (outLamports >= BigInt(MIN_SWAP_OUTPUT_LAMPORTS)) {
+                            bestQuote = {
+                                provider: 'jupiter' as const,
+                                outAmount: jupiterQuote.outAmount,
+                                outAmountSOL: Number(outLamports) / 1e9,
                                 priceImpactPct: safeParseFloat(jupiterQuote.priceImpactPct),
                                 routePlan: summariseJupiterRoute(jupiterQuote),
-                                provider: 'jupiter' as const,
                                 rawQuote: jupiterQuote,
-                            },
-                        };
-                    }
+                            };
+                            bestOutAmount = outLamports;
+                        }
+                    } catch (_e) {}
                 }
 
-                const raydiumQuote = await fetchRaydiumQuote(token.mint, token.rawBalance);
-                if (!raydiumQuote) {
-                    return null;
+                if (raydiumQuote && raydiumQuote.outputAmount) {
+                    try {
+                        const outLamports = BigInt(raydiumQuote.outputAmount);
+                        if (outLamports >= BigInt(MIN_SWAP_OUTPUT_LAMPORTS) && outLamports > bestOutAmount) {
+                            bestQuote = {
+                                provider: 'raydium' as const,
+                                outAmount: raydiumQuote.outputAmount,
+                                outAmountSOL: Number(outLamports) / 1e9,
+                                priceImpactPct: safeParseFloat(raydiumQuote.priceImpactPct),
+                                routePlan: summariseRaydiumRoute(raydiumQuote),
+                                rawQuote: raydiumQuote,
+                            };
+                            bestOutAmount = outLamports;
+                        }
+                    } catch (_e) {}
                 }
 
-                const outAmount = raydiumQuote.outputAmount ?? '0';
-                const outLamports = Number.parseInt(outAmount, 10);
-                if (!Number.isFinite(outLamports) || outLamports < MIN_SWAP_OUTPUT_LAMPORTS) {
-                    return null;
-                }
-
-                const outAmountSOL = outLamports / 1e9;
-                const priceImpactPct = safeParseFloat(raydiumQuote.priceImpactPct);
+                if (!bestQuote) return null;
 
                 return {
                     mint: token.mint,
                     quote: {
                         inputMint: token.mint,
                         outputMint: SOL_MINT,
-                        inAmount: raydiumQuote.inputAmount ?? token.rawBalance,
-                        outAmount,
-                        outAmountSOL,
-                        priceImpactPct,
-                        routePlan: summariseRaydiumRoute(raydiumQuote),
-                        provider: 'raydium' as const,
-                        rawQuote: raydiumQuote,
+                        inAmount: bestQuote.provider === 'jupiter' ? (jupiterQuote?.inAmount ?? token.rawBalance) : (raydiumQuote?.inputAmount ?? token.rawBalance),
+                        outAmount: bestQuote.outAmount,
+                        outAmountSOL: bestQuote.outAmountSOL,
+                        priceImpactPct: bestQuote.priceImpactPct,
+                        routePlan: bestQuote.routePlan,
+                        provider: bestQuote.provider,
+                        rawQuote: bestQuote.rawQuote,
                     },
                 };
             })

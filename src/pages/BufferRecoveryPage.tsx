@@ -5,6 +5,7 @@ import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { BufferRecoveryCard } from '@/modules/buffer-recovery/components/BufferRecoveryCard';
 import { ENGINE_METADATA } from '@/config/constants';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { EngineErrorBoundary } from '@/components/common/EngineErrorBoundary';
 
 export function BufferRecoveryPage() {
     const { connected } = useWallet();
@@ -79,7 +80,9 @@ export function BufferRecoveryPage() {
                         </div>
                     </div>
                 ) : (
-                    <BufferRecoveryCard />
+                    <EngineErrorBoundary engineId="10">
+                        <BufferRecoveryCard />
+                    </EngineErrorBoundary>
                 )}
             </div>
         </PageWrapper>

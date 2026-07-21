@@ -1,4 +1,4 @@
-import { PublicKey } from '@solana/web3.js';
+import { AccountInfo, PublicKey } from '@solana/web3.js';
 import bs58 from 'bs58';
 import {
     BufferAccount
@@ -10,6 +10,7 @@ import {
 import { withRetry } from '@/lib/rpcRetry';
 import { isValidSolanaPublicKey } from '@/lib/validation';
 import { createAppError } from '@/lib/errors';
+import { chunk } from '@/lib/arrayUtils';
 
 /**
  * Scans for BPF Loader buffer accounts owned by the given wallet.
@@ -49,33 +50,46 @@ export async function scanForBuffers(
         { operationName: 'scanForBuffers.getProgramAccounts' }
     );
 
-    const loaderV3Buffers: BufferAccount[] = await Promise.all(
-        upgradeableBuffers.map(async (acc) => {
-            const info = await withRetry(
-                (conn) => conn.getAccountInfo(acc.pubkey),
-                { operationName: 'scanForBuffers.getAccountInfo' }
-            );
-            if (!info) return null;
+    if (upgradeableBuffers.length === 0) {
+        return [];
+    }
 
-            const lamports = info.lamports;
-            const dataLength = info.data.length;
+    const pubkeys = upgradeableBuffers.map((acc) => acc.pubkey);
+    const chunks = chunk(pubkeys, 100);
+    const infos: (AccountInfo<Buffer> | null)[] = [];
 
-            const recoverableSOL = lamports / 1e9;
-            const fee = recoverableSOL * (BUFFER_CLOSE_FEE_PERCENT / 100);
+    for (const batch of chunks) {
+        const batchInfos = await withRetry(
+            (conn) => conn.getMultipleAccountsInfo(batch),
+            { operationName: 'scanForBuffers.getMultipleAccountsInfo' }
+        );
+        infos.push(...batchInfos);
+    }
 
-            return {
-                address: acc.pubkey.toBase58(),
-                authorityAddress: walletAddress,
-                dataLengthBytes: dataLength,
-                lamports: lamports,
-                recoverableSOL: recoverableSOL - fee,
-                loaderProgram: 'v3',
-                status: 'closeable' as const,
-                createdAt: Date.now(),
-                label: `Upgradeable Buffer (${(dataLength / (1024 * 1024)).toFixed(1)} MB)`
-            } as BufferAccount;
-        })
-    ).then(res => res.filter((b): b is BufferAccount => b !== null));
+    const loaderV3Buffers: BufferAccount[] = [];
+    for (let i = 0; i < upgradeableBuffers.length; i += 1) {
+        const acc = upgradeableBuffers[i];
+        const info = infos[i];
+        if (!info) continue;
+
+        const lamports = info.lamports;
+        const dataLength = info.data.length;
+
+        const recoverableSOL = lamports / 1e9;
+        const fee = recoverableSOL * (BUFFER_CLOSE_FEE_PERCENT / 100);
+
+        loaderV3Buffers.push({
+            address: acc.pubkey.toBase58(),
+            authorityAddress: walletAddress,
+            dataLengthBytes: dataLength,
+            lamports: lamports,
+            recoverableSOL: recoverableSOL - fee,
+            loaderProgram: 'v3',
+            status: 'closeable' as const,
+            createdAt: Date.now(),
+            label: `Upgradeable Buffer (${(dataLength / (1024 * 1024)).toFixed(1)} MB)`
+        });
+    }
 
     return [...loaderV3Buffers];
 }

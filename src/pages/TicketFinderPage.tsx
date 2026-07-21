@@ -6,6 +6,7 @@ import { TicketFinderCard } from '@/components/tickets/TicketFinderCard';
 import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { ENGINE_METADATA } from '@/config/constants';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { EngineErrorBoundary } from '@/components/common/EngineErrorBoundary';
 
 const ENGINE = ENGINE_METADATA.find(e => e.id === 4)!;
 
@@ -55,7 +56,9 @@ export function TicketFinderPage() {
                         </div>
                     </div>
                 ) : (
-                    <TicketFinderCard />
+                    <EngineErrorBoundary engineId="4">
+                        <TicketFinderCard />
+                    </EngineErrorBoundary>
                 )}
             </div>
         </PageWrapper>

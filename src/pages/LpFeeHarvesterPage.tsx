@@ -6,6 +6,7 @@ import { WalletConnectButton } from '@/components/wallet/WalletConnectButton';
 import { LPHarvesterCard } from '@/modules/lp-harvester';
 import { ENGINE_METADATA } from '@/config/constants';
 import { usePageMeta } from '@/hooks/usePageMeta';
+import { EngineErrorBoundary } from '@/components/common/EngineErrorBoundary';
 
 const ENGINE = ENGINE_METADATA.find(e => e.id === 5)!;
 
@@ -57,7 +58,9 @@ export function LpFeeHarvesterPage() {
                         </div>
                     </div>
                 ) : (
-                    <LPHarvesterCard />
+                    <EngineErrorBoundary engineId="5">
+                        <LPHarvesterCard />
+                    </EngineErrorBoundary>
                 )}
             </div>
         </PageWrapper>
